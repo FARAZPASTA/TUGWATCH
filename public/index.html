@@ -3100,7 +3100,7 @@ html[data-theme="dark"] #l-pass::placeholder {
             <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#ef4444;border-radius:50%"></span> Current Time Pin</span>
           </div>
         </div>
-        <div id="lunar-svg-chart" style="width:100%;height:180px;position:relative;background:var(--bg1);border-radius:8px;border:1px solid var(--b2);overflow:hidden"></div>
+        <div id="lunar-svg-chart" style="width:100%;height:240px;position:relative;background:var(--bg1);border-radius:12px;border:1px solid var(--b2);overflow:hidden;padding:4px"></div>
       </div>
 
       <!-- 4-POINT DAILY HIGH/LOW SCHEDULE & TUG CLEARANCE CALCULATOR -->
@@ -14385,86 +14385,103 @@ function renderTidalWaveChart(sched, isToday, nowHr) {
   var container = document.getElementById('lunar-svg-chart');
   if (!container) return;
 
-  var points = [];
-  var minVal = Math.max(0, sched.minLW - 0.5);
-  var maxVal = sched.maxHW + 0.8;
-  var valRange = maxVal - minVal;
+  var minVal = Math.max(0, sched.minLW - 0.4);
+  var maxVal = sched.maxHW + 0.9;
+  var valRange = Math.max(1, maxVal - minVal);
 
-  var width = 900;
-  var height = 180;
-  var padding = { top: 20, right: 30, bottom: 30, left: 45 };
+  var width = 1000;
+  var height = 240;
+  var padding = { top: 35, right: 40, bottom: 40, left: 55 };
   var chartW = width - padding.left - padding.right;
   var chartH = height - padding.top - padding.bottom;
 
-  for (var hr = 0; hr <= 24; hr += 0.5) {
+  var points = [];
+  for (var hr = 0; hr <= 24; hr += 0.25) {
     var lvl = getWaterLevelAtTime(sched, hr);
     var x = padding.left + (hr / 24) * chartW;
     var y = padding.top + chartH - ((lvl - minVal) / valRange) * chartH;
     points.push({ hr: hr, lvl: lvl, x: x, y: y });
   }
 
-  var pathD = 'M ' + points[0].x + ' ' + points[0].y;
+  var pathD = 'M ' + points[0].x.toFixed(1) + ' ' + points[0].y.toFixed(1);
   for (var i = 1; i < points.length; i++) {
     pathD += ' L ' + points[i].x.toFixed(1) + ' ' + points[i].y.toFixed(1);
   }
 
   var areaD = pathD + ' L ' + (padding.left + chartW) + ' ' + (padding.top + chartH) + ' L ' + padding.left + ' ' + (padding.top + chartH) + ' Z';
 
-  // Y-Axis Gridlines
+  // Y-Axis Gridlines & Crisp Labels
   var gridLines = '';
-  for (var g = Math.ceil(minVal); g <= Math.floor(maxVal); g += (valRange > 4 ? 2 : 1)) {
+  for (var g = Math.ceil(minVal); g <= Math.floor(maxVal); g += (valRange > 5 ? 2 : 1)) {
     var gy = padding.top + chartH - ((g - minVal) / valRange) * chartH;
-    gridLines += '<line x1="' + padding.left + '" y1="' + gy + '" x2="' + (padding.left + chartW) + '" y2="' + gy + '" stroke="var(--b1)" stroke-dasharray="3,3"/>'
-      + '<text x="' + (padding.left - 8) + '" y="' + (gy + 3) + '" text-anchor="end" font-size="9" fill="var(--t3)">' + g + 'm</text>';
+    gridLines += '<line x1="' + padding.left + '" y1="' + gy.toFixed(1) + '" x2="' + (padding.left + chartW) + '" y2="' + gy.toFixed(1) + '" stroke="rgba(148,163,184,0.25)" stroke-dasharray="4,4" stroke-width="1"/>'
+      + '<text x="' + (padding.left - 12) + '" y="' + (gy + 4).toFixed(1) + '" text-anchor="end" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,sans-serif" fill="#64748b" stroke="none">+' + g + 'm</text>';
   }
 
-  // X-Axis Hour Ticks
+  // X-Axis Hour Ticks & Labels
   var hourTicks = '';
   for (var h = 0; h <= 24; h += 3) {
     var hx = padding.left + (h / 24) * chartW;
     var label = (h < 10 ? '0' + h : '' + h) + ':00';
-    hourTicks += '<line x1="' + hx + '" y1="' + padding.top + '" x2="' + hx + '" y2="' + (padding.top + chartH) + '" stroke="var(--b1)" stroke-dasharray="2,2"/>'
-      + '<text x="' + hx + '" y="' + (height - 8) + '" text-anchor="middle" font-size="9" font-family="var(--fm)" fill="var(--t3)">' + label + '</text>';
+    hourTicks += '<line x1="' + hx.toFixed(1) + '" y1="' + padding.top + '" x2="' + hx.toFixed(1) + '" y2="' + (padding.top + chartH) + '" stroke="rgba(148,163,184,0.2)" stroke-dasharray="3,3" stroke-width="1"/>'
+      + '<text x="' + hx.toFixed(1) + '" y="' + (height - 12) + '" text-anchor="middle" font-size="11" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,monospace" fill="#64748b" stroke="none">' + label + '</text>';
   }
 
-  // Extreme Event Markers on Curve
+  // Extreme Event Badges with Pill Backgrounds
   var eventPins = sched.events.map(function(ev) {
     var ex = padding.left + (ev.timeFloat / 24) * chartW;
     var ey = padding.top + chartH - ((ev.height - minVal) / valRange) * chartH;
     var isHW = ev.type === 'HT';
+    var badgeY = isHW ? ey - 28 : ey + 14;
+    var textY = isHW ? ey - 14 : ey + 28;
+    var badgeBg = isHW ? '#0284c7' : '#059669';
+    var labelText = (isHW ? 'HW +' : 'LW +') + ev.height.toFixed(2) + 'm (' + ev.timeStr + ')';
+    var badgeWidth = 118;
+
     return '<g>'
-      + '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="5" fill="' + (isHW ? '#0284c7' : '#10b981') + '" stroke="#ffffff" stroke-width="2"/>'
-      + '<text x="' + ex.toFixed(1) + '" y="' + (isHW ? ey - 10 : ey + 16).toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="700" fill="' + (isHW ? 'var(--accent)' : 'var(--ok)') + '">'
-      + ev.type + ' ' + ev.height + 'm (' + ev.timeStr + ')'
+      + '<line x1="' + ex.toFixed(1) + '" y1="' + ey.toFixed(1) + '" x2="' + ex.toFixed(1) + '" y2="' + (isHW ? ey - 20 : ey + 20).toFixed(1) + '" stroke="' + badgeBg + '" stroke-width="1.5" stroke-dasharray="2,2"/>'
+      + '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="5.5" fill="' + badgeBg + '" stroke="#ffffff" stroke-width="2"/>'
+      + '<rect x="' + (ex - badgeWidth/2).toFixed(1) + '" y="' + badgeY.toFixed(1) + '" width="' + badgeWidth + '" height="20" rx="6" fill="' + badgeBg + '" stroke="#ffffff" stroke-width="1.2" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))"/>'
+      + '<text x="' + ex.toFixed(1) + '" y="' + textY.toFixed(1) + '" text-anchor="middle" font-size="10.5" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,sans-serif" fill="#ffffff" stroke="none">'
+      + labelText
       + '</text>'
       + '</g>';
   }).join('');
 
-  // Live "NOW" Pin (if showing today)
+  // Live NOW Pin (if showing today)
   var nowPin = '';
   if (isToday && nowHr >= 0 && nowHr <= 24) {
     var nx = padding.left + (nowHr / 24) * chartW;
     var nLvl = getWaterLevelAtTime(sched, nowHr);
     var ny = padding.top + chartH - ((nLvl - minVal) / valRange) * chartH;
+    var nowMin = Math.round(nowHr * 60) % 60;
+    var nowHour = Math.floor(nowHr) % 24;
+    var timeStr = (nowHour < 10 ? '0' + nowHour : '' + nowHour) + ':' + (nowMin < 10 ? '0' + nowMin : '' + nowMin);
+    var nowBadgeW = 120;
+
     nowPin = '<g>'
-      + '<line x1="' + nx.toFixed(1) + '" y1="' + padding.top + '" x2="' + nx.toFixed(1) + '" y2="' + (padding.top + chartH) + '" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,2"/>'
-      + '<circle cx="' + nx.toFixed(1) + '" cy="' + ny.toFixed(1) + '" r="6" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>'
-      + '<rect x="' + (nx - 28).toFixed(1) + '" y="' + (padding.top - 12) + '" width="56" height="16" rx="4" fill="#ef4444"/>'
-      + '<text x="' + nx.toFixed(1) + '" y="' + padding.top + '" text-anchor="middle" font-size="8.5" font-weight="800" fill="#ffffff">NOW +' + nLvl + 'm</text>'
+      + '<line x1="' + nx.toFixed(1) + '" y1="' + padding.top + '" x2="' + nx.toFixed(1) + '" y2="' + (padding.top + chartH) + '" stroke="#ef4444" stroke-width="2.2" stroke-dasharray="5,3"/>'
+      + '<circle cx="' + nx.toFixed(1) + '" cy="' + ny.toFixed(1) + '" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2.5" filter="drop-shadow(0 0 6px rgba(239,68,68,0.6))"/>'
+      + '<rect x="' + (nx - nowBadgeW/2).toFixed(1) + '" y="' + (padding.top - 24) + '" width="' + nowBadgeW + '" height="22" rx="6" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" filter="drop-shadow(0 3px 6px rgba(220,38,38,0.35))"/>'
+      + '<text x="' + nx.toFixed(1) + '" y="' + (padding.top - 9) + '" text-anchor="middle" font-size="11" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,sans-serif" fill="#ffffff" stroke="none">🔴 NOW +' + nLvl.toFixed(2) + 'm (' + timeStr + ')</text>'
       + '</g>';
   }
 
-  container.innerHTML = '<svg viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none" style="width:100%;height:100%">'
+  // Height container in CSS adjusted to 240px
+  var chartBox = document.getElementById('lunar-svg-chart');
+  if (chartBox) chartBox.style.height = '240px';
+
+  container.innerHTML = '<svg viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none" style="width:100%;height:100%;display:block">'
     + '<defs>'
     +   '<linearGradient id="tideGrad" x1="0%" y1="0%" x2="0%" y2="100%">'
-    +     '<stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35"/>'
-    +     '<stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.02"/>'
+    +     '<stop offset="0%" stop-color="#0284c7" stop-opacity="0.35"/>'
+    +     '<stop offset="100%" stop-color="#0284c7" stop-opacity="0.03"/>'
     +   '</linearGradient>'
     + '</defs>'
     + gridLines
     + hourTicks
-    + '<path d="' + areaD + '" fill="url(#tideGrad)"/>'
-    + '<path d="' + pathD + '" fill="none" stroke="#0ea5e9" stroke-width="2.8" stroke-linecap="round"/>'
+    + '<path d="' + areaD + '" fill="url(#tideGrad)" stroke="none"/>'
+    + '<path d="' + pathD + '" fill="none" stroke="#0284c7" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>'
     + eventPins
     + nowPin
     + '</svg>';
