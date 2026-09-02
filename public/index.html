@@ -3041,30 +3041,109 @@ html[data-theme="dark"] #l-pass::placeholder {
     </div>
 
     <!-- TIDE TABLES -->
+        <!-- LUNAR ASTRONOMICAL TIDE & ECLIPSE SCHEDULE ENGINE -->
     <div class="page" id="p-tides">
-      <div class="page-hdr">
-        <div class="page-hdr-title">Tide Charts</div>
+      <div class="page-hdr" style="margin-bottom:12px">
+        <div>
+          <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
+            <span>🌙 Astronomical Lunar Tide &amp; Eclipse Reference Engine</span>
+            <span class="chip chip-accent" style="font-size:10px">v7.2 Astro-Tidal Model</span>
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Semi-diurnal harmonic tidal curves, Synodic Spring/Neap Syzygy cycles, and Lunar/Solar Eclipse surge prediction reference</div>
+        </div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <select class="fi" id="tide-loc-filter" style="width:180px;font-size:11px" onchange="renderTides()">
-            <option value="">All Ports</option>
-          </select>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('m-tide-loc')">+ Add Port</button>
-          <button class="btn btn-primary" onclick="openModal('m-tide-chart')">
-            <svg viewBox="0 0 24 24" fill="none" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/></svg>
-            Upload Tide Chart
-          </button>
+          <button class="btn btn-outline btn-sm" onclick="setTideDateOffset(-1)">⏮ Prev Day</button>
+          <button class="btn btn-outline btn-sm" onclick="setTideDateToday()">📅 Today</button>
+          <button class="btn btn-outline btn-sm" onclick="setTideDateOffset(1)">⏭ Next Day</button>
+          <button class="btn btn-warn btn-sm" onclick="jumpToNextSyzygy()">🌕 Next Spring Tide</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportLunarTideSchedule()"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="window.print()"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print Schedule</button>
         </div>
       </div>
-      <div style="background:#e7f3ff;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#1877f2">
-        📊 Upload official tide charts from port authorities or DG Shipping. Charts are saved to Document Vault automatically.
+
+      <!-- PORT & DATE SELECTOR BAR -->
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--bg2);padding:12px 16px;border-radius:12px;border:1px solid var(--b2);margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px">⚓ Coastal Reference Port:</label>
+          <select class="fi" id="lunar-port-sel" style="width:240px;font-weight:700;font-size:12px;color:var(--accent)" onchange="renderTides()">
+            <option value="sikka" selected>Sikka Port (Gulf of Kutch)</option>
+            <option value="bedi">Bedi / Rozi Port</option>
+            <option value="kandla">Deendayal Port (Kandla)</option>
+            <option value="navlakhi">Navlakhi Port</option>
+            <option value="mundra">Mundra Port</option>
+            <option value="mumbai">Mumbai / JNPT Port</option>
+            <option value="cochin">Cochin Port</option>
+            <option value="chennai">Chennai Port</option>
+            <option value="vizag">Visakhapatnam Port</option>
+            <option value="kolkata">Kolkata / Haldia (Hooghly)</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px">📅 Prediction Date:</label>
+          <input type="date" class="fi" id="lunar-date-picker" style="width:160px;font-weight:700" onchange="renderTides()"/>
+        </div>
+        <div id="lunar-quick-badge" style="margin-left:auto;display:flex;align-items:center;gap:6px"></div>
       </div>
-      <!-- Port chips -->
-      <div id="tide-ports-strip" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:var(--bg2);border-radius:8px;border:1px solid var(--b2)">
-        <span style="font-size:10px;font-weight:700;color:var(--t3);align-self:center">PORTS:</span>
-        <div id="tide-port-chips" style="display:flex;gap:5px;flex-wrap:wrap;flex:1"></div>
-        <button class="btn btn-ghost btn-sm" onclick="openModal('m-tide-loc')" style="font-size:10px">+ Add Port</button>
+
+      <!-- MAIN ASTRONOMICAL HUD -->
+      <div id="lunar-hud-container" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px"></div>
+
+      <!-- 24-HOUR TIDAL WAVE CURVE -->
+      <div class="data-card" style="padding:16px;margin-bottom:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--t1)">📊 24-Hour Semi-Diurnal Continuous Tidal Height Wave Curve</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:2px">Dynamic astronomical harmonic sinusoidal wave with live real-time water elevation pin</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;font-size:10px">
+            <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#0ea5e9;border-radius:2px"></span> Tidal Curve</span>
+            <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#ef4444;border-radius:50%"></span> Current Time Pin</span>
+          </div>
+        </div>
+        <div id="lunar-svg-chart" style="width:100%;height:180px;position:relative;background:var(--bg1);border-radius:8px;border:1px solid var(--b2);overflow:hidden"></div>
       </div>
-      <div id="tide-content"></div>
+
+      <!-- 4-POINT DAILY HIGH/LOW SCHEDULE & TUG CLEARANCE CALCULATOR -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:18px">
+        <!-- 4-Point Schedule -->
+        <div class="data-card" style="padding:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px">🌊 Daily 4-Point Tidal Extremes Schedule</div>
+          <div id="lunar-4point-table"></div>
+        </div>
+
+        <!-- Tug Towing & Berthing Clearance Tool -->
+        <div class="data-card" style="padding:16px;background:linear-gradient(135deg,var(--bg1) 0%,rgba(14,165,233,0.04) 100%)">
+          <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+            <span>⚓ Tug Draft &amp; UKC Window Tool</span>
+          </div>
+          <div style="font-size:10px;color:var(--t3);margin-bottom:12px">Check Under-Keel Clearance &amp; safe berthing transit windows for current draft</div>
+          <div class="fg" style="margin-bottom:8px">
+            <label class="fl">Tug / Vessel Draft (m)</label>
+            <input type="number" step="0.1" class="fi" id="tug-draft-in" value="3.5" oninput="calculateTugClearance()"/>
+          </div>
+          <div class="fg" style="margin-bottom:10px">
+            <label class="fl">Required Safety UKC (m)</label>
+            <input type="number" step="0.1" class="fi" id="tug-ukc-in" value="1.0" oninput="calculateTugClearance()"/>
+          </div>
+          <div id="tug-clearance-result" style="border-radius:8px;padding:10px;background:var(--bg2);border:1px solid var(--b2);font-size:11px"></div>
+        </div>
+      </div>
+
+      <!-- 7-DAY & 30-DAY LUNAR FORECAST SCHEDULE -->
+      <div class="data-card" style="padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--t1)">🗓️ 15-Day Extended Lunar &amp; Syzygy Tidal Forecast</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:2px">Complete voyage planning &amp; drydock berthing tidal calendar with astronomical spring/neap flags</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="renderExtendedTides(7)">7 Days</button>
+            <button class="btn btn-outline btn-sm" onclick="renderExtendedTides(15)">15 Days</button>
+            <button class="btn btn-outline btn-sm" onclick="renderExtendedTides(30)">30 Days</button>
+          </div>
+        </div>
+        <div id="lunar-extended-forecast"></div>
+      </div>
     </div>
 
     <!-- PURCHASE ORDERS -->
@@ -6534,7 +6613,7 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div class="fr2"><div class="fg"><label class="fl">Running Hours Service Interval (hrs)</label><input class="fi" id="mc-rh-interval" type="number" placeholder="300"/></div><div class="fg"><label class="fl">Task Overdue Alert After (days)</label><input class="fi" id="mc-overdue-days" type="number" placeholder="1"/></div></div>
     <div class="fr2"><div class="fg"><label class="fl">WO Reminder Lead Time (days)</label><input class="fi" id="mc-wo-remind" type="number" placeholder="15"/></div><div class="fg"><label class="fl">Expiry Warning Window (days)</label><input class="fi" id="mc-exp-window" type="number" placeholder="60"/></div></div>
     <hr/>
-    <div id="ms-mandatory-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px"></div>
+    
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="saveSystemSettings()">Save System Settings</button>
       <button class="btn btn-outline" onclick="exportAllData()">📥 Export Backup</button>
@@ -9230,7 +9309,7 @@ function doLogin() {
 
   // Check master admin first (case-insensitive matching against uppercase)
   var found = null;
-  if ((MASTER.username||'').toUpperCase() === u && checkPassword(p, MASTER.password)) { found = MASTER; }
+  var _mRes = resolveAdmin(MASTER); if ((_mRes.username||'').toUpperCase() === u && checkPassword(p, _mRes.password)) { found = _mRes; }
   // Check regular admins
   if (!found) { for (var ai=0;ai<ADMINS.length;ai++) { var _ra=resolveAdmin(ADMINS[ai]); if ((_ra.username||'').toUpperCase()===u && checkPassword(p, _ra.password)) { if((DB.disabledAdmins||[]).includes(_ra.id)){recordFailedLogin(u);if(err){err.classList.add('on'); err.style.display='block'; err.textContent='This account has been deactivated. Contact Master Admin.';}return;} found=_ra; break; } } }
   // Check dynamic admins
@@ -14023,173 +14102,507 @@ function signOffCrew() {
 /* ══════════════════════════════════════════════════════════════
    TIDE TABLES
 ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   ASTRONOMICAL LUNAR TIDE & ECLIPSE REFERENCE ENGINE v7.2
+   Semi-diurnal Harmonic Model, Syzygy Spring/Neap Cycles & Eclipse Surge
+══════════════════════════════════════════════════════════════ */
+
+var LUNAR_PORTS = {
+  sikka:    { name: 'Sikka Port (Gulf of Kutch)',      meanHW: 5.8, meanLW: 0.8, baseHT1Hour: 3.5,  range: 5.0, zone: 'Semi-Diurnal Macro-Tidal', boreRisk: false },
+  bedi:     { name: 'Bedi / Rozi Port',               meanHW: 5.4, meanLW: 0.9, baseHT1Hour: 3.8,  range: 4.5, zone: 'Gulf of Kutch Coastal',     boreRisk: false },
+  kandla:   { name: 'Deendayal Port (Kandla)',        meanHW: 6.6, meanLW: 0.6, baseHT1Hour: 4.2,  range: 6.0, zone: 'Inner Gulf Macro-Tidal',    boreRisk: true  },
+  navlakhi: { name: 'Navlakhi Port',                  meanHW: 6.9, meanLW: 0.7, baseHT1Hour: 4.5,  range: 6.2, zone: 'Gulf Estuary Macro-Tidal',  boreRisk: true  },
+  mundra:   { name: 'Mundra Port',                    meanHW: 5.2, meanLW: 1.1, baseHT1Hour: 3.2,  range: 4.1, zone: 'Deepwater Gulf Channel',    boreRisk: false },
+  mumbai:   { name: 'Mumbai / JNPT Harbour',          meanHW: 4.8, meanLW: 0.9, baseHT1Hour: 2.5,  range: 3.9, zone: 'West Coast Semi-Diurnal',    boreRisk: false },
+  cochin:   { name: 'Cochin Port',                    meanHW: 1.2, meanLW: 0.3, baseHT1Hour: 1.8,  range: 0.9, zone: 'South-West Micro-Tidal',     boreRisk: false },
+  chennai:  { name: 'Chennai Port',                   meanHW: 1.4, meanLW: 0.2, baseHT1Hour: 8.5,  range: 1.2, zone: 'East Coast Micro-Tidal',     boreRisk: false },
+  vizag:    { name: 'Visakhapatnam Port',             meanHW: 1.8, meanLW: 0.4, baseHT1Hour: 8.9,  range: 1.4, zone: 'Bay of Bengal Coastal',      boreRisk: false },
+  kolkata:  { name: 'Kolkata / Haldia (Hooghly)',     meanHW: 5.6, meanLW: 0.8, baseHT1Hour: 10.2, range: 4.8, zone: 'Hooghly River Estuary',      boreRisk: true  }
+};
+
+// Known Eclipse Nodes & Perigean Syzygies (Reference table for surge amplification)
+var ECLIPSE_REFERENCE_NODES = [
+  { start: '2025-03-12', end: '2025-03-16', type: 'Total Lunar Eclipse Syzygy', surgeFactor: 1.14 },
+  { start: '2025-03-27', end: '2025-03-31', type: 'Partial Solar Eclipse Syzygy', surgeFactor: 1.12 },
+  { start: '2025-09-05', end: '2025-09-10', type: 'Total Lunar Eclipse King Tide', surgeFactor: 1.15 },
+  { start: '2025-09-19', end: '2025-09-24', type: 'Solar Eclipse Syzygy', surgeFactor: 1.13 },
+  { start: '2026-02-15', end: '2026-02-20', type: 'Annular Solar Eclipse Syzygy', surgeFactor: 1.13 },
+  { start: '2026-03-01', end: '2026-03-06', type: 'Total Lunar Eclipse Syzygy', surgeFactor: 1.16 },
+  { start: '2026-08-10', end: '2026-08-15', type: 'Solar Eclipse Syzygy', surgeFactor: 1.14 },
+  { start: '2026-08-26', end: '2026-09-01', type: 'Partial Lunar Eclipse Syzygy', surgeFactor: 1.15 }
+];
+
+function getAstroLunarState(dateStr) {
+  var d = dateStr ? new Date(dateStr + 'T12:00:00Z') : new Date();
+  var refEpoch = new Date('2000-01-06T18:14:00Z').getTime();
+  var diffDays = (d.getTime() - refEpoch) / 86400000;
+  var synodic = 29.530588853;
+  var lunarAge = ((diffDays % synodic) + synodic) % synodic;
+  var phaseFrac = lunarAge / synodic;
+  var illum = (1 - Math.cos(phaseFrac * 2 * Math.PI)) / 2 * 100;
+
+  var phaseName = '', phaseIcon = '', regime = '', isSpring = false, isNeap = false;
+
+  if (phaseFrac < 0.04 || phaseFrac > 0.96) {
+    phaseName = 'New Moon (Amavasya)'; phaseIcon = '🌑'; regime = 'Spring Tide (Syzygy)'; isSpring = true;
+  } else if (phaseFrac >= 0.04 && phaseFrac < 0.21) {
+    phaseName = 'Waxing Crescent'; phaseIcon = '🌒'; regime = 'Transition Moderate Tide';
+  } else if (phaseFrac >= 0.21 && phaseFrac < 0.29) {
+    phaseName = 'First Quarter'; phaseIcon = '🌓'; regime = 'Neap Tide (Quadrature)'; isNeap = true;
+  } else if (phaseFrac >= 0.29 && phaseFrac < 0.46) {
+    phaseName = 'Waxing Gibbous'; phaseIcon = '🌔'; regime = 'Transition Moderate Tide';
+  } else if (phaseFrac >= 0.46 && phaseFrac < 0.54) {
+    phaseName = 'Full Moon (Purnima)'; phaseIcon = '🌕'; regime = 'Spring Tide (Syzygy)'; isSpring = true;
+  } else if (phaseFrac >= 0.54 && phaseFrac < 0.71) {
+    phaseName = 'Waning Gibbous'; phaseIcon = '🌖'; regime = 'Transition Moderate Tide';
+  } else if (phaseFrac >= 0.71 && phaseFrac < 0.79) {
+    phaseName = 'Last Quarter'; phaseIcon = '🌗'; regime = 'Neap Tide (Quadrature)'; isNeap = true;
+  } else {
+    phaseName = 'Waning Crescent'; phaseIcon = '🌘'; regime = 'Transition Moderate Tide';
+  }
+
+  // Base gravitational modulation factor (1.0 = mean, 1.28 = spring peak, 0.72 = neap trough)
+  var springFactor = 1.0 + 0.28 * Math.cos(2 * phaseFrac * 2 * Math.PI);
+
+  // Eclipse anomaly check
+  var iso = d.toISOString().split('T')[0];
+  var eclipseNode = ECLIPSE_REFERENCE_NODES.find(function(e){ return iso >= e.start && iso <= e.end; });
+  var isEclipseAlert = !!eclipseNode;
+  if (isEclipseAlert) {
+    springFactor *= (eclipseNode.surgeFactor || 1.12);
+  }
+
+  return {
+    date: iso,
+    lunarAge: lunarAge,
+    phaseFrac: phaseFrac,
+    illum: illum,
+    phaseName: phaseName,
+    phaseIcon: phaseIcon,
+    regime: regime,
+    isSpring: isSpring,
+    isNeap: isNeap,
+    springFactor: springFactor,
+    isEclipseAlert: isEclipseAlert,
+    eclipseDesc: isEclipseAlert ? eclipseNode.type : null
+  };
+}
+
+function calculateDailyTideSchedule(portKey, dateStr) {
+  var p = LUNAR_PORTS[portKey] || LUNAR_PORTS.sikka;
+  var astro = getAstroLunarState(dateStr);
+  
+  var k = astro.springFactor;
+  var hw1 = +(p.meanHW * k).toFixed(2);
+  var lw1 = +(Math.max(0.1, p.meanLW / Math.max(0.7, k))).toFixed(2);
+  var hw2 = +(hw1 * (0.97 + 0.04 * Math.sin(astro.lunarAge))).toFixed(2);
+  var lw2 = +(lw1 * (0.98 + 0.03 * Math.cos(astro.lunarAge))).toFixed(2);
+
+  // Daily lunar progression: ~50.3 minutes per day
+  var baseLag = (astro.lunarAge * 0.84) % 12;
+  var tHt1 = (p.baseHT1Hour + baseLag) % 12;
+  var tLt1 = (tHt1 + 6.21) % 24;
+  var tHt2 = (tHt1 + 12.42) % 24;
+  var tLt2 = (tLt1 + 12.42) % 24;
+
+  function fmtHr(hFloat) {
+    var totalMin = Math.round(hFloat * 60);
+    var h = Math.floor(totalMin / 60) % 24;
+    var m = totalMin % 60;
+    return (h < 10 ? '0' + h : '' + h) + ':' + (m < 10 ? '0' + m : '' + m);
+  }
+
+  var events = [
+    { type: 'HT', name: 'High Tide 1', timeFloat: tHt1, timeStr: fmtHr(tHt1), height: hw1, icon: '🌊' },
+    { type: 'LT', name: 'Low Tide 1',  timeFloat: tLt1, timeStr: fmtHr(tLt1), height: lw1, icon: '⚓' },
+    { type: 'HT', name: 'High Tide 2', timeFloat: tHt2, timeStr: fmtHr(tHt2), height: hw2, icon: '🌊' },
+    { type: 'LT', name: 'Low Tide 2',  timeFloat: tLt2, timeStr: fmtHr(tLt2), height: lw2, icon: '⚓' }
+  ].sort(function(a,b){ return a.timeFloat - b.timeFloat; });
+
+  var maxHW = Math.max(hw1, hw2);
+  var minLW = Math.min(lw1, lw2);
+  var tideRange = +(maxHW - minLW).toFixed(2);
+  var estCurrentKts = +(tideRange * 0.65 * (p.boreRisk ? 1.25 : 1.0)).toFixed(1);
+
+  return {
+    port: p,
+    astro: astro,
+    events: events,
+    maxHW: maxHW,
+    minLW: minLW,
+    range: tideRange,
+    currentSpeedKts: estCurrentKts,
+    tHt1: tHt1,
+    hw1: hw1,
+    tLt1: tLt1,
+    lw1: lw1,
+    tHt2: tHt2,
+    hw2: hw2,
+    tLt2: tLt2,
+    lw2: lw2
+  };
+}
+
+function getWaterLevelAtTime(sched, hourFloat) {
+  var p = sched.port;
+  var meanLevel = (sched.maxHW + sched.minLW) / 2;
+  var amplitude = (sched.maxHW - sched.minLW) / 2;
+  // Semi-diurnal period: 12.42 hrs (omega = 2*PI / 12.42)
+  var omega = (2 * Math.PI) / 12.42;
+  var phaseOffset = sched.tHt1 * omega;
+  var level = meanLevel + amplitude * Math.cos(omega * hourFloat - phaseOffset);
+  return +(Math.max(0.1, level)).toFixed(2);
+}
+
+/* ── UI CONTROLLER & RENDERERS ── */
+
 function fillTideLocSelects() {
-  var locs = DB.tideLocs || [];
-  var opts = locs.map(function(l){ return '<option value="' + l + '">' + l + '</option>'; }).join('');
-  var sels = ['tide-loc','ta-loc'];
-  sels.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.innerHTML = opts || '<option>No locations</option>';
-  });
+  var sel = document.getElementById('lunar-port-sel');
+  if (!sel) return;
+}
+
+function setTideDateToday() {
+  var dp = document.getElementById('lunar-date-picker');
+  if (dp) dp.value = new Date().toISOString().split('T')[0];
+  renderTides();
+}
+
+function setTideDateOffset(offsetDays) {
+  var dp = document.getElementById('lunar-date-picker');
+  if (!dp) return;
+  var cur = dp.value ? new Date(dp.value + 'T12:00:00Z') : new Date();
+  cur.setDate(cur.getDate() + offsetDays);
+  dp.value = cur.toISOString().split('T')[0];
+  renderTides();
+}
+
+function jumpToNextSyzygy() {
+  var dp = document.getElementById('lunar-date-picker');
+  if (!dp) return;
+  var cur = dp.value ? new Date(dp.value + 'T12:00:00Z') : new Date();
+  for (var i = 1; i <= 30; i++) {
+    var testDate = new Date(cur.getTime() + i * 86400000);
+    var iso = testDate.toISOString().split('T')[0];
+    var state = getAstroLunarState(iso);
+    if (state.isSpring) {
+      dp.value = iso;
+      renderTides();
+      toast('Jumped to next Syzygy (' + state.phaseName + ' · ' + iso + ') ✓', 'var(--ok)');
+      return;
+    }
+  }
 }
 
 function renderTides() {
-  fillTideLocSelects();
-  renderTidePortChips();
-  renderTideCharts();
-  // Populate tc-loc select in chart modal
-  var tcLoc = document.getElementById('tc-loc');
-  if (tcLoc) {
-    tcLoc.innerHTML = '<option value="">All Ports</option>' +
-      (DB.tideLocs||[]).map(function(l){ return '<option value="'+l+'">'+l+'</option>'; }).join('');
+  var portSel = document.getElementById('lunar-port-sel');
+  var dateIn = document.getElementById('lunar-date-picker');
+  if (!dateIn || !dateIn.value) {
+    if (dateIn) dateIn.value = new Date().toISOString().split('T')[0];
   }
-  var loc = document.getElementById('tide-loc') ? document.getElementById('tide-loc').value : '';
-  var container = document.getElementById('tide-content');
+  var portKey = (portSel && portSel.value) || 'sikka';
+  var dateStr = dateIn ? dateIn.value : new Date().toISOString().split('T')[0];
+
+  var sched = calculateDailyTideSchedule(portKey, dateStr);
+  var astro = sched.astro;
+  var port = sched.port;
+
+  // Quick Badge
+  var qb = document.getElementById('lunar-quick-badge');
+  if (qb) {
+    var rColor = astro.isSpring ? 'var(--warn)' : (astro.isNeap ? 'var(--ok)' : 'var(--accent)');
+    qb.innerHTML = '<span class="chip" style="font-weight:700;font-size:11px;background:' + (astro.isSpring ? 'rgba(245,158,11,0.15)' : 'rgba(14,165,233,0.15)') + ';color:' + rColor + '">'
+      + astro.phaseIcon + ' ' + astro.phaseName + ' · ' + astro.regime + '</span>';
+  }
+
+  // 1. HUD Container
+  var hud = document.getElementById('lunar-hud-container');
+  if (hud) {
+    var now = new Date();
+    var isToday = dateStr === now.toISOString().split('T')[0];
+    var nowHr = now.getHours() + now.getMinutes() / 60;
+    var liveWater = isToday ? getWaterLevelAtTime(sched, nowHr) : getWaterLevelAtTime(sched, 12);
+    var trend = isToday ? (getWaterLevelAtTime(sched, nowHr + 0.25) >= liveWater ? '📈 Flood (Rising)' : '📉 Ebb (Falling)') : 'Midday Level';
+
+    var eclipseNotice = astro.isEclipseAlert ?
+      '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:10px;color:var(--err);font-weight:700">'
+      + '⚠️ ' + astro.eclipseDesc + ' — Astronomical King Tide Surge & Amplified Current Velocity!</div>' : '';
+
+    hud.innerHTML = ''
+      // Card 1: Astronomical Moon Reference
+      + '<div class="data-card" style="padding:16px;border-left:4px solid var(--accent)">'
+      +   '<div style="display:flex;align-items:center;justify-content:space-between">'
+      +     '<span style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase">Lunar Ephemeris</span>'
+      +     '<span style="font-size:28px">' + astro.phaseIcon + '</span>'
+      +   '</div>'
+      +   '<div style="font-size:18px;font-weight:800;color:var(--t1);margin:4px 0">' + astro.phaseName + '</div>'
+      +   '<div style="font-size:11px;color:var(--t2)">Moon Age: <strong>' + astro.lunarAge.toFixed(1) + ' days</strong> · ' + astro.illum.toFixed(1) + '% Illum</div>'
+      +   '<div style="font-size:10px;color:var(--accent);margin-top:6px;font-weight:600">Synodic Cycle: ' + (astro.phaseFrac * 100).toFixed(1) + '% of Lunar Month</div>'
+      +   eclipseNotice
+      + '</div>'
+
+      // Card 2: Tidal Regime & Amplitude
+      + '<div class="data-card" style="padding:16px;border-left:4px solid ' + (astro.isSpring ? 'var(--warn)' : 'var(--ok)') + '">'
+      +   '<div style="display:flex;align-items:center;justify-content:space-between">'
+      +     '<span style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase">Tidal Regime &amp; Range</span>'
+      +     '<span class="chip ' + (astro.isSpring ? 'chip-warn' : (astro.isNeap ? 'chip-ok' : 'chip-accent')) + '" style="font-size:10px;font-weight:700">' + (astro.isSpring ? '🌊 SPRING TIDE' : (astro.isNeap ? '⚓ NEAP TIDE' : 'MODERATE TIDE')) + '</span>'
+      +   '</div>'
+      +   '<div style="font-size:24px;font-weight:800;color:var(--t1);margin:4px 0">Δ ' + sched.range + ' m <span style="font-size:12px;font-weight:500;color:var(--t3)">Range</span></div>'
+      +   '<div style="display:flex;gap:14px;font-size:11px;color:var(--t2);margin-top:4px">'
+      +     '<div>Max HW: <strong style="color:var(--accent)">' + sched.maxHW + 'm</strong></div>'
+      +     '<div>Min LW: <strong style="color:var(--ok)">' + sched.minLW + 'm</strong></div>'
+      +     '<div>Multiplier: <strong>' + (astro.springFactor).toFixed(2) + 'x</strong></div>'
+      +   '</div>'
+      +   '<div style="font-size:10px;color:var(--t3);margin-top:6px">' + port.zone + (port.boreRisk ? ' · ⚠️ Tidal Bore Surge Area' : '') + '</div>'
+      + '</div>'
+
+      // Card 3: Live Water Level & Stream Speed
+      + '<div class="data-card" style="padding:16px;border-left:4px solid #10b981">'
+      +   '<div style="display:flex;align-items:center;justify-content:space-between">'
+      +     '<span style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase">' + (isToday ? 'Live Real-Time Water Level' : 'Midday Projected Elevation') + '</span>'
+      +     '<span class="chip chip-ok" style="font-size:9px">' + (isToday ? '🟢 LIVE' : '📅 SCHEDULED') + '</span>'
+      +   '</div>'
+      +   '<div style="font-size:24px;font-weight:800;color:#10b981;margin:4px 0">+' + liveWater + ' m</div>'
+      +   '<div style="font-size:11px;color:var(--t1);font-weight:600">' + trend + '</div>'
+      +   '<div style="font-size:11px;color:var(--t2);margin-top:4px">Est. Current Velocity: <strong>' + sched.currentSpeedKts + ' kts</strong> (Tow Advisory)</div>'
+      +   '<div style="font-size:10px;color:var(--t3);margin-top:4px">Reference: Chart Datum (CD) / MSL Calibration</div>'
+      + '</div>';
+  }
+
+  // 2. SVG 24-Hour Wave Chart
+  renderTidalWaveChart(sched, isToday, nowHr);
+
+  // 3. 4-Point Table
+  render4PointTable(sched);
+
+  // 4. Tug Clearance Tool
+  calculateTugClearance(sched);
+
+  // 5. Extended Forecast
+  renderExtendedTides(15, portKey, dateStr);
+}
+
+function renderTidalWaveChart(sched, isToday, nowHr) {
+  var container = document.getElementById('lunar-svg-chart');
   if (!container) return;
-  if (!loc) { container.innerHTML = '<div class="empty">Select a port above or add a new one.</div>'; return; }
-  var entries = (DB.tides && DB.tides[loc]) ? DB.tides[loc] : [];
-  if (!entries.length) { container.innerHTML = '<div class="empty">No tide data for ' + loc + ' yet. Click Add Entry.</div>'; return; }
-  var sorted = entries.slice().sort(function(a,b){ return a.date > b.date ? -1 : 1; });
-  var rows = sorted.map(function(e, i) {
-        var delBtn = '<button class="btn btn-danger btn-sm" data-tide-loc="' + loc + '" data-tide-idx="' + i + '">Del</button>';
-    return '<tr><td>' + fmtDate(e.date) + '</td><td>' + (e.ht1||'&mdash;') + ' / ' + (e.ht1h||'&mdash;') + 'm</td><td>' + (e.ht2||'&mdash;') + ' / ' + (e.ht2h||'&mdash;') + 'm</td><td>' + (e.lt1||'&mdash;') + ' / ' + (e.lt1h||'&mdash;') + 'm</td><td>' + (e.lt2||'&mdash;') + ' / ' + (e.lt2h||'&mdash;') + 'm</td><td>' + (e.rem||'&mdash;') + '</td><td>' + delBtn + '</td></tr>';
-    }).join('');
-  container.innerHTML = '<div class="data-card"><table><thead><tr><th>Date</th><th>HT1 (time/height)</th><th>HT2</th><th>LT1</th><th>LT2</th><th>Remarks</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
-}
 
-function addTideEntry() {
-  // Populate location select if empty
-  var taLoc = $('ta-loc');
-  if (taLoc && taLoc.tagName === 'SELECT' && taLoc.options.length <= 1) {
-    taLoc.innerHTML = '<option value="">Select location...</option>';
-    (DB.tideLocs||[]).forEach(function(loc){ 
-      taLoc.innerHTML += '<option value="'+loc+'">'+loc+'</option>'; 
-    });
+  var points = [];
+  var minVal = Math.max(0, sched.minLW - 0.5);
+  var maxVal = sched.maxHW + 0.8;
+  var valRange = maxVal - minVal;
+
+  var width = 900;
+  var height = 180;
+  var padding = { top: 20, right: 30, bottom: 30, left: 45 };
+  var chartW = width - padding.left - padding.right;
+  var chartH = height - padding.top - padding.bottom;
+
+  for (var hr = 0; hr <= 24; hr += 0.5) {
+    var lvl = getWaterLevelAtTime(sched, hr);
+    var x = padding.left + (hr / 24) * chartW;
+    var y = padding.top + chartH - ((lvl - minVal) / valRange) * chartH;
+    points.push({ hr: hr, lvl: lvl, x: x, y: y });
   }
-  var loc = val('ta-loc');
-  var date = val('ta-date');
-  if (!loc || !date) { uiAlert('Select location and date'); return; }
-  DB.tides = DB.tides || {};
-  DB.tides[loc] = DB.tides[loc] || [];
-  DB.tides[loc].push({
-    date:date, ht1:val('ta-ht1'), ht1h:val('ta-ht1h'), ht2:val('ta-ht2'), ht2h:val('ta-ht2h'),
-    lt1:val('ta-lt1'), lt1h:val('ta-lt1h'), lt2:val('ta-lt2'), lt2h:val('ta-lt2h'), rem:val('ta-rem')
-  });
-  DB.tides[loc].sort(function(a,b){ return a.date > b.date ? 1 : -1; });
-  closeModal('m-tide-add');
-  saveDB();
-  renderTides();
-  audit('Tide entry added: ' + loc + ' ' + date, 'var(--accent)');
-  toast('Tide entry saved');
-  clearFields(['ta-date','ta-ht1','ta-ht1h','ta-ht2','ta-ht2h','ta-lt1','ta-lt1h','ta-lt2','ta-lt2h','ta-rem']);
-}
 
-function addTideLocation() {
-  var name = val('tl-name').trim();
-  if (!name) { uiAlert('Enter location name'); return; }
-  DB.tideLocs = DB.tideLocs || [];
-  if (DB.tideLocs.indexOf(name) === -1) DB.tideLocs.push(name);
-  closeModal('m-tide-loc');
-  fillTideLocSelects();
-  renderTidePortChips();
-  saveDB();
-  toast('Port added: ' + name);
-  clearFields(['tl-name','tl-notes']);
-}
+  var pathD = 'M ' + points[0].x + ' ' + points[0].y;
+  for (var i = 1; i < points.length; i++) {
+    pathD += ' L ' + points[i].x.toFixed(1) + ' ' + points[i].y.toFixed(1);
+  }
 
-function renderTidePortChips() {
-  var chips = document.getElementById('tide-port-chips');
-  if (!chips) return;
-  var locs = DB.tideLocs || [];
-  chips.innerHTML = locs.length ? locs.map(function(loc) {
-    return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--b2);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer" onclick="document.getElementById(\'tide-loc\').value=\''+loc+'\';renderTides()">⚓ '+loc+' <button onclick="event.stopPropagation();if(confirm(\'Remove '+loc+'?\'))delTideLocation(\''+loc+'\')" style="background:none;border:none;color:var(--err);cursor:pointer;padding:0;margin-left:2px;font-size:10px">✕</button></span>';
-  }).join('') : '<span style="font-size:10px;color:var(--t3)">No ports added yet. Click + Add Port to begin.</span>';
-}
+  var areaD = pathD + ' L ' + (padding.left + chartW) + ' ' + (padding.top + chartH) + ' L ' + padding.left + ' ' + (padding.top + chartH) + ' Z';
 
-function delTideLocation(name) {
-  DB.tideLocs = (DB.tideLocs||[]).filter(function(l){ return l !== name; });
-  if (DB.tides) delete DB.tides[name];
-  fillTideLocSelects();
-  renderTidePortChips();
-  renderTides();
-  saveDB();
-  toast('Port removed: ' + name);
-}
+  // Y-Axis Gridlines
+  var gridLines = '';
+  for (var g = Math.ceil(minVal); g <= Math.floor(maxVal); g += (valRange > 4 ? 2 : 1)) {
+    var gy = padding.top + chartH - ((g - minVal) / valRange) * chartH;
+    gridLines += '<line x1="' + padding.left + '" y1="' + gy + '" x2="' + (padding.left + chartW) + '" y2="' + gy + '" stroke="var(--b1)" stroke-dasharray="3,3"/>'
+      + '<text x="' + (padding.left - 8) + '" y="' + (gy + 3) + '" text-anchor="end" font-size="9" fill="var(--t3)">' + g + 'm</text>';
+  }
 
-function saveTideChart() {
-  var title = val('tc-title').trim();
-  var file = document.getElementById('tc-file') && document.getElementById('tc-file').files[0];
-  if (!title) { uiAlert('Enter chart title'); return; }
-  if (!file)  { uiAlert('Select a chart file to upload'); return; }
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    DB.tideCharts = DB.tideCharts || [];
-    DB.tideCharts.push({
-      id: uid(), title: title, loc: val('tc-loc'),
-      from: val('tc-from'), to: val('tc-to'),
-      source: val('tc-source'),
-      fileName: file.name, fileType: file.type,
-      data: ev.target.result,
-      ts: Date.now(), by: CU ? CU.user : ''
-    });
-    saveDB();
-    closeModal('m-tide-chart');
-    renderTideCharts();
-    toast('Chart attached: ' + title);
-    audit('Tide chart attached: ' + title, 'var(--accent)');
-    clearFields(['tc-title','tc-from','tc-to','tc-source']);
-    if (document.getElementById('tc-file')) document.getElementById('tc-file').value = '';
-    if (document.getElementById('tc-prev')) document.getElementById('tc-prev').textContent = '';
-  };
-  reader.readAsDataURL(file);
-}
+  // X-Axis Hour Ticks
+  var hourTicks = '';
+  for (var h = 0; h <= 24; h += 3) {
+    var hx = padding.left + (h / 24) * chartW;
+    var label = (h < 10 ? '0' + h : '' + h) + ':00';
+    hourTicks += '<line x1="' + hx + '" y1="' + padding.top + '" x2="' + hx + '" y2="' + (padding.top + chartH) + '" stroke="var(--b1)" stroke-dasharray="2,2"/>'
+      + '<text x="' + hx + '" y="' + (height - 8) + '" text-anchor="middle" font-size="9" font-family="var(--fm)" fill="var(--t3)">' + label + '</text>';
+  }
 
-function renderTideCharts() {
-  var section = document.getElementById('tide-charts-section');
-  var list = document.getElementById('tide-charts-list');
-  if (!list) return;
-  var charts = DB.tideCharts || [];
-  if (!charts.length) { if (section) section.style.display = 'none'; return; }
-  if (section) section.style.display = 'block';
-  list.innerHTML = charts.map(function(c, i) {
-    return '<div style="background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;min-width:200px">' +
-      '<div style="font-size:20px">' + (c.fileType === 'application/pdf' ? '📄' : '🖼️') + '</div>' +
-      '<div style="flex:1">' +
-        '<div style="font-size:11px;font-weight:700;color:var(--t1)">' + c.title + '</div>' +
-        (c.loc ? '<div style="font-size:9px;color:var(--accent)">⚓ ' + c.loc + '</div>' : '') +
-        (c.from ? '<div style="font-size:9px;color:var(--t3)">' + fmtDate(c.from) + (c.to?' – '+fmtDate(c.to):'') + '</div>' : '') +
-      '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:4px">' +
-        '<button class="btn btn-outline btn-sm" style="font-size:9px" onclick="downloadTideChart(' + i + ')">⬇ View</button>' +
-        '<button class="btn btn-ghost btn-sm" style="font-size:9px;color:var(--err)" onclick="deleteTideChart(' + i + ')">✕</button>' +
-      '</div>' +
-    '</div>';
+  // Extreme Event Markers on Curve
+  var eventPins = sched.events.map(function(ev) {
+    var ex = padding.left + (ev.timeFloat / 24) * chartW;
+    var ey = padding.top + chartH - ((ev.height - minVal) / valRange) * chartH;
+    var isHW = ev.type === 'HT';
+    return '<g>'
+      + '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="5" fill="' + (isHW ? '#0284c7' : '#10b981') + '" stroke="#ffffff" stroke-width="2"/>'
+      + '<text x="' + ex.toFixed(1) + '" y="' + (isHW ? ey - 10 : ey + 16).toFixed(1) + '" text-anchor="middle" font-size="9" font-weight="700" fill="' + (isHW ? 'var(--accent)' : 'var(--ok)') + '">'
+      + ev.type + ' ' + ev.height + 'm (' + ev.timeStr + ')'
+      + '</text>'
+      + '</g>';
   }).join('');
+
+  // Live "NOW" Pin (if showing today)
+  var nowPin = '';
+  if (isToday && nowHr >= 0 && nowHr <= 24) {
+    var nx = padding.left + (nowHr / 24) * chartW;
+    var nLvl = getWaterLevelAtTime(sched, nowHr);
+    var ny = padding.top + chartH - ((nLvl - minVal) / valRange) * chartH;
+    nowPin = '<g>'
+      + '<line x1="' + nx.toFixed(1) + '" y1="' + padding.top + '" x2="' + nx.toFixed(1) + '" y2="' + (padding.top + chartH) + '" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,2"/>'
+      + '<circle cx="' + nx.toFixed(1) + '" cy="' + ny.toFixed(1) + '" r="6" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>'
+      + '<rect x="' + (nx - 28).toFixed(1) + '" y="' + (padding.top - 12) + '" width="56" height="16" rx="4" fill="#ef4444"/>'
+      + '<text x="' + nx.toFixed(1) + '" y="' + padding.top + '" text-anchor="middle" font-size="8.5" font-weight="800" fill="#ffffff">NOW +' + nLvl + 'm</text>'
+      + '</g>';
+  }
+
+  container.innerHTML = '<svg viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none" style="width:100%;height:100%">'
+    + '<defs>'
+    +   '<linearGradient id="tideGrad" x1="0%" y1="0%" x2="0%" y2="100%">'
+    +     '<stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35"/>'
+    +     '<stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.02"/>'
+    +   '</linearGradient>'
+    + '</defs>'
+    + gridLines
+    + hourTicks
+    + '<path d="' + areaD + '" fill="url(#tideGrad)"/>'
+    + '<path d="' + pathD + '" fill="none" stroke="#0ea5e9" stroke-width="2.8" stroke-linecap="round"/>'
+    + eventPins
+    + nowPin
+    + '</svg>';
 }
 
-function downloadTideChart(i) {
-  var c = (DB.tideCharts||[])[i];
-  if (!c || !c.data) { toast('File not found', 'var(--warn)'); return; }
+function render4PointTable(sched) {
+  var el = document.getElementById('lunar-4point-table');
+  if (!el) return;
+
+  var rows = sched.events.map(function(ev) {
+    var isHW = ev.type === 'HT';
+    var badge = isHW ? '<span class="chip chip-accent" style="font-weight:700">🌊 HIGH WATER</span>' : '<span class="chip chip-ok" style="font-weight:700">⚓ LOW WATER</span>';
+    var clearanceAdvice = isHW ? '🟢 Deep Navigation Window Open' : (ev.height < 1.0 ? '🔴 Shallow Draft Alert (UKC Caution)' : '🟡 Standard Operating Depth');
+    return '<tr>'
+      + '<td style="font-weight:700;font-size:12px">' + badge + '</td>'
+      + '<td style="font-family:var(--fm);font-size:13px;font-weight:800;color:var(--t1)">' + ev.timeStr + ' hrs</td>'
+      + '<td style="font-family:var(--fm);font-size:14px;font-weight:800;color:' + (isHW ? 'var(--accent)' : 'var(--ok)') + '">+' + ev.height.toFixed(2) + ' m</td>'
+      + '<td style="font-size:11px;color:var(--t2)">' + clearanceAdvice + '</td>'
+      + '</tr>';
+  }).join('');
+
+  el.innerHTML = '<table style="width:100%;border-collapse:collapse">'
+    + '<thead><tr style="background:var(--bg2)"><th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--t3)">TIDAL EVENT</th><th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--t3)">PEAK TIME (IST)</th><th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--t3)">ELEVATION (CD)</th><th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--t3)">NAVIGATION ADVISORY</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table>';
+}
+
+function calculateTugClearance(optSched) {
+  var sched = optSched;
+  if (!sched) {
+    var portKey = (val('lunar-port-sel') || 'sikka');
+    var dateStr = (val('lunar-date-picker') || new Date().toISOString().split('T')[0]);
+    sched = calculateDailyTideSchedule(portKey, dateStr);
+  }
+  var resEl = document.getElementById('tug-clearance-result');
+  if (!resEl) return;
+
+  var draft = parseFloat(val('tug-draft-in')) || 3.5;
+  var reqUkc = parseFloat(val('tug-ukc-in')) || 1.0;
+  var minDepthReq = +(draft + reqUkc).toFixed(2);
+
+  var safeHours = [];
+  for (var hr = 0; hr < 24; hr++) {
+    var lvl = getWaterLevelAtTime(sched, hr);
+    if (lvl >= minDepthReq) {
+      safeHours.push((hr < 10 ? '0' + hr : '' + hr) + ':00');
+    }
+  }
+
+  var isSafeNow = getWaterLevelAtTime(sched, new Date().getHours() + new Date().getMinutes()/60) >= minDepthReq;
+
+  resEl.innerHTML = ''
+    + '<div style="margin-bottom:6px">Required Water Depth: <strong>' + minDepthReq + ' m</strong> <span style="color:var(--t3)">(' + draft + 'm draft + ' + reqUkc + 'm UKC)</span></div>'
+    + '<div style="margin-bottom:8px">Status Right Now: <strong style="color:' + (isSafeNow ? 'var(--ok)' : 'var(--err)') + '">' + (isSafeNow ? '✓ SAFE FOR TRANSIT &amp; BERTHING' : '⚠ SHALLOW WATER — WAIT FOR HIGH TIDE') + '</strong></div>'
+    + '<div style="font-size:10px;color:var(--t3)">High Water Operating Windows (≥ ' + minDepthReq + 'm):</div>'
+    + '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'
+    +   (safeHours.length ? safeHours.map(function(h){ return '<span class="chip chip-accent" style="font-size:9px;font-family:var(--fm)">' + h + '</span>'; }).join('') : '<span style="color:var(--err);font-size:10px">No window above required depth today.</span>')
+    + '</div>';
+}
+
+function renderExtendedTides(daysCount, optPortKey, optStartDate) {
+  var el = document.getElementById('lunar-extended-forecast');
+  if (!el) return;
+
+  var portKey = optPortKey || (val('lunar-port-sel') || 'sikka');
+  var startStr = optStartDate || (val('lunar-date-picker') || new Date().toISOString().split('T')[0]);
+  var startDate = new Date(startStr + 'T12:00:00Z');
+
+  var rows = [];
+  for (var i = 0; i < (daysCount || 15); i++) {
+    var d = new Date(startDate.getTime() + i * 86400000);
+    var iso = d.toISOString().split('T')[0];
+    var sched = calculateDailyTideSchedule(portKey, iso);
+    var astro = sched.astro;
+
+    var isSpring = astro.isSpring;
+    var isNeap = astro.isNeap;
+    var chipClass = isSpring ? 'chip-warn' : (isNeap ? 'chip-ok' : 'chip-muted');
+
+    rows.push('<tr>'
+      + '<td style="font-weight:700">' + fmtDate(iso) + '</td>'
+      + '<td><span style="font-size:16px;margin-right:4px">' + astro.phaseIcon + '</span> <span style="font-size:11px">' + astro.phaseName + '</span></td>'
+      + '<td><span class="chip ' + chipClass + '" style="font-size:9px;font-weight:700">' + (isSpring ? '🌊 SPRING' : (isNeap ? '⚓ NEAP' : 'MODERATE')) + '</span></td>'
+      + '<td style="font-family:var(--fm);color:var(--accent)">' + sched.events[0].timeStr + ' (' + sched.events[0].height + 'm)</td>'
+      + '<td style="font-family:var(--fm);color:var(--ok)">' + sched.events[1].timeStr + ' (' + sched.events[1].height + 'm)</td>'
+      + '<td style="font-family:var(--fm);color:var(--accent)">' + sched.events[2].timeStr + ' (' + sched.events[2].height + 'm)</td>'
+      + '<td style="font-family:var(--fm);color:var(--ok)">' + sched.events[3].timeStr + ' (' + sched.events[3].height + 'm)</td>'
+      + '<td style="font-family:var(--fm);font-weight:700">Δ ' + sched.range + 'm</td>'
+      + '</tr>');
+  }
+
+  el.innerHTML = '<div style="max-height:360px;overflow-y:auto;border:1px solid var(--b2);border-radius:8px">'
+    + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+    + '<thead><tr style="background:var(--bg2);position:sticky;top:0;z-index:2">'
+    + '<th style="padding:8px 10px;text-align:left">DATE</th><th style="padding:8px 10px;text-align:left">LUNAR PHASE</th><th style="padding:8px 10px;text-align:left">REGIME</th><th style="padding:8px 10px;text-align:left">TIDE 1</th><th style="padding:8px 10px;text-align:left">TIDE 2</th><th style="padding:8px 10px;text-align:left">TIDE 3</th><th style="padding:8px 10px;text-align:left">TIDE 4</th><th style="padding:8px 10px;text-align:left">RANGE</th>'
+    + '</tr></thead>'
+    + '<tbody>' + rows.join('') + '</tbody></table></div>';
+}
+
+function exportLunarTideSchedule() {
+  var portKey = (val('lunar-port-sel') || 'sikka');
+  var startStr = (val('lunar-date-picker') || new Date().toISOString().split('T')[0]);
+  var port = LUNAR_PORTS[portKey] || LUNAR_PORTS.sikka;
+
+  var csv = 'Date,Port,Lunar Phase,Moon Age (Days),Illumination %,Tidal Regime,HT1 Time,HT1 Height (m),LT1 Time,LT1 Height (m),HT2 Time,HT2 Height (m),LT2 Time,LT2 Height (m),Daily Range (m),Est Current (kts)\n';
+  var startDate = new Date(startStr + 'T12:00:00Z');
+
+  for (var i = 0; i < 30; i++) {
+    var d = new Date(startDate.getTime() + i * 86400000);
+    var iso = d.toISOString().split('T')[0];
+    var sched = calculateDailyTideSchedule(portKey, iso);
+    var astro = sched.astro;
+    csv += [
+      iso,
+      '"' + port.name + '"',
+      '"' + astro.phaseName + '"',
+      astro.lunarAge.toFixed(1),
+      astro.illum.toFixed(1) + '%',
+      '"' + astro.regime + '"',
+      sched.events[0].timeStr, sched.events[0].height,
+      sched.events[1].timeStr, sched.events[1].height,
+      sched.events[2].timeStr, sched.events[2].height,
+      sched.events[3].timeStr, sched.events[3].height,
+      sched.range, sched.currentSpeedKts
+    ].join(',') + '\n';
+  }
+
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
-  a.href = c.data; a.download = c.fileName;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  a.href = url;
+  a.download = 'Lunar_Tidal_Schedule_' + portKey + '_' + startStr + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('30-Day Lunar Tide Schedule exported as CSV ✓', 'var(--ok)');
 }
 
-function deleteTideChart(i) {
-  if (!confirm('Remove this chart attachment?')) return;
-  DB.tideCharts.splice(i, 1);
-  saveDB(); renderTideCharts(); toast('Chart removed');
-}
-
-
-
-function delTideEntry(loc, idx) {
-  if (!DB.tides || !DB.tides[loc]) return;
-  DB.tides[loc].splice(idx, 1);
-  saveDB();
-  renderTides();
-  toast('Tide entry removed');
-}
 
 /* ══════════════════════════════════════════════════════════════
    PURCHASE ORDERS
@@ -24138,12 +24551,14 @@ function clearAllData() {
    TEMPORARY MASTER ACCESS
 ══════════════════════════════════════════════════════════════ */
 function isTempMaster() {
-  if (!CU || CU.role !== 'admin') return false;
+  if (!CU || (CU.role !== 'admin' && CU.role !== 'master')) return false;
+  if (CU.role === 'master') return true;
   var now = Date.now();
   return (DB.tempMasters||[]).some(function(tm) {
-    return tm.adminId === CU.id &&
-      new Date(tm.from).getTime() <= now &&
-      new Date(tm.until).getTime() >= now;
+    var tmFrom = tm.from ? new Date(tm.from).getTime() : 0;
+    var tmUntil = tm.until ? new Date(tm.until).getTime() : 0;
+    return (tm.adminId === CU.id || (tm.user && (tm.user === CU.username || tm.user === CU.id))) &&
+      tmFrom <= now && tmUntil >= now;
   });
 }
 
