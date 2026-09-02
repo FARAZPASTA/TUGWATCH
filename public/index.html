@@ -32862,6 +32862,510 @@ function exportPeriodHSDCSV() {
   toast('Period HSD & Running Hours CSV exported ✓', 'var(--ok)');
 }
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   MASTER GOVERNANCE & EXECUTIVE USER MANAGEMENT ENGINE v8.0
+   Clean, unified single source of truth with Document/KYC storage
+══════════════════════════════════════════════════════════════ */
+
+var _tempUserDocs = [];
+
+function renderMasterGovernanceCenter() {
+  // 1. Populate Master Account Card
+  var mName = DB.masterName || (MASTER ? MASTER.name : 'Faraz');
+  var mUser = DB.masterUsername || (MASTER ? MASTER.username : 'FARAZ');
+  var mDesig = DB.masterDesig || (MASTER ? MASTER.desig : 'Master Administrator');
+
+  if ($('mg-master-name')) $('mg-master-name').value = mName;
+  if ($('mg-master-user')) $('mg-master-user').value = mUser.toUpperCase();
+  if ($('mg-master-desig')) $('mg-master-desig').value = mDesig;
+  if ($('mg-master-pass')) $('mg-master-pass').value = '';
+
+  // 2. Render Fleet Administrators Table
+  renderGovernanceAdmins();
+
+  // 3. Render Staff Users Table
+  renderGovernanceStaff();
+
+  // 4. Populate Company Profile
+  var comp = (DB.companies && DB.companies[0]) ? DB.companies[0] : (DB.company || {});
+  if ($('mg-comp-name')) $('mg-comp-name').value = comp.name || 'Saarvin Marine';
+  if ($('mg-comp-gst')) $('mg-comp-gst').value = comp.gst || '';
+  if ($('mg-comp-pan')) $('mg-comp-pan').value = comp.pan || '';
+  if ($('mg-comp-addr')) $('mg-comp-addr').value = comp.address || '';
+  if ($('mg-comp-email')) $('mg-comp-email').value = comp.email || 'ops@saarvin.in';
+  if ($('mg-comp-phone')) $('mg-comp-phone').value = comp.phone || '';
+}
+
+function saveMasterCredentialsV8() {
+  var newName = (val('mg-master-name') || '').trim();
+  var newUname = (val('mg-master-user') || '').trim().toUpperCase();
+  var newDesig = (val('mg-master-desig') || '').trim();
+  var newPass = (val('mg-master-pass') || '').trim();
+
+  if (!newName) { uiAlert('Master Display Name is required'); return; }
+  if (!newUname) { uiAlert('Master Username is required'); return; }
+  if (/\s/.test(newUname)) { uiAlert('Username cannot contain spaces'); return; }
+
+  MASTER.name = newName;
+  MASTER.username = newUname;
+  MASTER.desig = newDesig;
+  DB.masterName = newName;
+  DB.masterUsername = newUname;
+  DB.masterDesig = newDesig;
+
+  if (newPass) {
+    if (newPass.length < 4) { uiAlert('Password must be at least 4 characters'); return; }
+    MASTER.password = newPass;
+    DB.masterPass = hashPassword(newPass);
+  }
+
+  if (CU && CU.role === 'master') {
+    CU.name = newName;
+    CU.username = newUname;
+    CU.desig = newDesig;
+    if (newPass) CU.password = newPass;
+    if ($('sb-name')) $('sb-name').textContent = CU.name;
+    if ($('sb-av')) $('sb-av').textContent = initials(CU.name);
+  }
+
+  setAdminOverride('m1', { name: newName, username: newUname, desig: newDesig, password: newPass || undefined });
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  toast('Master Administrator credentials updated & saved ✓', 'var(--ok)');
+  audit('Master Administrator credentials updated: "' + newName + '" (@' + newUname + ')', 'var(--ok)');
+}
+
+function renderGovernanceAdmins() {
+  var tbody = document.getElementById('mg-admins-tbody');
+  var countEl = document.getElementById('mg-admin-count');
+  var admins = (DB.dynamicAdmins || []).filter(function(a){
+    return a && a.id && !['a1','a2','a3','a4'].includes(a.id) && !['ADMIN1','ADMIN2','ADMIN3','ADMIN4'].includes((a.username||'').toUpperCase());
+  });
+
+  if (countEl) countEl.textContent = admins.length;
+  if (!tbody) return;
+
+  if (!admins.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--t3);font-size:11px">No dynamic Fleet Admins created yet. Click "➕ Add Fleet Admin" above to create an administrator account.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = admins.map(function(a) {
+    var docCount = (a.documents || []).length;
+    var docBadge = docCount > 0 ? '<span class="chip chip-ok" style="font-size:8.5px;cursor:pointer" onclick="openUserDocsModal(\'' + a.id + '\')">📂 ' + docCount + ' Doc(s)</span>' : '<span style="color:var(--t3);font-size:9.5px">No docs</span>';
+    var contactStr = (a.phone ? '📞 ' + esc(a.phone) : '') + (a.email ? ' · ✉️ ' + esc(a.email) : '');
+
+    return '<tr style="border-bottom:1px solid var(--b1);font-size:11px">'
+      + '<td style="padding:10px 6px"><strong>' + esc(a.name) + '</strong><div style="font-size:9.5px;color:var(--t3)">' + esc(a.desig || 'Fleet Administrator') + '</div></td>'
+      + '<td style="padding:10px 6px;font-family:var(--fm);font-weight:700;color:var(--accent)">@' + esc((a.username||'').toUpperCase()) + '</td>'
+      + '<td style="padding:10px 6px"><div style="font-size:10px">' + (contactStr || '—') + '</div><div style="margin-top:2px">' + docBadge + '</div></td>'
+      + '<td style="padding:10px 6px"><span class="chip chip-accent" style="font-size:8.5px;font-weight:700">⚡ FULL OPERATIONAL (27/27)</span></td>'
+      + '<td style="padding:10px 6px;font-family:var(--fm);color:var(--ok);font-size:10px">' + (a.password && !a.password.startsWith('h:') ? esc(a.password) : '••••••••') + '</td>'
+      + '<td style="padding:10px 6px;text-align:right">'
+        + '<button class="btn btn-primary btn-sm" style="font-size:10px;font-weight:700;padding:3px 9px;margin-right:4px" onclick="openEditUserModalV8(\'' + a.id + '\', \'admin\')">✏️ Edit</button>'
+        + '<button class="btn btn-danger btn-sm" style="font-size:9.5px;padding:3px 8px" onclick="deleteUserV8(\'' + a.id + '\', \'admin\')">Delete</button>'
+      + '</td>'
+    + '</tr>';
+  }).join('');
+}
+
+function renderGovernanceStaff() {
+  var tbody = document.getElementById('mg-staff-tbody');
+  var countEl = document.getElementById('mg-staff-count');
+  var users = DB.users || [];
+
+  if (countEl) countEl.textContent = users.length;
+  if (!tbody) return;
+
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--t3);font-size:11px">No staff user accounts created yet. Click "➕ Add Staff User" above to create a staff account.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = users.map(function(u) {
+    var docCount = (u.documents || []).length;
+    var docBadge = docCount > 0 ? '<span class="chip chip-ok" style="font-size:8.5px;cursor:pointer" onclick="openUserDocsModal(\'' + u.id + '\')">📂 ' + docCount + ' Doc(s)</span>' : '<span style="color:var(--t3);font-size:9.5px">No docs</span>';
+    var contactStr = (u.phone ? '📞 ' + esc(u.phone) : '') + (u.email ? ' · ✉️ ' + esc(u.email) : '');
+    var permCount = (u.permissions || []).length;
+
+    return '<tr style="border-bottom:1px solid var(--b1);font-size:11px">'
+      + '<td style="padding:10px 6px"><strong>' + esc(u.name) + '</strong><div style="font-size:9.5px;color:var(--t3)">' + esc(u.desig || 'Staff User') + '</div></td>'
+      + '<td style="padding:10px 6px;font-family:var(--fm);font-weight:700;color:var(--accent)">@' + esc((u.username||'').toUpperCase()) + '</td>'
+      + '<td style="padding:10px 6px"><div style="font-size:10px">' + (contactStr || '—') + '</div><div style="margin-top:2px">' + docBadge + '</div></td>'
+      + '<td style="padding:10px 6px"><span class="chip chip-ok" style="font-size:8.5px;font-weight:700">' + permCount + ' Modules Enabled</span></td>'
+      + '<td style="padding:10px 6px;font-family:var(--fm);color:var(--ok);font-size:10px">' + (u.password && !u.password.startsWith('h:') ? esc(u.password) : '••••••••') + '</td>'
+      + '<td style="padding:10px 6px;text-align:right">'
+        + '<button class="btn btn-primary btn-sm" style="font-size:10px;font-weight:700;padding:3px 9px;margin-right:4px" onclick="openEditUserModalV8(\'' + u.id + '\', \'staff\')">✏️ Edit</button>'
+        + '<button class="btn btn-danger btn-sm" style="font-size:9.5px;padding:3px 8px" onclick="deleteUserV8(\'' + u.id + '\', \'staff\')">Delete</button>'
+      + '</td>'
+    + '</tr>';
+  }).join('');
+}
+
+// ── OPEN USER CREATE / EDIT MODAL v8.0 ─────────────────
+function openCreateUserModal(type) {
+  _tempUserDocs = [];
+  if ($('uu-id')) $('uu-id').value = '';
+  if ($('uu-mode')) $('uu-mode').value = 'create';
+  if ($('uu-target-type')) $('uu-target-type').value = type || 'admin';
+  if ($('uu-modal-title')) $('uu-modal-title').textContent = type === 'admin' ? '➕ Create Fleet Administrator' : '➕ Create Staff User';
+  if ($('uu-modal-sub')) $('uu-modal-sub').textContent = 'Set credentials, contact numbers, and KYC document attachments';
+
+  if ($('uu-name')) $('uu-name').value = '';
+  if ($('uu-username')) $('uu-username').value = '';
+  if ($('uu-role')) $('uu-role').value = type || 'admin';
+  if ($('uu-desig')) $('uu-desig').value = type === 'admin' ? 'Fleet Administrator' : 'Operations Coordinator';
+  if ($('uu-password')) $('uu-password').value = '';
+  if ($('uu-phone')) $('uu-phone').value = '';
+  if ($('uu-whatsapp')) $('uu-whatsapp').value = '';
+  if ($('uu-email')) $('uu-email').value = '';
+  if ($('uu-emergency')) $('uu-emergency').value = '';
+  if ($('uu-address')) $('uu-address').value = '';
+  if ($('uu-selected-file-label')) $('uu-selected-file-label').textContent = '';
+
+  toggleUnifiedRoleFields(type || 'admin');
+  renderUserDocsInModal();
+  _doOpenModal('m-unified-user-modal');
+}
+
+function openEditUserModalV8(userId, type) {
+  _tempUserDocs = [];
+  var target = null;
+  if (type === 'admin') {
+    target = (DB.dynamicAdmins || []).find(function(x){ return String(x.id).trim() === String(userId).trim(); });
+  } else {
+    target = (DB.users || []).find(function(x){ return String(x.id).trim() === String(userId).trim(); });
+  }
+
+  if (!target) { toast('Account not found', 'var(--err)'); return; }
+
+  if ($('uu-id')) $('uu-id').value = target.id;
+  if ($('uu-mode')) $('uu-mode').value = 'edit';
+  if ($('uu-target-type')) $('uu-target-type').value = type;
+  if ($('uu-modal-title')) $('uu-modal-title').textContent = '✏️ Edit ' + (type === 'admin' ? 'Fleet Administrator' : 'Staff User') + ' (' + target.name + ')';
+  if ($('uu-modal-sub')) $('uu-modal-sub').textContent = 'Update profile, reset password, change contacts, or attach KYC documents';
+
+  if ($('uu-name')) $('uu-name').value = target.name || '';
+  if ($('uu-username')) $('uu-username').value = (target.username || '').toUpperCase();
+  if ($('uu-role')) $('uu-role').value = type;
+  if ($('uu-desig')) $('uu-desig').value = target.desig || '';
+  if ($('uu-password')) $('uu-password').value = (target.password && !target.password.startsWith('h:') ? target.password : '');
+  if ($('uu-phone')) $('uu-phone').value = target.phone || '';
+  if ($('uu-whatsapp')) $('uu-whatsapp').value = target.whatsapp || '';
+  if ($('uu-email')) $('uu-email').value = target.email || '';
+  if ($('uu-emergency')) $('uu-emergency').value = target.emergencyContact || '';
+  if ($('uu-address')) $('uu-address').value = target.address || '';
+  if ($('uu-selected-file-label')) $('uu-selected-file-label').textContent = '';
+
+  _tempUserDocs = JSON.parse(JSON.stringify(target.documents || []));
+
+  toggleUnifiedRoleFields(type);
+  renderUserDocsInModal();
+  _doOpenModal('m-unified-user-modal');
+}
+
+function toggleUnifiedRoleFields(role) {
+  var permSec = document.getElementById('uu-permissions-section');
+  if (!permSec) return;
+  if (role === 'staff') {
+    permSec.style.display = 'block';
+    renderStaffPermsCheckboxes();
+  } else {
+    permSec.style.display = 'none';
+  }
+}
+
+function renderStaffPermsCheckboxes() {
+  var container = document.getElementById('uu-perms-grid');
+  if (!container) return;
+
+  var ALL_STAFF_MODULES = [
+    { key: 'vessels', name: '🚢 Vessels Fleet' },
+    { key: 'certificates', name: '📜 Certificates' },
+    { key: 'fuel', name: '⚡ Fuel & HSD Logs' },
+    { key: 'crew', name: '👤 Crew Manifest' },
+    { key: 'maintenance', name: '🔧 Maintenance' },
+    { key: 'deficiency', name: '⚠️ Deficiencies' },
+    { key: 'voyage', name: '🗺️ Voyage Logs' },
+    { key: 'mat-provided', name: '📦 Material Challans' },
+    { key: 'mat-request', name: '🛒 Material Indents' },
+    { key: 'spares', name: '⚙️ Spares Inventory' },
+    { key: 'invoices', name: '🧾 Invoices & Ledger' },
+    { key: 'salary', name: '💰 Crew Salary' },
+    { key: 'vtms', name: '📡 VTMS Port Directory' },
+    { key: 'tides', name: '🌙 Lunar Tide Engine' },
+    { key: 'vault', name: '📁 Document Vault' },
+    { key: 'actlog', name: '📜 Activity Log' }
+  ];
+
+  var targetId = val('uu-id');
+  var user = (DB.users || []).find(function(x){ return x.id === targetId; });
+  var userPerms = (user && user.permissions) ? user.permissions : ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'];
+
+  container.innerHTML = ALL_STAFF_MODULES.map(function(m) {
+    var checked = userPerms.includes(m.key);
+    return '<label style="display:flex;align-items:center;gap:6px;font-size:10.5px;cursor:pointer">'
+      + '<input type="checkbox" class="uu-perm-cb" value="' + m.key + '"' + (checked ? ' checked' : '') + ' style="accent-color:var(--accent)"/> '
+      + '<span>' + m.name + '</span>'
+      + '</label>';
+  }).join('');
+}
+
+function toggleAllStaffPerms(selectAll) {
+  document.querySelectorAll('.uu-perm-cb').forEach(function(cb){ cb.checked = !!selectAll; });
+}
+
+// ── KYC & ATTACHED DOCUMENTS CONTROLLERS ────────────────
+var _currentSelectedDocFile = null;
+
+function handleUserDocSelected(inputEl) {
+  var file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  _currentSelectedDocFile = file;
+  if ($('uu-selected-file-label')) {
+    $('uu-selected-file-label').textContent = '✅ Selected: ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+  }
+}
+
+function addDocToUserList() {
+  var title = (val('uu-new-doc-title') || '').trim();
+  if (!title) { uiAlert('Please enter a Document Title (e.g. Aadhaar Card)'); return; }
+  if (!_currentSelectedDocFile) { uiAlert('Please select a file to attach'); return; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    _tempUserDocs.push({
+      id: uid(),
+      title: title,
+      fileName: _currentSelectedDocFile.name,
+      fileType: _currentSelectedDocFile.type,
+      data: ev.target.result,
+      uploadedAt: new Date().toISOString()
+    });
+
+    if ($('uu-new-doc-title')) $('uu-new-doc-title').value = '';
+    if ($('uu-new-doc-file')) $('uu-new-doc-file').value = '';
+    if ($('uu-selected-file-label')) $('uu-selected-file-label').textContent = '';
+    _currentSelectedDocFile = null;
+
+    renderUserDocsInModal();
+    toast('Document attached to list ✓');
+  };
+  reader.readAsDataURL(_currentSelectedDocFile);
+}
+
+function renderUserDocsInModal() {
+  var container = document.getElementById('uu-docs-list-container');
+  if (!container) return;
+
+  if (!_tempUserDocs.length) {
+    container.innerHTML = '<div style="font-size:10px;color:var(--t3);padding:4px 0">No documents attached yet.</div>';
+    return;
+  }
+
+  container.innerHTML = _tempUserDocs.map(function(doc, idx) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg1);border:1px solid var(--b1);border-radius:6px;font-size:10.5px">'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+        + '<span>📄</span>'
+        + '<div><strong>' + esc(doc.title) + '</strong> <span style="font-size:9.5px;color:var(--t3)">(' + esc(doc.fileName) + ')</span></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:4px">'
+        + '<button type="button" class="btn btn-outline btn-sm" style="font-size:9px;padding:2px 6px" onclick="downloadUserDocDirect(\'' + idx + '\')">⬇ Download</button>'
+        + '<button type="button" class="btn btn-danger btn-sm" style="font-size:9px;padding:2px 6px" onclick="_tempUserDocs.splice(' + idx + ',1);renderUserDocsInModal();">✕</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function downloadUserDocDirect(idx) {
+  var doc = _tempUserDocs[idx];
+  if (!doc || !doc.data) { toast('No document data', 'var(--warn)'); return; }
+  var a = document.createElement('a');
+  a.href = doc.data;
+  a.download = doc.fileName || (doc.title + '.pdf');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ── SAVE UNIFIED USER (ADMIN OR STAFF) ─────────────────
+function saveUnifiedUserModal() {
+  var mode = val('uu-mode') || 'create';
+  var targetId = val('uu-id');
+  var role = val('uu-role') || 'admin';
+  var name = (val('uu-name') || '').trim();
+  var uname = (val('uu-username') || '').trim().toUpperCase();
+  var desig = (val('uu-desig') || '').trim();
+  var pass = (val('uu-password') || '').trim();
+
+  if (!name) { uiAlert('Display Name is required'); return; }
+  if (!uname) { uiAlert('Username is required'); return; }
+  if (/\s/.test(uname)) { uiAlert('Username cannot contain spaces'); return; }
+
+  // Check username uniqueness
+  var allUsers = [MASTER].concat(DB.users||[]).concat(DB.dynamicAdmins||[]);
+  var collision = allUsers.some(function(u){
+    return u && String(u.id).trim() !== String(targetId).trim() && (u.username||'').toUpperCase() === uname;
+  });
+  if (collision) {
+    uiAlert('Username "@' + uname + '" is already taken by another user. Choose another.');
+    return;
+  }
+
+  var phone = (val('uu-phone') || '').trim();
+  var whatsapp = (val('uu-whatsapp') || '').trim();
+  var email = (val('uu-email') || '').trim();
+  var emergency = (val('uu-emergency') || '').trim();
+  var address = (val('uu-address') || '').trim();
+
+  if (role === 'admin') {
+    DB.dynamicAdmins = DB.dynamicAdmins || [];
+    var admin = (mode === 'edit' && targetId) ? DB.dynamicAdmins.find(function(x){ return String(x.id).trim() === String(targetId).trim(); }) : null;
+
+    if (!admin) {
+      if (!pass) { uiAlert('Password is required for new Admin'); return; }
+      admin = {
+        id: uid(),
+        role: 'admin',
+        color: '#0ea5e9',
+        createdAt: today(),
+        _by: (CU ? CU.name : 'Master')
+      };
+      DB.dynamicAdmins.push(admin);
+    }
+
+    admin.name = name;
+    admin.username = uname;
+    admin.desig = desig || 'Fleet Administrator';
+    if (pass) admin.password = pass;
+    admin.phone = phone;
+    admin.whatsapp = whatsapp;
+    admin.email = email;
+    admin.emergencyContact = emergency;
+    admin.address = address;
+    admin.documents = _tempUserDocs;
+    admin.permissions = ['finance_process', 'task_assign', 'vault_access', 'all_operational'];
+
+    setAdminOverride(admin.id, { name: name, username: uname, desig: admin.desig, password: pass || undefined });
+
+  } else {
+    // Staff user
+    DB.users = DB.users || [];
+    var staff = (mode === 'edit' && targetId) ? DB.users.find(function(x){ return String(x.id).trim() === String(targetId).trim(); }) : null;
+
+    var perms = Array.from(document.querySelectorAll('.uu-perm-cb:checked')).map(function(cb){ return cb.value; });
+    if (!perms.length) perms = ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'];
+
+    if (!staff) {
+      if (!pass) { uiAlert('Password is required for new Staff'); return; }
+      staff = {
+        id: uid(),
+        role: 'staff',
+        color: '#10b981',
+        createdAt: today(),
+        _by: (CU ? CU.name : 'Master')
+      };
+      DB.users.push(staff);
+    }
+
+    staff.name = name;
+    staff.username = uname;
+    staff.desig = desig || 'Staff User';
+    if (pass) staff.password = hashPassword(pass);
+    staff.phone = phone;
+    staff.whatsapp = whatsapp;
+    staff.email = email;
+    staff.emergencyContact = emergency;
+    staff.address = address;
+    staff.documents = _tempUserDocs;
+    staff.permissions = perms;
+  }
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  closeModal('m-unified-user-modal');
+  renderMasterGovernanceCenter();
+  if (typeof renderUsers === 'function') renderUsers();
+  if (typeof renderDashboard === 'function') renderDashboard();
+
+  toast((role === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "@' + uname + '" saved successfully ✓', 'var(--ok)');
+  audit('Governance: Saved ' + role + ' profile "' + name + '" (@' + uname + ') with ' + _tempUserDocs.length + ' KYC doc(s)', 'var(--ok)');
+}
+
+function deleteUserV8(userId, type) {
+  var list = (type === 'admin') ? DB.dynamicAdmins : DB.users;
+  var target = (list || []).find(function(x){ return String(x.id).trim() === String(userId).trim(); });
+  if (!target) return;
+
+  if (!confirm('Are you sure you want to permanently delete ' + (type === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "' + target.name + '" (@' + target.username + ')?')) return;
+
+  if (type === 'admin') {
+    DB.dynamicAdmins = DB.dynamicAdmins.filter(function(x){ return String(x.id).trim() !== String(userId).trim(); });
+    if (DB.adminOverrides) delete DB.adminOverrides[userId];
+  } else {
+    DB.users = DB.users.filter(function(x){ return String(x.id).trim() !== String(userId).trim(); });
+  }
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  renderMasterGovernanceCenter();
+  if (typeof renderUsers === 'function') renderUsers();
+  toast('User "' + target.name + '" deleted permanently');
+  audit('Governance: Deleted ' + type + ' "' + target.name + '"', 'var(--err)');
+}
+
+function saveCompanyProfileV8() {
+  var compName = (val('mg-comp-name') || '').trim();
+  if (!compName) { uiAlert('Company Name is required'); return; }
+
+  DB.companies = DB.companies || [];
+  if (!DB.companies.length) DB.companies.push({ id: uid() });
+
+  var comp = DB.companies[0];
+  comp.name = compName;
+  comp.gst = val('mg-comp-gst').trim();
+  comp.pan = val('mg-comp-pan').trim();
+  comp.address = val('mg-comp-addr').trim();
+  comp.email = val('mg-comp-email').trim();
+  comp.phone = val('mg-comp-phone').trim();
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  toast('Company profile saved successfully ✓', 'var(--ok)');
+  audit('Governance: Updated Company Profile (' + compName + ')', 'var(--ok)');
+}
+
+function openUserDocsModal(userId) {
+  var user = (DB.dynamicAdmins || []).find(function(x){ return x.id === userId; }) || (DB.users || []).find(function(x){ return x.id === userId; });
+  if (!user) { toast('User not found', 'var(--err)'); return; }
+  var docs = user.documents || [];
+
+  var m = document.createElement('div');
+  m.className = 'overlay on';
+  m.style.zIndex = '10950';
+  m.innerHTML = '<div class="modal" style="max-width:520px">'
+    + '<div class="modal-title" style="color:var(--accent)">📂 KYC &amp; Compliance Documents — ' + esc(user.name) + '</div>'
+    + '<div class="modal-sub">Registered Documents for @' + esc(user.username) + ' (' + esc(user.role === 'admin' ? 'Fleet Admin' : 'Staff User') + ')</div>'
+    + '<div style="margin:14px 0;display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow-y:auto">'
+      + (docs.length ? docs.map(function(d){
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);border:1px solid var(--b2);border-radius:8px">'
+            + '<div><strong>' + esc(d.title) + '</strong><div style="font-size:9.5px;color:var(--t3)">' + esc(d.fileName) + ' · ' + fmtDate(d.uploadedAt) + '</div></div>'
+            + '<a href="' + d.data + '" download="' + esc(d.fileName) + '" class="btn btn-primary btn-sm" style="font-size:9.5px;font-weight:700">⬇ Download</a>'
+          + '</div>';
+        }).join('') : '<div style="color:var(--t3);font-size:11px;padding:12px;text-align:center">No KYC documents uploaded for this user yet.</div>')
+    + '</div>'
+    + '<div style="display:flex;justify-content:flex-end"><button class="btn btn-ghost" onclick="this.closest(\'.overlay\').remove()">Close</button></div>'
+  + '</div>';
+  document.body.appendChild(m);
+}
+
 </script>
 
 <!-- MOBILE SPEED-DIAL RADIAL FAB CONTAINER -->
