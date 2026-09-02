@@ -24220,6 +24220,28 @@ function doChangePassword() {
   toast('Password changed successfully! Please remember your new password.');
 }
 
+var SYSTEM_SEARCH_PAGES = [
+  { name: 'Office Staff Management', keywords: 'office staff employees shore team personnel admin department', icon: '🏬', page: 'office-staff', sub: 'Shore office team, contact directory, and departmental staff' },
+  { name: 'User & Admin Management', keywords: 'users admin master staff credentials permissions access roles passwords', icon: '👥', page: 'users', sub: 'Manage administrators, staff user accounts, and access rights' },
+  { name: 'Registered Vessels Fleet', keywords: 'vessels tugs fleet boats barges registered stationed IMO', icon: '🚢', page: 'vessels', sub: 'Fleet overview, vessel technical specs, and status' },
+  { name: 'Vessel Certificates & Expiries', keywords: 'certificates certs compliance survey IRS MMD class expiry renewals', icon: '📜', page: 'certificates', sub: 'Statutory vessel certificates, validity tracker, and renewal alerts' },
+  { name: 'Astronomical Lunar Tide Engine', keywords: 'tides lunar moon stream water level depth spring neap eclipse sikka bedi kandla mundra', icon: '🌙', page: 'tides', sub: 'Real-time harmonic tidal waves, moon phase, and UKC draft calculator' },
+  { name: 'Fuel Intelligence & HSD Bunkering', keywords: 'fuel HSD diesel bunkering ROB consumption receipts tanker', icon: '⚡', page: 'fuel', sub: 'Daily HSD logs, trip-wise consumption, and bunker receipts' },
+  { name: 'Crew Manning & INDOS Manifest', keywords: 'crew sailors officers captain chief engineer deckhand cdc indos salary', icon: '👤', page: 'crew', sub: 'Active shipboard crew manifest, rank, CDC, and INDOS database' },
+  { name: 'Ex-Crew Archive & Records', keywords: 'ex-crew history relieving terminated past crew records', icon: '📋', page: 'ex-crew', sub: 'Historical records and performance ratings of relieved crew' },
+  { name: 'Maintenance & Work Overhauls', keywords: 'maintenance service repair engine overhauls running hours due', icon: '🔧', page: 'maintenance', sub: 'Preventive maintenance schedules, engine overhauls, and jobs' },
+  { name: 'Deficiency Tracker & Audits', keywords: 'deficiencies audits defects non-conformity safety rectifications', icon: '⚠️', page: 'deficiency', sub: 'Vessel defects, audit observations, and corrective action logs' },
+  { name: 'Material Inward & Outward Challans', keywords: 'materials challan inward outward dispatch delivery stock transfer items', icon: '📦', page: 'mat-provided', sub: 'Material delivery challans, printed dispatch receipts, and stock tracking' },
+  { name: 'Material Requisitions & Indents', keywords: 'requests requisitions indents order parts urgency', icon: '🛒', page: 'mat-request', sub: 'Vessel part requisitions, approval workflows, and status' },
+  { name: 'Spares Inventory & Part Specs', keywords: 'spares parts inventory equipment stock items storage', icon: '⚙️', page: 'spares', sub: 'Spare parts stock inventory, min levels, and technical specs' },
+  { name: 'Invoices & Commercial Challans', keywords: 'invoices billing commercial challans client payments gst amounts', icon: '🧾', page: 'invoices', sub: 'Tax invoices, outward commercial delivery challans, and ledger' },
+  { name: 'Crew Salary Processing', keywords: 'salary wages pay slips crew deductions gross net bank transfer upi', icon: '💰', page: 'salary', sub: 'Monthly crew salary processing, payslips, and payment records' },
+  { name: 'VTMS & Port Authorities Directory', keywords: 'vtms port vhf channels emergency hotlines radio radar sikka bedi kandla', icon: '📡', page: 'vtms', sub: 'Official port contacts, VHF working frequencies, and radar stations' },
+  { name: 'Document Vault & Secure Storage', keywords: 'vault documents folders pdf uploads drawings files archive', icon: '📁', page: 'vault', sub: 'Secure folder-wise repository for drawings, manuals, and records' },
+  { name: 'Backup, Extraction & Restore Center', keywords: 'backup restore export json zip download offline extraction input', icon: '💾', page: 'backup', sub: 'Universal offline backup exporter and lossless data input engine' },
+  { name: 'Master Control Desk', keywords: 'master godpanel settings configuration audit locks elevation', icon: '👑', page: 'godpanel', sub: 'Master administrator system controls, company profiles, and locks' }
+];
+
 function runGlobalSearch(q) {
   clearTimeout(_searchTimeout);
   q = String(q || '').trim().toLowerCase();
@@ -24254,6 +24276,19 @@ function runGlobalSearch(q) {
         results.push({module:module, icon:icon, title:title, subtitle:subtitle, page:page});
       }
     }
+
+        // ── NAVIGATION PAGES & MODULES ──────────────────────
+    SYSTEM_SEARCH_PAGES.forEach(function(p) {
+      if ((p.name + ' ' + p.keywords + ' ' + p.sub).toLowerCase().includes(q)) {
+        results.push({
+          module: 'Navigation',
+          icon: p.icon,
+          title: 'Go to: ' + p.name,
+          subtitle: p.sub,
+          page: p.page
+        });
+      }
+    });
 
     // ── VESSELS ─────────────────────────────────────────
     (DB.vessels||[]).forEach(function(v) {
