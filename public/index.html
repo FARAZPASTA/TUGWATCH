@@ -9189,13 +9189,14 @@ function setAdminOverride(adminId, fields) {
 function editMyProfile() {
   if (!CU) return;
   if (CU.role === 'master') {
-    openAdminEditModal('m1');
+    if (typeof gpGo === 'function') gpGo('godpanel');
+    else if (typeof openEditUserModalV8 === 'function') openEditUserModalV8('m1', 'admin');
   } else if (CU.role === 'admin') {
-    openAdminEditModal(CU.id);
+    if (typeof openEditUserModalV8 === 'function') openEditUserModalV8(CU.id, 'admin');
+    else openAdminEditModal(CU.id);
   } else if (CU.role === 'staff') {
-    var idx = (DB.users||[]).findIndex(function(u){ return String(u.username||'').toUpperCase() === String(CU.username||'').toUpperCase(); });
-    if (idx !== -1) openStaffEditModal(idx);
-    else toast('Profile: @' + (CU.username||''));
+    if (typeof openEditUserModalV8 === 'function') openEditUserModalV8(CU.id, 'staff');
+    else openStaffEditModal(CU.id);
   }
 }
 
@@ -13027,6 +13028,7 @@ function addCrew(){
 /* ── USER MANAGEMENT ────────────────────────────────── */
 function renderUsers(){
   var isMaster = CU && CU.role === 'master';
+  if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
 
   // 1. Render Master Administrator Card
   var mtb = $('master-user-tbody');
