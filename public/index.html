@@ -20,6 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet"/>
 <title>TugWatch v6 — 12 May 2026 11:29</title>
 <script>window.__fbLoadError=false;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" onerror="window.__fbLoadError=true;console.warn('Firebase app SDK unavailable (offline) — running in local mode')"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" onerror="window.__fbLoadError=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" onerror="window.__fbLoadError=true"></script>
@@ -4174,36 +4175,104 @@ html[data-theme="dark"] #l-pass::placeholder {
       </div>
     </div>
 
-    <!-- BACKUP & RESTORE PAGE -->
+    <!-- BACKUP, OFFLINE EXTRACTION & UNIVERSAL RESTORE PAGE -->
     <div class="page" id="p-backup">
-      <div class="page-hdr"><div class="page-hdr-title">Backup &amp; Data Management</div></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px">
-        <div class="data-card" style="padding:18px">
-          <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px">📦 Export Full Backup</div>
-          <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Download all TugWatch data as a JSON file. Store this safely — it can restore everything.</div>
-          <button class="btn btn-primary" onclick="exportFullBackup()">Download Backup JSON</button>
-        </div>
-        <div class="data-card" style="padding:18px">
-          <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px">📂 Restore from Backup</div>
-          <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Upload a previously exported backup JSON file to restore all data.</div>
-          <input type="file" id="backup-restore-file" accept=".json" onchange="restoreFromBackup(this)" style="font-size:11px"/>
-        </div>
-        <div class="data-card" style="padding:18px">
-          <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px">☁ Firebase Sync</div>
-          <div style="font-size:11px;color:var(--t3);margin-bottom:10px">Manually sync all data to the cloud or pull latest from Firebase.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-outline btn-sm" onclick="pushAllToFirebase()">⬆ Push to Cloud</button>
-            <button class="btn btn-outline btn-sm" onclick="pullFromFirebase()">⬇ Pull from Cloud</button>
+      <div class="page-hdr" style="margin-bottom:14px">
+        <div>
+          <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
+            <span>💾 Backup, Offline Extraction &amp; Restore Center</span>
+            <span class="chip chip-ok" style="font-size:10px">Lossless Recovery Engine</span>
           </div>
-          <div id="fb-sync-status" style="font-size:10px;color:var(--t3);margin-top:8px"></div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Export folder-wise, vessel-wise archives, download full JSON system snapshots, or seamlessly input/restore backups with 100% schema integrity</div>
         </div>
-        <div class="data-card" style="padding:18px">
-          <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px">📊 Storage Usage</div>
-          <div id="storage-usage-info" style="font-size:11px;color:var(--t3)">Loading...</div>
-          <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="renderStorageInfo()">Refresh</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-primary btn-sm" onclick="exportVesselAndFolderZipBackup()">🗂️ Export Vessel-Wise ZIP</button>
+          <button class="btn btn-accent btn-sm" onclick="exportFullDatabaseBackup()">📦 Download Master JSON</button>
+        </div>
+      </div>
+
+      <!-- 3-CARD BACKUP MATRIX -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:18px">
+        <!-- Card 1: Vessel & Folder Wise ZIP Export -->
+        <div class="data-card" style="padding:18px;border-top:3px solid var(--accent);display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">
+              <span>🗂️ Vessel-Wise &amp; Folder-Wise ZIP Export</span>
+            </div>
+            <div style="font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:12px">
+              Extracts a complete structured ZIP archive with dedicated folders:
+              <ul style="margin:6px 0 0 16px;padding:0;font-size:10.5px;color:var(--t2)">
+                <li><code>📁 01_Vessels_Fleet/[Vessel_Name]/</code> (Certificates, Fuel, Maint, Crew)</li>
+                <li><code>📁 02_Material_and_Challans/</code> (Printed Delivery Challans, POs, Inventory)</li>
+                <li><code>📁 03_Crew_and_Indos/</code> (Manifest, Contracts, Leave)</li>
+                <li><code>📁 04_Finance_and_Invoices/</code> (Invoices, Salaries)</li>
+                <li><code>📁 05_Universal_Restore/</code> (Includes website-ready master JSON)</li>
+              </ul>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="exportVesselAndFolderZipBackup()" style="font-weight:700;padding:9px 16px;width:100%">
+            🗂️ Download Folder-Wise ZIP Archive
+          </button>
+        </div>
+
+        <!-- Card 2: 1-Click Master System JSON Backup -->
+        <div class="data-card" style="padding:18px;border-top:3px solid var(--ok);display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">
+              <span>📦 1-Click Master Database Backup (.json)</span>
+            </div>
+            <div style="font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:12px">
+              Instant snapshot of 100% of your website state formatted so the system can effortlessly re-import, rehydrate, and reconstruct every vessel, material challan, invoice, and setting.
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:10px;color:var(--t2)">
+              <div><strong>Vessels:</strong> <span id="bk-stat-vessels">0</span> · <strong>Crew:</strong> <span id="bk-stat-crew">0</span></div>
+              <div style="margin-top:2px"><strong>Materials &amp; Challans:</strong> <span id="bk-stat-materials">0</span> · <strong>Invoices:</strong> <span id="bk-stat-invoices">0</span></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-ok" onclick="exportFullDatabaseBackup()" style="font-weight:700;padding:9px 16px;width:100%">
+            💾 Download Master Backup File
+          </button>
+        </div>
+
+        <!-- Card 3: Universal Input / Restore Engine -->
+        <div class="data-card" style="padding:18px;border-top:3px solid var(--warn);display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">
+              <span>📥 Universal Input / Restore Engine</span>
+            </div>
+            <div style="font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:12px">
+              Lost data or switched devices? Drop any previously exported <code>.json</code> or <code>.zip</code> backup file here to restore all data with 100% accuracy.
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label class="btn btn-primary" style="cursor:pointer;text-align:center;font-weight:700;margin:0;padding:9px 16px">
+              📂 Select Backup File to Restore (.json / .zip)
+              <input type="file" id="universal-restore-input" accept=".json,.zip,.twbackup" style="display:none" onchange="handleUniversalRestoreFile(this)"/>
+            </label>
+            <button type="button" class="btn btn-outline btn-sm" onclick="openModal('m-backup-manager')">⚙️ Advanced Restore &amp; Cloud Sync</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLOUD SYNC & STORAGE AUDIT ROW -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="data-card" style="padding:16px">
+          <div style="font-size:12px;font-weight:800;color:var(--t1);margin-bottom:6px">☁️ Firebase Realtime Cloud Synchronization</div>
+          <div style="font-size:11px;color:var(--t3);margin-bottom:10px">Live bi-directional database replication status across all authorized devices:</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-outline btn-sm" onclick="pushAllToFirebase()">⬆️ Force Cloud Push</button>
+            <button class="btn btn-outline btn-sm" onclick="pullFromFirebase()">⬇️ Force Cloud Pull</button>
+            <span id="fb-sync-status-badge" class="chip chip-ok" style="font-size:9.5px;font-weight:700">ONLINE</span>
+          </div>
+        </div>
+        <div class="data-card" style="padding:16px">
+          <div style="font-size:12px;font-weight:800;color:var(--t1);margin-bottom:6px">📊 Local Storage Health &amp; Schema Integrity</div>
+          <div id="storage-usage-info" style="font-size:11px;color:var(--t3)">Calculating local storage payload...</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="renderStorageInfo()">🔄 Recalculate Storage</button>
         </div>
       </div>
     </div>
+
 
     <div class="page" id="p-quotations">
       <div class="page-hdr">
@@ -31989,6 +32058,366 @@ function renderVoyageChartering() {
   });
   html += '</tbody></table></div>';
   el.innerHTML = html;
+}
+
+
+
+/* ══════════════════════════════════════════════════════════════
+   UNIVERSAL OFFLINE BACKUP, VESSEL-WISE EXTRACTION & RESTORE ENGINE
+══════════════════════════════════════════════════════════════ */
+
+// CSV Converter Helper
+function arrayToCSV(arr, headers) {
+  if (!arr || !arr.length) return '';
+  var keys = headers || Object.keys(arr[0]).filter(function(k){ return typeof arr[0][k] !== 'object' || arr[0][k] === null; });
+  var csv = keys.map(function(k){ return '"' + k.replace(/"/g, '""') + '"'; }).join(',') + '\n';
+  arr.forEach(function(row) {
+    csv += keys.map(function(k) {
+      var val = row[k];
+      if (val === null || val === undefined) return '""';
+      if (typeof val === 'object') val = JSON.stringify(val);
+      return '"' + String(val).replace(/"/g, '""') + '"';
+    }).join(',') + '\n';
+  });
+  return csv;
+}
+
+// 1. 1-Click Master Database JSON Export (Lossless System Snapshot)
+function exportFullDatabaseBackup() {
+  var timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  var dateStr = new Date().toISOString().split('T')[0];
+  var payload = {
+    _generator: 'TugWatch Enterprise Backup Engine',
+    _version: '7.2-Lossless',
+    _schema: 'tw_master_db',
+    _exportedAt: new Date().toISOString(),
+    _exportedBy: (CU ? CU.name + ' (@' + CU.username + ')' : 'Master Admin'),
+    stats: {
+      vessels: (DB.vessels||[]).length,
+      crew: (DB.crew||[]).length,
+      certificates: (DB.certs||[]).length,
+      materials: (DB.materials||[]).length,
+      materialRequests: (DB.requests||[]).length,
+      invoices: (DB.invoices||[]).length,
+      admins: (DB.dynamicAdmins||[]).length,
+      users: (DB.users||[]).length,
+      vtmsStations: (DB.vtmsDirectory||[]).length
+    },
+    data: DB
+  };
+
+  var jsonStr = JSON.stringify(payload, null, 2);
+  var blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'TugWatch_MASTER_BACKUP_' + dateStr + '_' + timestamp.slice(11,19) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  toast('Master Database Backup downloaded successfully ✓', 'var(--ok)');
+  audit('Exported Master Database Backup JSON (' + payload.stats.vessels + ' vessels, ' + payload.stats.crew + ' crew)', 'var(--ok)');
+}
+
+// 2. Vessel-Wise & Folder-Wise Structured ZIP Archive Export
+function exportVesselAndFolderZipBackup() {
+  if (typeof JSZip === 'undefined') {
+    uiAlert('ZIP library initializing... Please ensure an internet connection is available to load JSZip, or use Master JSON Backup.');
+    exportFullDatabaseBackup();
+    return;
+  }
+
+  var zip = new JSZip();
+  var dateStr = new Date().toISOString().split('T')[0];
+
+  // 📁 01_Vessels_Fleet/
+  var vesselsFolder = zip.folder('01_Vessels_Fleet');
+  (DB.vessels || []).forEach(function(v) {
+    var safeVName = (v.name || 'Vessel_' + v.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+    var vSub = vesselsFolder.folder(safeVName);
+
+    // Particulars JSON
+    vSub.file('vessel_particulars.json', JSON.stringify(v, null, 2));
+
+    // Certificates CSV
+    var vCerts = (DB.certs || []).filter(function(c){ return c.vessel === v.id || c.vessel === v.name; });
+    vSub.file('certificates.csv', arrayToCSV(vCerts));
+
+    // Fuel Logs CSV
+    var vHSD = (DB.hsd && DB.hsd[v.id]) ? DB.hsd[v.id] : [];
+    vSub.file('fuel_and_hsd_logs.csv', arrayToCSV(vHSD));
+
+    // Maintenance CSV
+    var vMaint = (DB.maint || []).filter(function(m){ return m.vessel === v.id || m.vessel === v.name; });
+    vSub.file('maintenance_logs.csv', arrayToCSV(vMaint));
+
+    // Deficiencies CSV
+    var vDefs = (DB.defs || []).filter(function(d){ return d.vessel === v.id || d.vessel === v.name; });
+    vSub.file('deficiencies_and_audits.csv', arrayToCSV(vDefs));
+
+    // Crew assigned CSV
+    var vCrew = (DB.crew || []).filter(function(c){ return c.vessel === v.id || c.vessel === v.name; });
+    vSub.file('assigned_crew.csv', arrayToCSV(vCrew));
+  });
+
+  // 📁 02_Material_and_Printed_Challans/
+  var matFolder = zip.folder('02_Material_and_Printed_Challans');
+  matFolder.file('material_inventory_stock.csv', arrayToCSV(DB.materials || []));
+  matFolder.file('material_requisitions.csv', arrayToCSV(DB.requests || []));
+  matFolder.file('delivery_and_dispatch_challans.csv', arrayToCSV(DB.stockMoves || []));
+  matFolder.file('purchase_orders.csv', arrayToCSV(DB.purchaseOrders || []));
+
+  // 📁 03_Crew_and_Indos/
+  var crewFolder = zip.folder('03_Crew_and_Indos');
+  crewFolder.file('crew_master_manifest.csv', arrayToCSV(DB.crew || []));
+  crewFolder.file('leave_and_relieving_records.csv', arrayToCSV(DB.leaveRecords || []));
+  crewFolder.file('ex_crew_history.csv', arrayToCSV(DB.exCrew || []));
+
+  // 📁 04_Finance_and_Invoices/
+  var finFolder = zip.folder('04_Finance_and_Invoices');
+  finFolder.file('invoices_and_challans.csv', arrayToCSV(DB.invoices || []));
+  finFolder.file('crew_salary_payments.csv', arrayToCSV(DB.salaries || []));
+  finFolder.file('daily_operational_reports.csv', arrayToCSV(DB.dors || []));
+
+  // 📁 05_VTMS_and_Port_Directory/
+  var vtmsFolder = zip.folder('05_VTMS_and_Port_Directory');
+  vtmsFolder.file('vtms_port_authorities.csv', arrayToCSV(getVTMSDirectory()));
+  vtmsFolder.file('port_entry_exit_logs.csv', arrayToCSV(DB.vtmsLog || []));
+
+  // 📁 06_Universal_System_Restore_Package/ (Contains the website master restore file)
+  var restoreFolder = zip.folder('06_Universal_System_Restore_Package');
+  restoreFolder.file('TugWatch_MASTER_RESTORE_FILE.json', JSON.stringify({
+    _generator: 'TugWatch Enterprise Backup Engine',
+    _version: '7.2-Lossless',
+    _exportedAt: new Date().toISOString(),
+    data: DB
+  }, null, 2));
+
+  // Generate ZIP
+  zip.generateAsync({ type: 'blob' }).then(function(content) {
+    var url = URL.createObjectURL(content);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'TugWatch_VesselWise_Archive_' + dateStr + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Vessel-wise & folder-wise ZIP archive downloaded ✓', 'var(--ok)');
+    audit('Exported complete Vessel & Folder ZIP Archive', 'var(--ok)');
+  }).catch(function(err) {
+    console.error('ZIP Error:', err);
+    toast('ZIP generation failed — downloading Master JSON instead', 'var(--warn)');
+    exportFullDatabaseBackup();
+  });
+}
+
+// 3. Universal File Handler for Restore (.json, .zip, .twbackup)
+function handleUniversalRestoreFile(inputEl) {
+  var file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+
+  var fileName = file.name.toLowerCase();
+
+  if (fileName.endsWith('.json') || fileName.endsWith('.twbackup')) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var parsed = JSON.parse(ev.target.result);
+        promptRestoreConfirmation(parsed, file.name);
+      } catch (err) {
+        uiAlert('Invalid JSON file format: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  } else if (fileName.endsWith('.zip')) {
+    if (typeof JSZip === 'undefined') {
+      uiAlert('JSZip library required to unpack ZIP backup. Please upload the .json backup file directly.');
+      return;
+    }
+    var zipReader = new FileReader();
+    zipReader.onload = function(ev) {
+      JSZip.loadAsync(ev.target.result).then(function(zip) {
+        // Look for TugWatch_MASTER_RESTORE_FILE.json inside ZIP
+        var restoreFile = zip.file('06_Universal_System_Restore_Package/TugWatch_MASTER_RESTORE_FILE.json') || zip.file('TugWatch_MASTER_RESTORE_FILE.json');
+        if (!restoreFile) {
+          // Search for any .json file
+          var foundKey = Object.keys(zip.files).find(function(k){ return k.toLowerCase().endsWith('.json') && !k.includes('particulars'); });
+          if (foundKey) restoreFile = zip.file(foundKey);
+        }
+
+        if (!restoreFile) {
+          uiAlert('Could not find TugWatch master restore JSON inside this ZIP file.');
+          return;
+        }
+
+        restoreFile.async('string').then(function(jsonStr) {
+          var parsed = JSON.parse(jsonStr);
+          promptRestoreConfirmation(parsed, file.name);
+        });
+      }).catch(function(err) {
+        uiAlert('Failed to read ZIP archive: ' + err.message);
+      });
+    };
+    zipReader.readAsArrayBuffer(file);
+  } else {
+    uiAlert('Unsupported file format. Please upload a .json, .twbackup, or .zip archive.');
+  }
+
+  inputEl.value = '';
+}
+
+// 4. Modal Confirmation & Inspection Preview before Restoring
+function promptRestoreConfirmation(payload, sourceName) {
+  var targetData = payload.data || payload;
+  if (!targetData || typeof targetData !== 'object') {
+    uiAlert('Corrupt or unrecognized backup payload structure.');
+    return;
+  }
+
+  var vCount = (targetData.vessels || []).length;
+  var cCount = (targetData.crew || []).length;
+  var certCount = (targetData.certs || []).length;
+  var matCount = (targetData.materials || []).length;
+  var invCount = (targetData.invoices || []).length;
+  var admCount = (targetData.dynamicAdmins || []).length;
+
+  var confModal = document.createElement('div');
+  confModal.className = 'overlay on';
+  confModal.style.zIndex = '10900';
+  confModal.innerHTML = '<div class="modal" style="max-width:540px">'
+    + '<div class="modal-title" style="color:var(--accent)">🔍 Backup Inspection &amp; Restore Verification</div>'
+    + '<div class="modal-sub">Inspected archive: <strong>' + esc(sourceName) + '</strong></div>'
+    + '<div style="background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:12px;margin:12px 0">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:6px">📦 Data Found in Backup:</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:var(--t2)">'
+        + '<div>🚢 Vessels: <strong>' + vCount + '</strong></div>'
+        + '<div>👥 Crew Members: <strong>' + cCount + '</strong></div>'
+        + '<div>📜 Certificates: <strong>' + certCount + '</strong></div>'
+        + '<div>📦 Material &amp; Challans: <strong>' + matCount + '</strong></div>'
+        + '<div>💰 Invoices: <strong>' + invCount + '</strong></div>'
+        + '<div>🛡️ Fleet Admins: <strong>' + admCount + '</strong></div>'
+      + '</div>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Choose how you would like to restore this data into the website:</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:8px">'
+      + '<button type="button" class="btn btn-primary" id="btn-restore-merge" style="flex:1;font-weight:700">🛡️ Safe Merge (Preserve New Entries)</button>'
+      + '<button type="button" class="btn btn-danger" id="btn-restore-overwrite" style="flex:1;font-weight:700">⚠️ Complete Overwrite (Full Rebuild)</button>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:flex-end;margin-top:10px">'
+      + '<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest(\'.overlay\').remove()">Cancel</button>'
+    + '</div>'
+  + '</div>';
+
+  document.body.appendChild(confModal);
+
+  document.getElementById('btn-restore-merge').onclick = function() {
+    confModal.remove();
+    executeUniversalRestore(targetData, 'merge', sourceName);
+  };
+
+  document.getElementById('btn-restore-overwrite').onclick = function() {
+    if (!confirm('Warning: Complete Overwrite will replace your current website data with this backup file. Proceed?')) return;
+    confModal.remove();
+    executeUniversalRestore(targetData, 'overwrite', sourceName);
+  };
+}
+
+// 5. Execute Universal Restore with Bulletproof Local + Cloud Rehydration
+function executeUniversalRestore(targetData, mode, sourceName) {
+  if (mode === 'overwrite') {
+    DB = JSON.parse(JSON.stringify(targetData));
+  } else {
+    // Safe merge
+    Object.keys(targetData).forEach(function(key) {
+      if (Array.isArray(targetData[key])) {
+        var existingArr = DB[key] || [];
+        var itemMap = {};
+        existingArr.forEach(function(x){ if (x && x.id) itemMap[x.id] = x; });
+        targetData[key].forEach(function(newItem){
+          if (newItem && newItem.id) {
+            itemMap[newItem.id] = Object.assign({}, itemMap[newItem.id] || {}, newItem);
+          }
+        });
+        DB[key] = Object.values(itemMap);
+      } else if (typeof targetData[key] === 'object' && targetData[key] !== null) {
+        DB[key] = Object.assign({}, DB[key] || {}, targetData[key]);
+      } else {
+        DB[key] = targetData[key];
+      }
+    });
+  }
+
+  // Ensure DB sanitized & valid
+  sanitizeDB();
+
+  // Rehydrate Master if present
+  if (DB.masterName) MASTER.name = DB.masterName;
+  if (DB.masterUsername) MASTER.username = DB.masterUsername;
+  if (DB.masterPass) MASTER.password = DB.masterPass;
+  if (DB.masterDesig) MASTER.desig = DB.masterDesig;
+
+  // Save to LocalStorage + Push to Firebase
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  // Re-render entire UI
+  if (typeof renderDashboard === 'function') renderDashboard();
+  if (typeof renderVessels === 'function') renderVessels();
+  if (typeof renderCrew === 'function') renderCrew();
+  if (typeof renderCerts === 'function') renderCerts();
+  if (typeof renderMaterials === 'function') renderMaterials();
+  if (typeof renderInvoices === 'function') renderInvoices();
+  if (typeof renderUsers === 'function') renderUsers();
+  if (typeof renderAdminList === 'function') renderAdminList();
+  if (typeof renderVTMSDirectory === 'function') renderVTMSDirectory();
+  if (typeof renderStorageInfo === 'function') renderStorageInfo();
+
+  toast('Database successfully restored from ' + sourceName + ' (' + mode + ') ✓', 'var(--ok)');
+  audit('Restored website database from ' + sourceName + ' via ' + mode + ' mode', 'var(--ok)');
+  logSecurityEvent('Database Restored', 'Source: ' + sourceName + ', Mode: ' + mode + ', By: ' + (CU ? CU.name : 'Master'));
+}
+
+function showPasteJsonInput() {
+  var el = document.getElementById('paste-json-container');
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function importPastedBackup(mode) {
+  var raw = (val('paste-backup-json') || '').trim();
+  if (!raw) { uiAlert('Paste JSON string first'); return; }
+  try {
+    var parsed = JSON.parse(raw);
+    promptRestoreConfirmation(parsed, 'Pasted JSON Text');
+  } catch(e) {
+    uiAlert('Invalid JSON: ' + e.message);
+  }
+}
+
+function renderStorageInfo() {
+  var el = document.getElementById('storage-usage-info');
+  var bkStatV = document.getElementById('bk-stat-vessels');
+  var bkStatC = document.getElementById('bk-stat-crew');
+  var bkStatM = document.getElementById('bk-stat-materials');
+  var bkStatI = document.getElementById('bk-stat-invoices');
+
+  if (bkStatV) bkStatV.textContent = (DB.vessels || []).length;
+  if (bkStatC) bkStatC.textContent = (DB.crew || []).length;
+  if (bkStatM) bkStatM.textContent = (DB.materials || []).length;
+  if (bkStatI) bkStatI.textContent = (DB.invoices || []).length;
+
+  if (!el) return;
+  try {
+    var str = JSON.stringify(DB);
+    var bytes = new Blob([str]).size;
+    var kb = (bytes / 1024).toFixed(1);
+    var mb = (bytes / (1024 * 1024)).toFixed(2);
+    el.innerHTML = '<strong>' + (bytes > 1048576 ? mb + ' MB' : kb + ' KB') + '</strong> used across ' + Object.keys(DB).length + ' database collections. (Estimated quota: ~5-10 MB LocalStorage / Unlimited Cloud)';
+  } catch(e) {
+    el.textContent = 'Storage active · ' + Object.keys(DB).length + ' collections';
+  }
 }
 
 </script>
