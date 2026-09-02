@@ -7085,6 +7085,7 @@ html[data-theme="dark"] #l-pass::placeholder {
     <button class="modal-close" data-close="m-edit-staff-modal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div class="modal-title" style="color:var(--accent)">✏️ Edit Staff User Profile</div>
     <div class="modal-sub">Update staff name, username, designation, and password</div>
+    <input type="hidden" id="es-id"/>
     <input type="hidden" id="es-idx"/>
     <div class="fg">
       <label class="fl">Full Display Name <span class="req">*</span></label>
@@ -15508,29 +15509,59 @@ function renderStaffListModal() {
   }).join('');
 }
 
-function openStaffEditModal(i) {
-  var u = (DB.users || [])[i];
-  if (!u) return;
+function openStaffEditModal(param) {
+  DB.users = DB.users || [];
+  var u = null;
+  var idx = -1;
 
+  if (typeof param === 'number') {
+    idx = param;
+    u = DB.users[idx];
+  } else if (typeof param === 'string') {
+    idx = DB.users.findIndex(function(x){ return String(x.id).trim() === String(param).trim() || String(x.username||'').toUpperCase() === String(param).toUpperCase(); });
+    if (idx !== -1) u = DB.users[idx];
+  }
+
+  if (!u) {
+    toast('Staff user record not found', 'var(--err)');
+    return;
+  }
+
+  var idEl = document.getElementById('es-id');
   var idxEl = document.getElementById('es-idx');
   var nameEl = document.getElementById('es-name');
   var userEl = document.getElementById('es-username');
   var desigEl = document.getElementById('es-desig');
   var passEl = document.getElementById('es-password');
 
-  if (idxEl) idxEl.value = i;
+  if (idEl) idEl.value = u.id || ('u_' + idx);
+  if (idxEl) idxEl.value = idx;
   if (nameEl) nameEl.value = u.name || '';
   if (userEl) userEl.value = (u.username || '').toUpperCase();
   if (desigEl) desigEl.value = u.desig || '';
-  if (passEl) passEl.value = u.password && !u.password.startsWith('h:') ? u.password : '';
+  if (passEl) passEl.value = '';
 
   _doOpenModal('m-edit-staff-modal');
 }
 
 function saveStaffEditModal() {
+  var targetId = (val('es-id') || '').trim();
   var idx = parseInt(val('es-idx'));
-  var u = (DB.users || [])[idx];
-  if (!u) return;
+  
+  DB.users = DB.users || [];
+  var u = null;
+
+  if (targetId) {
+    u = DB.users.find(function(x){ return String(x.id).trim() === targetId; });
+  }
+  if (!u && !isNaN(idx) && DB.users[idx]) {
+    u = DB.users[idx];
+  }
+
+  if (!u) {
+    uiAlert('Staff user account could not be found.');
+    return;
+  }
 
   var newName = (val('es-name') || '').trim();
   var newUname = (val('es-username') || '').trim().toUpperCase();
@@ -15539,13 +15570,17 @@ function saveStaffEditModal() {
 
   if (!newName) { uiAlert('Display Name is required'); return; }
   if (!newUname) { uiAlert('Username is required'); return; }
+  if (/\s/.test(newUname)) { uiAlert('Username cannot contain spaces'); return; }
 
-  // Collision check
+  // Collision check across all users
   var currentUname = (u.username || '').toUpperCase();
   if (newUname !== currentUname) {
-    var allU = [MASTER].concat(ADMINS).concat(DB.users||[]).concat(DB.dynamicAdmins||[]).filter(function(usr){ return usr.id !== u.id; }).map(function(usr){ return (usr.username||'').toUpperCase(); });
+    var allU = [MASTER].concat(ADMINS).concat(DB.users||[]).concat(DB.dynamicAdmins||[]).filter(function(usr){
+      return usr && String(usr.id).trim() !== String(u.id).trim();
+    }).map(function(usr){ return (usr.username||'').toUpperCase(); });
+
     if (allU.indexOf(newUname) !== -1) {
-      uiAlert('Username "@' + newUname + '" is already taken.');
+      uiAlert('Username "@' + newUname + '" is already taken by another account.');
       return;
     }
   }
@@ -15553,25 +15588,41 @@ function saveStaffEditModal() {
   u.name = newName;
   u.username = newUname;
   u.desig = newDesig;
+
   if (newPass) {
+    if (newPass.length < 4) { uiAlert('Password must be at least 4 characters'); return; }
     u.password = hashPassword(newPass);
   }
 
+  // Update current user in-memory if editing own profile
+  if (CU && String(CU.id).trim() === String(u.id).trim()) {
+    CU.name = newName;
+    CU.username = newUname;
+    CU.desig = newDesig;
+    if (newPass) CU.password = u.password;
+    var _sbn = $('sb-name'); if (_sbn) _sbn.textContent = CU.name;
+    var _sbav = $('sb-av'); if (_sbav) _sbav.textContent = initials(CU.name);
+  }
+
   saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
   closeModal('m-edit-staff-modal');
   renderUsers();
-  renderStaffListModal();
-  toast('Staff user "@' + newUname + '" updated successfully ✓');
-  audit('Staff user @' + currentUname + ' updated to "' + newName + '" (@' + newUname + ') by ' + (CU ? CU.name : 'Master'), 'var(--ok)');
+  if (typeof renderStaffListModal === 'function') renderStaffListModal();
+  if (typeof renderDashboard === 'function') renderDashboard();
+
+  toast('Staff user @' + newUname + ' saved successfully ✓', 'var(--ok)');
+  audit('Staff user @' + currentUname + ' updated: "' + newName + '" (@' + newUname + ')' + (newPass ? ' [Password Changed]' : '') + ' by ' + (CU ? CU.name : 'Master'), 'var(--ok)');
 }
 
-function renameStaffUser(i) {
-  openStaffEditModal(i);
+function renameStaffUser(param) {
+  openStaffEditModal(param);
 }
 
 document.addEventListener('click', function(e) {
   var btn = e.target.closest('[data-deladmin]');
-  if (btn) { deleteAdmin(parseInt(btn.getAttribute('data-deladmin'))); return; }
+  if (btn) { deleteAdmin(btn.getAttribute('data-deladmin')); return; }
   var deact = e.target.closest('[data-deactivate-admin]');
   if (deact) {
     var id = deact.getAttribute('data-deactivate-admin');
@@ -15593,6 +15644,7 @@ document.addEventListener('click', function(e) {
     return;
   }
 });
+
 
 function createAdmin() {
   if (!CU||CU.role!=='master'){uiAlert('Only Master Admin');return;}
