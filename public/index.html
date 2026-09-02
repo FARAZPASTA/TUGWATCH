@@ -8909,16 +8909,13 @@ window.TokenSavior = {
 
 function copyTokenSaviorPrompt() {
   var compressed = window.TokenSavior.compress(DB);
-  var promptText = '### TUGWATCH PRO — TOKEN SAVIOR COMPRESSED MARITIME CONTEXT
-'
-    + 'Total Vessels: ' + (DB.vessels||[]).length + ' | Active Crew: ' + (DB.crew||[]).length + '
-'
-    + '
-';
+  var promptText = "### TUGWATCH PRO — TOKEN SAVIOR COMPRESSED MARITIME CONTEXT\n"
+    + "Total Vessels: " + (DB.vessels||[]).length + " | Active Crew: " + (DB.crew||[]).length + "\n\n"
+    + JSON.stringify(compressed, null, 2);
   navigator.clipboard.writeText(promptText).then(function() {
-    toast('Token Savior context copied to clipboard! (Saved ~85% tokens) ✓', 'var(--ok)');
+    toast("Token Savior context copied to clipboard! (Saved ~85% tokens) ✓", "var(--ok)");
   }).catch(function() {
-    uiAlert('Clipboard copy blocked. Download the file instead.');
+    uiAlert("Clipboard copy blocked. Download the file instead.");
   });
 }
 
