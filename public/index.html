@@ -2712,10 +2712,9 @@ html[data-theme="dark"] #l-pass::placeholder {
         </div>
       </div>
 
-      <!-- MASTER TABS BAR (NO BRANDING, NO TIDE) -->
+      <!-- MASTER TABS BAR (FLEET ADMINS DEFAULT, NO MASTER PROFILE) -->
       <div style="display:flex;gap:4px;border-bottom:1px solid var(--b1);margin-bottom:16px;overflow-x:auto;padding-bottom:2px" id="gp-tabs-bar">
-        <button class="tab-btn on" id="gptab-master" onclick="switchGodTab('master')">👑 Master Profile</button>
-        <button class="tab-btn" id="gptab-admins" onclick="switchGodTab('admins')">🛡️ Fleet Admins</button>
+        <button class="tab-btn on" id="gptab-admins" onclick="switchGodTab('admins')">🛡️ Fleet Admins</button>
         <button class="tab-btn" id="gptab-staff" onclick="switchGodTab('staff')">👥 Staff &amp; KYC Vault</button>
         <button class="tab-btn" id="gptab-company" onclick="switchGodTab('company')">🏢 Company Profile</button>
         <button class="tab-btn" id="gptab-locks" onclick="switchGodTab('locks')">🔒 Security &amp; Export Locks</button>
@@ -2724,31 +2723,8 @@ html[data-theme="dark"] #l-pass::placeholder {
         <button class="tab-btn" id="gptab-audit" onclick="switchGodTab('audit')">📜 Audit Log</button>
       </div>
 
-      <!-- TAB 1: MASTER CREDENTIALS -->
-      <div id="gp-tab-content-master" class="gp-tab-panel">
-        <div class="data-card" style="padding:18px;border-top:3px solid #dc2626">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Master Administrator Account (Your Personal Login)</div>
-              <div style="font-size:10.5px;color:var(--t3)">Permanent root authority — holds all permissions, system configuration, and data ownership</div>
-            </div>
-            <span class="role-chip-master" style="font-size:9.5px;padding:3px 10px">ROOT MASTER</span>
-          </div>
-          <div class="fr4" style="gap:10px">
-            <div class="fg" style="margin:0"><label class="fl">Display Name <span class="req">*</span></label><input class="fi" id="gp-master-name" placeholder="Full Name (e.g. Faraz)" style="font-weight:700"/></div>
-            <div class="fg" style="margin:0"><label class="fl">Username (Login Handle) <span class="req">*</span></label><input class="fi" id="gp-master-user" placeholder="USERNAME" style="text-transform:uppercase!important;font-weight:700;font-family:var(--fm)" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/></div>
-            <div class="fg" style="margin:0"><label class="fl">Maritime Title / Designation</label><input class="fi" id="gp-master-desig" placeholder="e.g. Managing Director / Master"/></div>
-            <div class="fg" style="margin:0"><label class="fl">New Password <span style="font-size:9px;color:var(--t3)">(leave blank to keep current)</span></label><div style="position:relative;display:flex;align-items:center"><input class="fi" id="gp-master-pass" type="password" placeholder="Enter new password" style="padding-right:32px"/><button type="button" class="btn btn-ghost btn-sm" onclick="var p=document.getElementById('gp-master-pass');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:2px;padding:2px 6px">👁</button></div></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--b1)">
-            <div style="font-size:11px;color:var(--t3)">💡 <em>Updates save immediately to local storage and sync to Firebase Cloud.</em></div>
-            <button type="button" class="btn btn-danger" onclick="saveMasterCredentialsV8()" style="font-weight:800;padding:7px 20px;background:#dc2626;color:#fff;border:none">💾 Save Master Credentials</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 2: FLEET ADMINISTRATORS -->
-      <div id="gp-tab-content-admins" class="gp-tab-panel" style="display:none">
+      <!-- TAB 1: FLEET ADMINISTRATORS (DEFAULT ACTIVE) -->
+      <div id="gp-tab-content-admins" class="gp-tab-panel" style="display:block">
         <div class="data-card" style="padding:18px;border-top:3px solid var(--accent)">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
             <div>
@@ -7124,8 +7100,7 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div class="modal-sub">Executive system control — manage Master credentials, Fleet Admins, Staff KYC, and security</div>
 
   <div class="tab-bar" style="margin-bottom:16px;overflow-x:auto">
-    <div class="tab on" onclick="switchMasterTab('master')">👑 Master Profile</div>
-    <div class="tab" onclick="switchMasterTab('admincreds')">🛡️ Fleet Admins</div>
+    <div class="tab on" onclick="switchMasterTab('admincreds')">🛡️ Fleet Admins</div>
     <div class="tab" onclick="switchMasterTab('company')">🏢 Company</div>
     <div class="tab" onclick="switchMasterTab('ports')">⚓ Locations &amp; Authorities</div>
     <div class="tab" onclick="switchMasterTab('roles')">👥 Access Permissions</div>
@@ -7135,41 +7110,8 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div class="tab" onclick="switchMasterTab('loginhistory')">📋 Login History</div>
   </div>
 
-  <!-- TAB 1: MASTER CREDENTIALS (INLINE EDITING) -->
-  <div id="mstab-master" class="tab-panel on">
-    <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:16px;border-top:3px solid #dc2626">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-        <div>
-          <div style="font-size:13px;font-weight:800;color:var(--t1)">👑 Master Administrator Credentials</div>
-          <div style="font-size:10.5px;color:var(--t3)">Primary root user with unlimited operational and financial rights</div>
-        </div>
-        <span class="role-chip-master" style="font-size:9.5px;padding:3px 10px">ROOT MASTER</span>
-      </div>
-
-      <div class="fr3">
-        <div class="fg"><label class="fl">Master Display Name <span class="req">*</span></label><input class="fi" id="mc-master-name" placeholder="Faraz" style="font-weight:700"/></div>
-        <div class="fg"><label class="fl">Username (Login ID) <span class="req">*</span></label><input class="fi" id="mc-master-user" placeholder="FARAZ" style="text-transform:uppercase!important;font-weight:700;font-family:var(--fm)" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/></div>
-        <div class="fg"><label class="fl">Designation</label><input class="fi" id="mc-master-desig" placeholder="Managing Director"/></div>
-      </div>
-
-      <div class="fg" style="margin-top:6px">
-        <label class="fl">New Master Password <span style="font-size:10px;color:var(--t3);font-weight:400">(leave blank to keep current password)</span></label>
-        <div style="position:relative;display:flex;align-items:center">
-          <input class="fi" id="mc-master-pass" type="password" placeholder="Set new password (min 4 chars)" style="padding-right:36px"/>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="var p=document.getElementById('mc-master-pass');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:2px;padding:4px 6px">👁</button>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:flex-end;margin-top:14px">
-        <button type="button" class="btn btn-danger" onclick="saveMasterFromModal()" style="font-weight:800;background:#dc2626;color:#fff;border:none;padding:7px 20px">
-          💾 Save Master Credentials
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 2: FLEET ADMINS DIRECTORY -->
-  <div id="mstab-admincreds" class="tab-panel">
+  <!-- TAB 1: FLEET ADMINS DIRECTORY (DEFAULT ACTIVE) -->
+  <div id="mstab-admincreds" class="tab-panel on">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-size:11px;color:var(--t3)">Manage dynamic Fleet Administrators created by Master</div>
       <button class="btn btn-primary btn-sm" onclick="openCreateUserModal('admin')" style="font-weight:700">➕ Add Fleet Admin</button>
@@ -33555,9 +33497,7 @@ function switchGodTab(tabId) {
   if (panel) panel.style.display = 'block';
   if (btn) btn.classList.add('on');
 
-  if (tabId === 'master') {
-    populateGodMasterCard();
-  } else if (tabId === 'admins') {
+  if (tabId === 'admins') {
     renderGovernanceAdmins();
   } else if (tabId === 'staff') {
     renderGovernanceStaff();
