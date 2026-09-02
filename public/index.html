@@ -2748,15 +2748,36 @@ html[data-theme="dark"] #l-pass::placeholder {
 
     <!-- HSD FUEL -->
     <div class="page" id="p-fuel">
-      <div class="page-hdr">
-        <div class="page-hdr-title">HSD Provided — Daily Fuel Log</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <label style="font-size:10px;color:var(--t3)">Date</label>
-          <input type="date" id="hsd-date" class="fi" style="width:148px" onchange="renderHSD()"/>
-          <button class="btn btn-primary" onclick="openHSDModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Trip</button>
-          <button class="btn btn-outline" onclick="openFuelTransfer()">⇄ Transfer Fuel</button>
-          <button class="btn btn-ghost btn-sm admin-only" onclick="exportExcel('hsd')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
-          <span style="font-size:10px;color:var(--t3);margin-left:4px">Click for each departure — multiple trips per vessel per day supported</span>
+      <div class="page-hdr" style="margin-bottom:12px">
+        <div>
+          <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
+            <span>⚡ HSD Fuel &amp; Engine Running Hours Log</span>
+            <span class="chip chip-accent" style="font-size:10px">WhatsApp Telemetry</span>
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Daily M/E &amp; DG fuel consumption, running hours, ROB stock balances, and 1-click WhatsApp reports</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-success btn-sm" onclick="openDailyWhatsAppModal()" style="font-weight:700;display:flex;align-items:center;gap:4px">
+            <span>📲</span> WhatsApp Daily Report
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openPeriodHSDModal()" style="font-weight:700;display:flex;align-items:center;gap:4px">
+            <span>📊</span> Monthly / Quarterly Summary
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="openHSDModal()">➕ Add Trip</button>
+          <button class="btn btn-outline btn-sm" onclick="openFuelTransfer()">⇄ Transfer</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('hsd')">📥 Excel</button>
+        </div>
+      </div>
+
+      <!-- FILTER & DATE BAR -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:8px 14px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:11px;font-weight:700;color:var(--t2)">📅 Selected Date:</label>
+          <input type="date" id="hsd-date" class="fi" style="width:145px;font-weight:700" onchange="renderHSD()"/>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('hsd-date').value=today();renderHSD();" style="font-size:10px">Today</button>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--t3)">
+          💡 <em>Click any vessel's <strong>"📲 WhatsApp"</strong> button to generate an instant formatted message.</em>
         </div>
       </div>
       <div class="kpi-grid">
@@ -12606,7 +12627,7 @@ function renderHSD(){
     block.innerHTML=`
       <div class="hsd-vessel-hdr">
         <div><div class="hsd-vname">${v.name}</div><div class="hsd-vdesc">${v.desc}</div></div>
-        <span class="chip chip-accent">${entry.trips.length} trip(s)</span>
+        <div style="display:flex;gap:6px;align-items:center"><button class="btn btn-success btn-sm" style="font-size:9.5px;padding:2px 8px;font-weight:700" onclick="openDailyWhatsAppModal(\x27${v.id}\x27,\x27${date}\x27)">📲 WhatsApp</button><span class="chip chip-accent">${entry.trips.length} trip(s)</span></div>
       </div>
       <div class="hsd-trips-wrap">
         ${renderTripsList(entry.trips, key)}
@@ -32465,6 +32486,328 @@ function renderStorageInfo() {
   } catch(e) {
     el.textContent = 'Storage active · ' + Object.keys(DB).length + ' collections';
   }
+}
+
+
+
+/* ══════════════════════════════════════════════════════════════
+   WHATSAPP DIESEL & RUNNING HOURS TELEMETRY TRANSFORMER
+   1-click formatted sharing for daily, monthly, and quarterly reports
+══════════════════════════════════════════════════════════════ */
+
+function openDailyWhatsAppModal(vesselId, dateStr) {
+  var vSel = document.getElementById('wa-vessel-sel');
+  var dSel = document.getElementById('wa-date-sel');
+  if (!vSel || !dSel) return;
+
+  var currentV = vesselId || (DB.vessels && DB.vessels[0] ? DB.vessels[0].id : '');
+  var currentD = dateStr || val('hsd-date') || today();
+
+  vSel.innerHTML = (DB.vessels || []).map(function(v){
+    return '<option value="' + v.id + '"' + (v.id === currentV ? ' selected' : '') + '>' + esc(v.name) + '</option>';
+  }).join('');
+
+  dSel.value = currentD;
+  _doOpenModal('m-whatsapp-dispatch');
+  generateDailyWhatsAppText();
+}
+
+function generateDailyWhatsAppText() {
+  var vid = val('wa-vessel-sel');
+  var dateStr = val('wa-date-sel') || today();
+  var previewEl = document.getElementById('wa-message-preview');
+  if (!previewEl) return;
+
+  var v = (DB.vessels || []).find(function(x){ return x.id === vid; }) || { name: 'Vessel' };
+  var key = dateStr + '_' + vid;
+  var entry = (DB.hsd && DB.hsd[key]) ? DB.hsd[key] : { trips: [] };
+
+  var totMeCons = 0;
+  var totDgCons = 0;
+  var totMeHrs = 0;
+  var totDgHrs = 0;
+  var openRob = 0;
+  var recvRob = 0;
+  var closeRob = 0;
+  var tripDetails = [];
+
+  entry.trips.forEach(function(t, idx) {
+    var meCons = (t.me && parseFloat(t.me.cons)) || 0;
+    var dgCons = (t.dg && parseFloat(t.dg.cons)) || 0;
+    var meHrs = (t.me && parseFloat(t.me.hrs)) || 0;
+    var dgHrs = (t.dg && parseFloat(t.dg.hrs)) || 0;
+
+    totMeCons += meCons;
+    totDgCons += dgCons;
+    totMeHrs += meHrs;
+    totDgHrs += dgHrs;
+
+    if (t.hsd) {
+      if (idx === 0) openRob = parseFloat(t.hsd.open) || 0;
+      recvRob += parseFloat(t.hsd.recv) || 0;
+      closeRob = parseFloat(t.hsd.close) || 0;
+    }
+
+    var tripDesc = '• Trip ' + (idx + 1) + (t.loc ? ' (' + t.loc + ')' : '') + ': '
+      + 'M/E ' + meCons + 'L (' + (t.me ? t.me.hrs || '0' : '0') + 'h) | '
+      + 'DG ' + dgCons + 'L' + (t.job ? ' · ' + t.job : '');
+    tripDetails.push(tripDesc);
+  });
+
+  var totalCons = totMeCons + totDgCons;
+  var dateFormatted = fmtDate(dateStr);
+
+  var lines = [];
+  lines.push('🚢 *TUGWATCH — DAILY DIESEL & RUNNING HOURS REPORT*');
+  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  lines.push('⚓ *Vessel:* ' + v.name);
+  lines.push('📅 *Date:* ' + dateFormatted);
+  lines.push('👤 *Prepared By:* ' + (CU ? CU.name + ' (@' + CU.username + ')' : 'Duty Engineer'));
+  lines.push('');
+  lines.push('⚡ *MAIN ENGINES (M/E):*');
+  lines.push('• Running Hours: *' + totMeHrs.toFixed(2) + ' hrs*');
+  lines.push('• Fuel Consumed: *' + fmt(totMeCons) + ' Litres*');
+  lines.push('');
+  lines.push('🔌 *AUX GENERATORS (DG):*');
+  lines.push('• Running Hours: *' + totDgHrs.toFixed(2) + ' hrs*');
+  lines.push('• Fuel Consumed: *' + fmt(totDgCons) + ' Litres*');
+  lines.push('');
+  lines.push('⛽ *HSD STOCK SUMMARY (ROB):*');
+  if (openRob > 0 || closeRob > 0) {
+    lines.push('• Opening ROB: *' + fmt(openRob) + ' L*');
+    if (recvRob > 0) lines.push('• Received (Bunkered): *+' + fmt(recvRob) + ' L*');
+    lines.push('• Total Daily Consumed: *' + fmt(totalCons) + ' L*');
+    lines.push('• *Closing ROB: ' + fmt(closeRob) + ' Litres*');
+  } else {
+    lines.push('• Total Consumption: *' + fmt(totalCons) + ' Litres*');
+  }
+
+  if (tripDetails.length > 0) {
+    lines.push('');
+    lines.push('📝 *TRIP LOG BREAKDOWN (' + tripDetails.length + ' Trips):*');
+    tripDetails.forEach(function(td){ lines.push(td); });
+  } else {
+    lines.push('');
+    lines.push('📝 *Trips:* Standby / No movements logged for this date.');
+  }
+
+  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  lines.push('✅ *Status:* Verified & Transmitted via TugWatch Fleet OS');
+
+  previewEl.value = lines.join('\n');
+}
+
+function copyWhatsAppMessage() {
+  var text = (document.getElementById('wa-message-preview') || {}).value;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(function() {
+    toast('WhatsApp report copied to clipboard! 📋', 'var(--ok)');
+  }).catch(function() {
+    uiAlert('Copy blocked — please select and copy manually.');
+  });
+}
+
+function shareToWhatsAppDirect() {
+  var text = (document.getElementById('wa-message-preview') || {}).value;
+  if (!text) return;
+  var encoded = encodeURIComponent(text);
+  window.open('https://api.whatsapp.com/send?text=' + encoded, '_blank');
+}
+
+// PERIOD AGGREGATOR FUNCTIONS
+function openPeriodHSDModal() {
+  var vSel = document.getElementById('pq-vessel-filter');
+  if (vSel) {
+    vSel.innerHTML = '<option value="">All Vessels (Fleet Aggregate)</option>'
+      + (DB.vessels || []).map(function(v){ return '<option value="' + v.id + '">' + esc(v.name) + '</option>'; }).join('');
+  }
+  updatePeriodPresetInputs();
+  _doOpenModal('m-period-hsd');
+  runPeriodAggregation();
+}
+
+function updatePeriodPresetInputs() {
+  var type = val('pq-period-type');
+  var customBox = document.getElementById('pq-custom-dates');
+  var now = new Date();
+  var curYear = now.getFullYear();
+
+  var sDate = '';
+  var eDate = '';
+
+  if (type === 'this-month') {
+    var m = (now.getMonth() + 1);
+    var mStr = (m < 10 ? '0' + m : '' + m);
+    sDate = curYear + '-' + mStr + '-01';
+    var lastDay = new Date(curYear, now.getMonth() + 1, 0).getDate();
+    eDate = curYear + '-' + mStr + '-' + lastDay;
+  } else if (type === 'last-month') {
+    var prevMonthDate = new Date(curYear, now.getMonth() - 1, 1);
+    var pm = prevMonthDate.getMonth() + 1;
+    var pmStr = (pm < 10 ? '0' + pm : '' + pm);
+    var pYear = prevMonthDate.getFullYear();
+    sDate = pYear + '-' + pmStr + '-01';
+    var pLastDay = new Date(pYear, pm, 0).getDate();
+    eDate = pYear + '-' + pmStr + '-' + pLastDay;
+  } else if (type === 'q1') {
+    sDate = curYear + '-01-01'; eDate = curYear + '-03-31';
+  } else if (type === 'q2') {
+    sDate = curYear + '-04-01'; eDate = curYear + '-06-30';
+  } else if (type === 'q3') {
+    sDate = curYear + '-07-01'; eDate = curYear + '-09-30';
+  } else if (type === 'q4') {
+    sDate = curYear + '-10-01'; eDate = curYear + '-12-31';
+  }
+
+  if (customBox) customBox.style.display = (type === 'custom') ? 'flex' : 'none';
+  if ($('pq-start-date') && sDate) $('pq-start-date').value = sDate;
+  if ($('pq-end-date') && eDate) $('pq-end-date').value = eDate;
+}
+
+function runPeriodAggregation() {
+  var sDate = val('pq-start-date');
+  var eDate = val('pq-end-date');
+  var filterVid = val('pq-vessel-filter');
+  var pType = val('pq-period-type');
+
+  if (!sDate || !eDate) return;
+
+  var totMe = 0;
+  var totDg = 0;
+  var totMeHrs = 0;
+  var totDgHrs = 0;
+  var totTrips = 0;
+  var totRecv = 0;
+  var daysCount = 0;
+  var daySet = {};
+
+  var hsdKeys = Object.keys(DB.hsd || {});
+  hsdKeys.forEach(function(key) {
+    var parts = key.split('_');
+    var d = parts[0];
+    var vid = parts.slice(1).join('_');
+
+    if (d >= sDate && d <= eDate) {
+      if (!filterVid || vid === filterVid) {
+        var entry = DB.hsd[key];
+        if (entry && entry.trips) {
+          entry.trips.forEach(function(t) {
+            totTrips++;
+            totMe += (t.me && parseFloat(t.me.cons)) || 0;
+            totDg += (t.dg && parseFloat(t.dg.cons)) || 0;
+            totMeHrs += (t.me && parseFloat(t.me.hrs)) || 0;
+            totDgHrs += (t.dg && parseFloat(t.dg.hrs)) || 0;
+            if (t.hsd) totRecv += (parseFloat(t.hsd.recv) || 0);
+          });
+          daySet[d] = true;
+        }
+      }
+    }
+  });
+
+  var totFuel = totMe + totDg;
+  var totRunHrs = totMeHrs + totDgHrs;
+  var avgBurn = totRunHrs > 0 ? (totFuel / totRunHrs).toFixed(1) : '0';
+
+  if ($('pq-stat-me-fuel')) $('pq-stat-me-fuel').textContent = fmt(totMe) + ' L';
+  if ($('pq-stat-dg-fuel')) $('pq-stat-dg-fuel').textContent = fmt(totDg) + ' L';
+  if ($('pq-stat-run-hrs')) $('pq-stat-run-hrs').textContent = totRunHrs.toFixed(1) + ' hrs';
+  if ($('pq-stat-burn-rate')) $('pq-stat-burn-rate').textContent = avgBurn + ' L/hr';
+
+  // Format WhatsApp Period Text
+  var vName = filterVid ? (vname(filterVid)) : 'Complete Fleet (' + (DB.vessels||[]).length + ' Tugs)';
+  var periodTitle = ($('pq-period-type') ? $('pq-period-type').options[$('pq-period-type').selectedIndex].text : 'Period Report');
+
+  var lines = [];
+  lines.push('📊 *TUGWATCH — PERIOD EXECUTIVE FUEL & RUNNING HOURS SUMMARY*');
+  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  lines.push('⚓ *Scope:* ' + vName);
+  lines.push('🗓️ *Period:* ' + periodTitle + ' (' + fmtDate(sDate) + ' to ' + fmtDate(eDate) + ')');
+  lines.push('👤 *Generated By:* ' + (CU ? CU.name : 'Master Admin'));
+  lines.push('');
+  lines.push('⚡ *M/E MAIN ENGINES:*');
+  lines.push('• Cumulative Run Hours: *' + totMeHrs.toFixed(1) + ' hrs*');
+  lines.push('• Total Fuel Consumed: *' + fmt(totMe) + ' Litres*');
+  lines.push('');
+  lines.push('🔌 *AUX GENERATORS (DG):*');
+  lines.push('• Cumulative Run Hours: *' + totDgHrs.toFixed(1) + ' hrs*');
+  lines.push('• Total Fuel Consumed: *' + fmt(totDg) + ' Litres*');
+  lines.push('');
+  lines.push('📈 *PERIOD EXECUTIVE TOTALS:*');
+  lines.push('• Total Diesel Consumed: *' + fmt(totFuel) + ' Litres*');
+  lines.push('• Total Combined Engine Hours: *' + totRunHrs.toFixed(1) + ' hrs*');
+  lines.push('• Average Fleet Burn Rate: *' + avgBurn + ' L/hour*');
+  lines.push('• Total Operational Trips: *' + totTrips + ' movements*');
+  if (totRecv > 0) lines.push('• Total Bunkered Diesel Received: *+' + fmt(totRecv) + ' Litres*');
+  lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  lines.push('✅ *Certified:* Verified by TugWatch Fleet Management OS');
+
+  if ($('pq-whatsapp-preview')) $('pq-whatsapp-preview').value = lines.join('\n');
+}
+
+function copyPeriodWhatsAppMessage() {
+  var text = (document.getElementById('pq-whatsapp-preview') || {}).value;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(function() {
+    toast('Period WhatsApp summary copied! 📋', 'var(--ok)');
+  });
+}
+
+function sharePeriodWhatsAppDirect() {
+  var text = (document.getElementById('pq-whatsapp-preview') || {}).value;
+  if (!text) return;
+  window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
+}
+
+function exportPeriodHSDCSV() {
+  var sDate = val('pq-start-date');
+  var eDate = val('pq-end-date');
+  var filterVid = val('pq-vessel-filter');
+
+  var rows = [];
+  rows.push(['Date', 'Vessel', 'Trip#', 'Location/Job', 'ME Start', 'ME Stop', 'ME Hours', 'ME Cons(L)', 'DG Hours', 'DG Cons(L)', 'Opening ROB', 'Received(L)', 'Closing ROB', 'Logged By']);
+
+  var hsdKeys = Object.keys(DB.hsd || {});
+  hsdKeys.forEach(function(key) {
+    var parts = key.split('_');
+    var d = parts[0];
+    var vid = parts.slice(1).join('_');
+    if (d >= sDate && d <= eDate && (!filterVid || vid === filterVid)) {
+      var entry = DB.hsd[key];
+      if (entry && entry.trips) {
+        entry.trips.forEach(function(t, ti) {
+          rows.push([
+            d,
+            vname(vid),
+            ti + 1,
+            t.loc || t.job || '',
+            (t.me && t.me.st) || '',
+            (t.me && t.me.sp) || '',
+            (t.me && t.me.hrs) || '0',
+            (t.me && t.me.cons) || '0',
+            (t.dg && t.dg.hrs) || '0',
+            (t.dg && t.dg.cons) || '0',
+            (t.hsd && t.hsd.open) || '',
+            (t.hsd && t.hsd.recv) || '0',
+            (t.hsd && t.hsd.close) || '',
+            t._by || ''
+          ]);
+        });
+      }
+    }
+  });
+
+  var csvContent = rows.map(function(r){ return r.map(function(f){ return '"' + String(f).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'TugWatch_HSD_Period_' + sDate + '_to_' + eDate + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Period HSD & Running Hours CSV exported ✓', 'var(--ok)');
 }
 
 </script>
