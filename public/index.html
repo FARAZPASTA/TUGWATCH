@@ -2302,9 +2302,9 @@ html[data-theme="dark"] #l-pass::placeholder {
       <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/><line x1="17" y1="8" x2="23" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/><line x1="23" y1="8" x2="17" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/></svg>
       Ex-Crew Records<span class="nav-badge nb-default" id="nb-excrew">0</span>
     </div>
-    <div class="nav-item" onclick="if(CU&&CU.role==='master')openCreateUserModal('admin');else toast('Master Admin only','var(--err)')" style="cursor:pointer;border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.06);margin-bottom:4px">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/><path d="M4 20v-1a8 8 0 0116 0v1" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span style="color:#fca5a5;font-weight:600">&#9881; Manage Admins</span>
+    <div class="nav-item" onclick="if(CU&&CU.role==='master'){if(typeof switchMasterTab==='function'){openMasterSettings();switchMasterTab('admincreds');}else openCreateUserModal('admin');}else toast('Master Admin only','var(--err)')" style="cursor:pointer;border:1px solid rgba(14,165,233,.2);background:rgba(14,165,233,.06);margin-bottom:4px">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.5"/><path d="M4 20v-1a8 8 0 0116 0v1" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span style="color:#38bdf8;font-weight:700;font-size:12px">🛡️ Fleet Administrators</span>
     </div>
     <div class="nav-item admin-only master-only" data-page="companies">
       <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="15" rx="1" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.5"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="#1d4ed8" stroke-width="1.5"/><rect x="9" y="11" width="2" height="5" fill="#3b82f6"/><rect x="13" y="11" width="2" height="5" fill="#3b82f6"/></svg>
@@ -24185,7 +24185,7 @@ function renderGodPanel() {
   }
 
   html += section('People & Access', 'Who can log in and what they can see',
-      tile('👤','Manage Admins','Edit names, reset passwords, transfer rights','gpMs(\'admincreds\')', adminCount+' admins')
+      tile('🛡️','Fleet Administrators','Edit names, reset passwords, transfer rights','gpMs(\'admincreds\')', adminCount+' admins')
     + tile('👥','Staff Users','Create staff, set their page access','gpGo(\'users\')', staffCount+' staff')
     + tile('🔑','Access Rights','Page-by-page permissions per admin','gpMs(\'roles\')')
     + tile('📨','Change Requests','Approve or reject admin requests','gpMs(\'admincreds\')', pendingReq?pendingReq+' pending':'')
