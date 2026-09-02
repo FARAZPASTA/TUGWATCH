@@ -7028,55 +7028,89 @@ html[data-theme="dark"] #l-pass::placeholder {
   </div>
 </div></div>
 
-<!-- MASTER SETTINGS MODAL -->
-<div class="overlay" id="m-master-settings">
-<div class="modal" style="max-width:720px;max-height:90vh;overflow-y:auto">
+<!-- MASTER SETTINGS MODAL (NO BRANDING, NO TIDE) -->
+<div class="overlay" id="m-master-settings" style="z-index:10600!important">
+<div class="modal" style="max-width:760px;max-height:92vh;overflow-y:auto">
   <button class="modal-close" data-close="m-master-settings"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <div class="modal-title" style="color:#fca5a5">⚙ Master Control Panel</div>
-  <div class="modal-sub">Full customisation — master admin and authorised temporary masters only</div>
-  <div class="tab-bar" style="margin-bottom:16px">
-    <div class="tab on" onclick="switchMasterTab('branding')">🎨 Branding</div>
+  <div class="modal-title" style="color:var(--accent);display:flex;align-items:center;gap:6px">
+    <span>👑 Master Administrator Control Center</span>
+  </div>
+  <div class="modal-sub">Executive system control — manage Master credentials, Fleet Admins, Staff KYC, and security</div>
+
+  <div class="tab-bar" style="margin-bottom:16px;overflow-x:auto">
+    <div class="tab on" onclick="switchMasterTab('master')">👑 Master Profile</div>
+    <div class="tab" onclick="switchMasterTab('admincreds')">🛡️ Fleet Admins</div>
     <div class="tab" onclick="switchMasterTab('company')">🏢 Company</div>
-    <div class="tab" onclick="switchMasterTab('ports')">⚓ Ports</div>
-    <div class="tab" onclick="switchMasterTab('roles')">👥 Access</div>
+    <div class="tab" onclick="switchMasterTab('ports')">⚓ Locations &amp; Authorities</div>
+    <div class="tab" onclick="switchMasterTab('roles')">👥 Access Permissions</div>
     <div class="tab" onclick="switchMasterTab('tempmasters')">🔑 Temp Master</div>
-    <div class="tab" onclick="switchMasterTab('system')">🛠 System</div>
-    <div class="tab" onclick="switchMasterTab('security')">🔒 Security</div>
-    <div class="tab" onclick="switchMasterTab('admincreds')">🗝 Admin List</div>
+    <div class="tab" onclick="switchMasterTab('system')">🛠 System Settings</div>
+    <div class="tab" onclick="switchMasterTab('security')">🔒 Security Locks</div>
     <div class="tab" onclick="switchMasterTab('loginhistory')">📋 Login History</div>
-    <div class="tab" onclick="switchMasterTab('activity')">👁 Activity</div>
-    <div class="tab" onclick="switchMasterTab('firebase')">🔥 Firebase</div>
   </div>
-  <div id="mstab-branding" class="tab-panel on">
-    <div class="fr2"><div class="fg"><label class="fl">App / Tool Name</label><input class="fi" id="mc-app-name" placeholder="TugWatch"/></div><div class="fg"><label class="fl">Sidebar Sub-title</label><input class="fi" id="mc-app-sub" placeholder="Fleet Operations Centre"/></div></div>
-    <div class="fr2"><div class="fg"><label class="fl">Login Screen Sub-title</label><input class="fi" id="mc-login-sub" placeholder="Marine Fleet Management"/></div><div class="fg"><label class="fl">Primary Accent Colour</label><input class="fi" id="mc-accent" type="color" value="#1877f2" style="height:38px;padding:4px 6px"/></div></div>
-    <div class="fr2"><div class="fg"><label class="fl">Sidebar Background</label><input class="fi" id="mc-sidebar-bg" type="color" value="#ffffff" style="height:38px;padding:4px 6px"/></div><div class="fg"><label class="fl">Page Background</label><input class="fi" id="mc-page-bg" type="color" value="#f0f2f5" style="height:38px;padding:4px 6px"/></div></div>
-    <div class="fg"><label class="fl">Custom CSS (advanced)</label><textarea class="fi" id="mc-custom-css" rows="3" placeholder="/* any CSS override */"></textarea></div>
-    <div style="display:flex;gap:8px;margin-top:6px"><button class="btn btn-primary" onclick="applyBranding()">Apply Branding</button><button class="btn btn-ghost" onclick="resetBranding()">Reset Defaults</button></div>
+
+  <!-- TAB 1: MASTER CREDENTIALS (INLINE EDITING) -->
+  <div id="mstab-master" class="tab-panel on">
+    <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:16px;border-top:3px solid #dc2626">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--t1)">👑 Master Administrator Credentials</div>
+          <div style="font-size:10.5px;color:var(--t3)">Primary root user with unlimited operational and financial rights</div>
+        </div>
+        <span class="role-chip-master" style="font-size:9.5px;padding:3px 10px">ROOT MASTER</span>
+      </div>
+
+      <div class="fr3">
+        <div class="fg"><label class="fl">Master Display Name <span class="req">*</span></label><input class="fi" id="mc-master-name" placeholder="Faraz" style="font-weight:700"/></div>
+        <div class="fg"><label class="fl">Username (Login ID) <span class="req">*</span></label><input class="fi" id="mc-master-user" placeholder="FARAZ" style="text-transform:uppercase!important;font-weight:700;font-family:var(--fm)" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/></div>
+        <div class="fg"><label class="fl">Designation</label><input class="fi" id="mc-master-desig" placeholder="Managing Director"/></div>
+      </div>
+
+      <div class="fg" style="margin-top:6px">
+        <label class="fl">New Master Password <span style="font-size:10px;color:var(--t3);font-weight:400">(leave blank to keep current password)</span></label>
+        <div style="position:relative;display:flex;align-items:center">
+          <input class="fi" id="mc-master-pass" type="password" placeholder="Set new password (min 4 chars)" style="padding-right:36px"/>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="var p=document.getElementById('mc-master-pass');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:2px;padding:4px 6px">👁</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-danger" onclick="saveMasterFromModal()" style="font-weight:800;background:#dc2626;color:#fff;border:none;padding:7px 20px">
+          💾 Save Master Credentials
+        </button>
+      </div>
+    </div>
   </div>
+
+  <!-- TAB 2: FLEET ADMINS DIRECTORY -->
+  <div id="mstab-admincreds" class="tab-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--t3)">Manage dynamic Fleet Administrators created by Master</div>
+      <button class="btn btn-primary btn-sm" onclick="openCreateUserModal('admin')" style="font-weight:700">➕ Add Fleet Admin</button>
+    </div>
+    <div id="ms-admin-creds-list" style="margin-bottom:14px"></div>
+  </div>
+
+  <!-- TAB 3: COMPANY PROFILE -->
   <div id="mstab-company" class="tab-panel">
-    <div class="fr2"><div class="fg"><label class="fl">Company Name *</label><input class="fi" id="mc-co-name" placeholder="ACE Marine"/></div><div class="fg"><label class="fl">GST Number</label><input class="fi" id="mc-co-gst" placeholder="GST no."/></div></div>
+    <div class="fr2"><div class="fg"><label class="fl">Company Name *</label><input class="fi" id="mc-co-name" placeholder="Saarvin Marine"/></div><div class="fg"><label class="fl">GST Number</label><input class="fi" id="mc-co-gst" placeholder="GST no."/></div></div>
     <div class="fg"><label class="fl">Address</label><input class="fi" id="mc-co-addr" placeholder="Full address"/></div>
     <div class="fr2"><div class="fg"><label class="fl">Email</label><input class="fi" id="mc-co-email" type="email"/></div><div class="fg"><label class="fl">Phone</label><input class="fi" id="mc-co-phone"/></div></div>
-    <div class="fg"><label class="fl">Website</label><input class="fi" id="mc-co-web" placeholder="www.company.com"/></div>
-    <hr/>
-    <div style="font-size:10px;font-weight:700;color:var(--warn);margin-bottom:10px">Master Admin Credentials</div>
-    <div class="fr3"><div class="fg"><label class="fl">Display Name</label><input class="fi" id="mc-master-name"/></div><div class="fg"><label class="fl">Username</label><input class="fi" id="mc-master-user"/></div><div class="fg"><label class="fl">New Password (blank = keep)</label><input class="fi" id="mc-master-pass" type="password" placeholder="min 6 chars"/></div></div>
-    <button class="btn btn-primary" onclick="saveCompanySettings()">Save Company Settings</button>
+    <button class="btn btn-primary" onclick="saveCompanySettings()" style="margin-top:8px">💾 Save Company Settings</button>
   </div>
+
+  <!-- TAB 4: LOCATIONS & AUTHORITIES (NO TIDE) -->
   <div id="mstab-ports" class="tab-panel">
-    <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px">Tide Table Locations</div>
-    <div id="ms-tide-locs" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px"></div>
-    <div class="fr2" style="margin-bottom:14px"><div class="fg"><label class="fl">Add Tide Location</label><input class="fi" id="ms-new-tide-loc" placeholder="Port name"/></div><div style="display:flex;align-items:flex-end;padding-bottom:10px"><button class="btn btn-outline" onclick="masterAddTideLoc()">+ Add</button></div></div>
-    <hr/>
-    <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px">Material Dispatch Locations</div>
+    <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px">Material Dispatch Locations</div>
     <div id="ms-mat-locs" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px"></div>
     <div class="fr2" style="margin-bottom:14px"><div class="fg"><label class="fl">Add Location</label><input class="fi" id="ms-new-mat-loc" placeholder="Port / location"/></div><div style="display:flex;align-items:flex-end;padding-bottom:10px"><button class="btn btn-outline" onclick="masterAddMatLoc()">+ Add</button></div></div>
-    <hr/>
-    <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px">Document Submission Authorities</div>
+    <hr style="margin:14px 0;border:0;border-top:1px solid var(--b1)"/>
+    <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px">Document Submission Authorities</div>
     <div id="ms-ds-auths" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px"></div>
     <div class="fr2"><div class="fg"><label class="fl">Add Authority</label><input class="fi" id="ms-new-ds-auth" placeholder="Authority / office name"/></div><div style="display:flex;align-items:flex-end;padding-bottom:10px"><button class="btn btn-outline" onclick="masterAddDsAuth()">+ Add</button></div></div>
   </div>
+
+  <!-- TAB 5: ACCESS PERMISSIONS -->
   <div id="mstab-roles" class="tab-panel">
     <div style="font-size:10px;color:var(--t3);margin-bottom:12px">Control which pages each admin and staff member can access.</div>
     <div style="font-size:10px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Admin Accounts</div>
@@ -7084,6 +7118,8 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div style="font-size:10px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Staff Accounts</div>
     <div id="ms-staff-perms"></div>
   </div>
+
+  <!-- TAB 6: TEMP MASTER -->
   <div id="mstab-tempmasters" class="tab-panel">
     <div style="font-size:10px;color:var(--t2);margin-bottom:12px;padding:10px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:8px">⚠ Grant any admin <strong>full master-level rights</strong> for a specific time window. Access auto-expires.</div>
     <div id="ms-temp-master-list" style="margin-bottom:14px"></div>
@@ -7093,214 +7129,34 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div class="fg"><label class="fl">Reason</label><input class="fi" id="tm-reason" placeholder="Why this admin needs master access temporarily"/></div>
     <button class="btn btn-warn" onclick="grantTempMaster()">Grant Temporary Master Access</button>
   </div>
+
+  <!-- TAB 7: SYSTEM SETTINGS -->
   <div id="mstab-system" class="tab-panel">
     <div class="fr2"><div class="fg"><label class="fl">Running Hours Service Interval (hrs)</label><input class="fi" id="mc-rh-interval" type="number" placeholder="300"/></div><div class="fg"><label class="fl">Task Overdue Alert After (days)</label><input class="fi" id="mc-overdue-days" type="number" placeholder="1"/></div></div>
     <div class="fr2"><div class="fg"><label class="fl">WO Reminder Lead Time (days)</label><input class="fi" id="mc-wo-remind" type="number" placeholder="15"/></div><div class="fg"><label class="fl">Expiry Warning Window (days)</label><input class="fi" id="mc-exp-window" type="number" placeholder="60"/></div></div>
-    <hr/>
-    
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="saveSystemSettings()">Save System Settings</button>
-      <button class="btn btn-outline" onclick="exportAllData()">📥 Export Backup</button>
-      <button class="btn btn-outline" onclick="restoreFromBackup()">📤 Restore from Backup</button>
-      <button class="btn btn-danger" onclick="if(CU&&CU.role==='master')clearAllData();else uiAlert('Master only')">🗑 Clear All Data</button>
-    </div>
+    <div style="margin-top:10px"><button class="btn btn-primary" onclick="saveSystemSettings()">Save System Settings</button></div>
   </div>
 
-  <!-- ADMIN CREDENTIALS TAB -->
-  <div id="mstab-admincreds" class="tab-panel">
-    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#991b1b">🔒 <strong>Confidential.</strong> This tab is only visible to Master Admin. Do not share these credentials. Advise all admins to change their default passwords immediately.</div>
-    <div id="ms-admin-creds-list"></div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--b2)">
-      <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Reset Admin Password (Master Only)</div>
-      <div class="fr3">
-        <div class="fg"><label class="fl">Select Admin</label><select class="fi" id="reset-admin-sel"></select></div>
-        <div class="fg"><label class="fl">New Password</label><input class="fi" id="reset-admin-pw" type="password" placeholder="New password"/></div>
-        <div class="fg" style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="masterResetPassword()">Reset Password</button></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SECURITY TAB -->
+  <!-- TAB 8: SECURITY LOCKS -->
   <div id="mstab-security" class="tab-panel">
-    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">📢 System-Wide Announcement</div>
-    <div style="font-size:10px;color:var(--t3);margin-bottom:8px">This message will appear as a banner to ALL users when they log in. Leave blank to disable.</div>
-    <div class="fr2">
-      <div class="fg" style="grid-column:1/-1"><label class="fl">Announcement Text</label><input class="fi" id="ann-text" placeholder="e.g. Dry dock scheduled for BURAQ 12 — 20 May. Please plan accordingly."/></div>
-    </div>
-    <button class="btn btn-primary" onclick="saveAnnouncement()" style="margin-bottom:20px">Set Announcement</button>
-    <hr/>
-    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin:16px 0 8px">🔒 Data Export Lock</div>
-    <div id="ms-export-lock"></div>
+    <div style="font-size:10px;font-weight:700;color:var(--warn);margin-bottom:8px">Export Lock Policy</div>
+    <div id="ms-export-locks" style="margin-bottom:14px"></div>
+    <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:8px">System Broadcast Banner</div>
+    <div class="fg"><input class="fi" id="ms-announcement" placeholder="Banner text to display for all users"/></div>
+    <button class="btn btn-primary" onclick="saveAnnouncement()">Broadcast Banner</button>
   </div>
 
-  <!-- LOGIN HISTORY TAB -->
+  <!-- TAB 9: LOGIN HISTORY -->
   <div id="mstab-loginhistory" class="tab-panel">
-    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Recent Login / Logout Events (last 100)</div>
-    <div id="ms-login-history" style="max-height:400px;overflow-y:auto;border:1px solid var(--b2);border-radius:8px"></div>
+    <div id="ms-login-history-list" style="max-height:50vh;overflow-y:auto"></div>
   </div>
 
-  <!-- ACTIVITY TAB -->
-  <div id="mstab-activity" class="tab-panel">
-    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Admin & Staff Activity Log (last 200 actions)</div>
-    <div id="ms-admin-activity" style="max-height:400px;overflow-y:auto;border:1px solid var(--b2);border-radius:8px"></div>
+  <div style="margin-top:16px;border-top:1px solid var(--b1);padding-top:10px;display:flex;justify-content:flex-end">
+    <button type="button" class="btn btn-ghost" data-close="m-master-settings">Close</button>
   </div>
+</div>
+</div>
 
-  <!-- FIREBASE TAB -->
-  <div id="mstab-firebase" class="tab-panel">
-    <div id="fb-status-banner" style="border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;font-weight:600"></div>
-    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;border-left:3px solid var(--accent);padding-left:8px">Firebase Project Config</div>
-    <div style="font-size:11px;color:var(--t3);margin-bottom:12px">Get these values from: <strong>Firebase Console → Project Settings → Your Apps → Web App → Config</strong></div>
-    <div class="fr2">
-      <div class="fg"><label class="fl">API Key <span class="req">*</span></label><input class="fi" id="fb-apiKey" value="AIzaSyAk9XOGXJvtvIgMc9FJ3FTvQ_me_ipMelM" placeholder="AIzaSy..."/></div>
-      <div class="fg"><label class="fl">Project ID <span class="req">*</span></label><input class="fi" id="fb-projectId" value="tugwatch" placeholder="my-project-id"/></div>
-    </div>
-    <div class="fr2">
-      <div class="fg"><label class="fl">Auth Domain</label><input class="fi" id="fb-authDomain" value="tugwatch.firebaseapp.com" placeholder="my-project.firebaseapp.com"/></div>
-      <div class="fg"><label class="fl">Database URL <span class="req">*</span></label><input class="fi" id="fb-databaseURL" value="https://tugwatch-default-rtdb.firebaseio.com" placeholder="https://my-project-rtdb.asia-south1.firebasedatabase.app"/></div>
-    </div>
-    <div class="fr2">
-      <div class="fg"><label class="fl">Storage Bucket</label><input class="fi" id="fb-storageBucket" value="tugwatch.firebasestorage.app" placeholder="my-project.appspot.com"/></div>
-      <div class="fg"><label class="fl">App ID</label><input class="fi" id="fb-appId" value="1:947938170538:web:7a43332af2fb3e6a8022d3" placeholder="1:123456789:web:abcdef"/></div>
-    </div>
-    <div class="fg"><label class="fl">Messaging Sender ID</label><input class="fi" id="fb-messagingSenderId" value="947938170538" placeholder="123456789"/></div>
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="saveFirebaseConfig()">💾 Save &amp; Connect</button>
-      <button class="btn btn-outline" onclick="testFirebaseConnection()">🔌 Test Connection</button>
-      <button class="btn btn-outline" onclick="pushAllToFirebase()">⬆ Push All Data to Cloud</button>
-      <button class="btn btn-outline" onclick="pullFromFirebase()">⬇ Pull Data from Cloud</button>
-      <button class="btn btn-ghost" style="color:var(--err)" onclick="clearFirebaseConfig()">✕ Disconnect</button>
-    </div>
-    <div style="margin-top:14px;background:var(--bg2);border-radius:8px;padding:12px;font-size:10px;color:var(--t3)">
-      <strong style="color:var(--t2)">Setup guide:</strong><br>
-      1. Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent)">console.firebase.google.com</a><br>
-      2. Create a new project → Enable Realtime Database → Set rules to authenticated access<br>
-      3. Project Settings → Add Web App → Copy config values here<br>
-      4. Authentication → Enable Email/Password provider<br>
-      5. Click "Save &amp; Connect" — TugWatch will auto-sync all data to the cloud
-    </div>
-  </div>
-
-  <div class="modal-footer"><button class="btn btn-ghost" data-close="m-master-settings">Close</button></div>
-</div></div>
-
-<!-- ALERT CONTACTS -->
-<div class="overlay" id="m-alert-contacts"><div class="modal">
-  <button class="modal-close" data-close="m-alert-contacts"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <div class="modal-title">Alert Contacts</div>
-  <div class="modal-sub">Notified when documents expire or critical alerts occur</div>
-  <div id="alert-contacts-list" style="min-height:60px;margin-bottom:12px"></div>
-  <div style="font-size:10px;font-weight:600;color:var(--t2);margin-bottom:8px">Add New Contact</div>
-  <div class="fr2"><div class="fg"><label class="fl">Name</label><input class="fi" id="ac-name" placeholder="Contact person"/></div><div class="fg"><label class="fl">Mobile / WhatsApp</label><input class="fi" id="ac-phone" type="tel" placeholder="+91 XXXXX XXXXX"/></div></div>
-  <div class="fg"><label class="fl">Email</label><input class="fi" id="ac-email" type="email" placeholder="email@example.com"/></div>
-  <div class="modal-footer"><button class="btn btn-ghost" data-close="m-alert-contacts">Cancel</button><button class="btn btn-primary" onclick="saveAlertContact()">Add Contact</button></div>
-</div></div>
-
-<!-- PAINT INSPECTION TASK MODAL -->
-<div class="overlay" id="m-paint-task"><div class="modal modal-wide">
-  <button class="modal-close" data-close="m-paint-task"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <div class="modal-title">🎨 Assign Paint Inspection Task</div>
-  <div class="modal-sub">Operations manager will photograph all vessels, assess paint condition, and report to admin for approval of paint requirements</div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Assign To <span class="req">*</span></label><select class="fi" id="pt-assign"></select></div>
-    <div class="fg"><label class="fl">Deadline <span class="req">*</span></label><input class="fi" id="pt-due" type="date"/></div>
-  </div>
-  <div class="fg"><label class="fl">Vessels to Inspect</label>
-    <div id="pt-vessel-list" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px"></div>
-  </div>
-  <div class="fg"><label class="fl">Instructions</label>
-    <textarea class="fi" id="pt-instructions" rows="3" placeholder="Photograph: hull (port & starboard), deck, superstructure, waterline. Note: peeling, rust patches, faded areas. Rate condition: Good / Fair / Poor.">Photograph each vessel: hull (port & starboard sides), deck, superstructure, and waterline. Note all areas with peeling paint, rust, or significant fade. Rate overall condition as Good / Fair / Poor and upload minimum 4 photos per vessel to the Document Vault → Paint Photos folder.</textarea>
-  </div>
-  <div class="fg"><label class="fl">Approval Required From</label><select class="fi" id="pt-approver"></select></div>
-  <div class="modal-footer">
-    <button class="btn btn-ghost" data-close="m-paint-task">Cancel</button>
-    <button class="btn btn-primary" onclick="createPaintInspectionTask()">Assign Paint Inspection Task</button>
-  </div>
-</div></div>
-
-<!-- EX-CREW MODAL -->
-<div class="overlay" id="m-excrew"><div class="modal modal-wide">
-  <button class="modal-close" data-close="m-excrew"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <div class="modal-title">Add Ex-Crew Record</div><div class="modal-sub">Previously employed crew — for future contact and reference</div>
-  <div class="fr2"><div class="fg"><label class="fl">Full Name <span class="req">*</span></label><input class="fi" id="ec-name" placeholder="Full name"/></div><div class="fg"><label class="fl">Rank / Role</label><select class="fi" id="ec-role"><option>Captain / Master</option><option>Chief Officer</option><option>Second Officer</option><option>Chief Engineer</option><option>Second Engineer</option><option>Deck Hand</option><option>Engine Hand</option><option>Cook</option><option>Other</option></select></div></div>
-  <div class="fr2"><div class="fg"><label class="fl">Crew Number</label><input class="fi" id="ec-crewno" placeholder="Crew number"/></div><div class="fg"><label class="fl">Mobile Number</label><input class="fi" id="ec-mob" placeholder="+91 XXXXX XXXXX"/></div></div>
-  <div class="fr2"><div class="fg"><label class="fl">INDOS Number</label><input class="fi" id="ec-indos" placeholder="INDOS number"/></div><div class="fg"><label class="fl">CDC Number</label><input class="fi" id="ec-cdc" placeholder="CDC number"/></div></div>
-  <div class="fg"><label class="fl">Vessel(s) Worked On</label><input class="fi" id="ec-vessels" placeholder="e.g. Tug Boat 1, Tug Boat 2"/></div>
-  <div class="fr2"><div class="fg"><label class="fl">Date Joined</label><input class="fi" id="ec-join" type="date"/></div><div class="fg"><label class="fl">Date Relieved</label><input class="fi" id="ec-relieve" type="date"/></div></div>
-  <div class="fg"><label class="fl">Reason for Leaving</label><input class="fi" id="ec-reason" placeholder="e.g. Contract expired, Personal, Termination"/></div>
-  <div class="fr2"><div class="fg"><label class="fl">Performance</label><select class="fi" id="ec-perf"><option>Excellent</option><option>Good</option><option>Average</option><option>Poor</option></select></div><div class="fg"><label class="fl">Eligible for Re-hire?</label><select class="fi" id="ec-rehire"><option>Yes</option><option>No</option><option>Conditional</option></select></div></div>
-  <div class="fg"><label class="fl">Remarks / Notes</label><input class="fi" id="ec-rem" placeholder="Any notes for future reference"/></div>
-  <div class="fg"><label class="fl">Address / Contact Details</label><input class="fi" id="ec-addr" placeholder="Home address or emergency contact"/></div>
-  <div class="modal-footer"><button class="btn btn-ghost" data-close="m-excrew">Cancel</button><div style="margin-bottom:10px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e67700;cursor:pointer;background:#fff3e0;padding:8px 12px;border-radius:8px;border:1px solid #ffd591"><input type="checkbox" id="ec-bypass" style="accent-color:#e67700;width:15px;height:15px"/> <strong>Admin Bypass</strong> — skip doc uploads</label></div>
-<button class="btn btn-primary" onclick="addExCrew()">Save Record</button></div>
-</div></div>
-
-<!-- CREATE USER -->
-<div class="overlay" id="m-user"><div class="modal">
-  <button class="modal-close" data-close="m-user"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <div class="modal-title" id="m-user-title">Create Staff User</div><div class="modal-sub">Create login for office staff (unlimited)</div>
-  <div class="fg"><label class="fl">Full Name <span class="req">*</span></label><input class="fi" id="u-name" placeholder="Full name"/></div>
-  <div class="fg"><label class="fl">Username <span class="req">*</span></label><input class="fi" id="u-user" placeholder="E.G. CAPTAIN01 (NO SPACES)" style="text-transform:uppercase!important" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/></div>
-  <div class="fg"><label class="fl">Password <span class="req">*</span></label><input class="fi" id="u-pass" type="password" placeholder="Min 8 chars, upper, lower, number, symbol" oninput="updatePwMeter(this.value)"/>
-    <div id="pw-meter" style="display:none;margin-top:6px">
-      <div style="height:6px;border-radius:3px;background:#e4e6eb;overflow:hidden"><div id="pw-meter-bar" style="height:100%;width:0;transition:all .2s"></div></div>
-      <div id="pw-meter-label" style="font-size:10px;margin-top:4px"></div>
-      <div id="pw-meter-reqs" style="font-size:10px;color:var(--t3);margin-top:2px"></div>
-    </div>
-  </div>
-  <div class="fr2">
-    <div class="fg">
-      <label class="fl">Account Role <span class="req">*</span></label>
-      <select class="fi" id="u-role" onchange="toggleUserRolePermissions(this.value)" style="font-weight:700">
-        <option value="staff">👥 Staff User (Office / Operations Staff)</option>
-        <option value="admin">🛡️ Fleet Admin (Full Admin Privileges)</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label class="fl">Designation</label>
-      <input class="fi" id="u-desig" placeholder="e.g. Operations Manager / Supervisor"/>
-    </div>
-  </div>
-  <div id="admin-role-banner" style="display:none;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.3);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:11px;color:var(--accent);font-weight:700">
-    🛡️ Full Fleet Admin Privileges — Admins have complete access to all panels, dashboards, and financial operations.
-  </div>
-  <div id="u-perm-section">
-    <div style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin:10px 0 6px;border-left:3px solid var(--accent);padding-left:8px">Access Permissions</div>
-  <div style="font-size:9px;color:var(--t3);margin-bottom:8px">These modules are always visible: Vessels, HSD, Certificates, Document Vault, Crew, Deficiencies</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="voyage" style="accent-color:var(--accent)"/> Voyage Log</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="maintenance" style="accent-color:var(--accent)"/> Maintenance Log</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="mat-provided" style="accent-color:var(--accent)"/> Material Provided</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="mat-request" checked style="accent-color:var(--accent)"/> Material Requests</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="visit" style="accent-color:var(--accent)"/> Site Visit Planning</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="dor" style="accent-color:var(--accent)"/> Daily Operations Report</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="workorders" checked style="accent-color:var(--accent)"/> Work Orders</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="salary" style="accent-color:var(--accent)"/> Salary</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="vendors" style="accent-color:var(--accent)"/> Vendors</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="companies" style="accent-color:var(--accent)"/> Companies</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="contacts-dir" style="accent-color:var(--accent)"/> Contacts Directory</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="office-staff" style="accent-color:var(--accent)"/> Office Staff</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="vehicles" style="accent-color:var(--accent)"/> Vehicles</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="actlog" checked style="accent-color:var(--accent)"/> Audit Log</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="drydock" style="accent-color:var(--accent)"/> Drydock Records</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="equip-register" style="accent-color:var(--accent)"/> Equipment In/Out</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="part-specs" style="accent-color:var(--accent)"/> Parts Spec</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="spares" style="accent-color:var(--accent)"/> Spares & Inventory</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="compliance" style="accent-color:var(--accent)"/> Compliance Uploads</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" class="u-perm" value="doccenter" style="accent-color:var(--accent)"/> Document Center</label>
-  </div>
-  <div style="margin-top:12px;padding:10px;background:#fff3e0;border-radius:8px;border:1px solid #fdba74">
-    <div style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#x1F512; Special Action Permissions</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer" title="Allows user to process and pay crew salaries"><input type="checkbox" class="u-perm" value="finance_process" style="accent-color:#e67700"/> &#x1F4B0; Process Salary (Finance)</label>
-      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer" title="Allows user to create and assign tasks to other staff"><input type="checkbox" class="u-perm" value="task_assign" style="accent-color:#e67700"/> &#x2713; Assign Tasks to Staff</label>
-    </div>
-  </div><!-- end u-perm-section -->
-  <input type="hidden" id="u-edit-id"/>
-  <div style="display:flex;gap:10px;margin-top:16px">
-    <button class="btn btn-ghost" style="flex:1" onclick="closeModal('m-user')">Cancel</button>
-    <button class="btn btn-primary" id="btn-save-user" style="flex:2" onclick="createUser()">Save User Account</button>
-  </div>
-</div></div>
 
 <!-- EDIT ADMIN MODAL -->
 <div class="overlay" id="m-edit-admin-modal" style="z-index:10500!important">
@@ -33706,6 +33562,93 @@ function renderGovernanceAudit() {
       + '<div style="font-size:9.5px;color:var(--t3)">' + esc(l.time || '') + '</div>'
     + '</div>';
   }).join('');
+}
+
+
+
+
+function openMasterSettings() {
+  if (!CU) return;
+  if (CU.role !== 'master' && !isTempMaster()) {
+    toast('Master access only', 'var(--err)'); return;
+  }
+  loadMasterModalFields();
+  if (typeof loadCompanyFields === 'function') loadCompanyFields();
+  if (typeof loadSystemFields === 'function') loadSystemFields();
+  if (typeof renderMasterPorts === 'function') renderMasterPorts();
+  if (typeof renderRolePermissions === 'function') renderRolePermissions();
+  if (typeof renderTempMasters === 'function') renderTempMasters();
+  if (typeof renderAdminCredentials === 'function') renderAdminCredentials();
+  _doOpenModal('m-master-settings');
+}
+
+function loadMasterModalFields() {
+  var mName = DB.masterName || (MASTER ? MASTER.name : 'Faraz');
+  var mUser = DB.masterUsername || (MASTER ? MASTER.username : 'FARAZ');
+  var mDesig = DB.masterDesig || (MASTER ? MASTER.desig : 'Master Administrator');
+
+  if ($('mc-master-name')) $('mc-master-name').value = mName;
+  if ($('mc-master-user')) $('mc-master-user').value = mUser.toUpperCase();
+  if ($('mc-master-desig')) $('mc-master-desig').value = mDesig;
+  if ($('mc-master-pass')) $('mc-master-pass').value = '';
+}
+
+function saveMasterFromModal() {
+  var newName = (val('mc-master-name') || '').trim();
+  var newUname = (val('mc-master-user') || '').trim().toUpperCase();
+  var newDesig = (val('mc-master-desig') || '').trim();
+  var newPass = (val('mc-master-pass') || '').trim();
+
+  if (!newName) { uiAlert('Master Display Name is required'); return; }
+  if (!newUname) { uiAlert('Master Username is required'); return; }
+  if (/\s/.test(newUname)) { uiAlert('Username cannot contain spaces'); return; }
+
+  MASTER.name = newName;
+  MASTER.username = newUname;
+  MASTER.desig = newDesig;
+  DB.masterName = newName;
+  DB.masterUsername = newUname;
+  DB.masterDesig = newDesig;
+
+  if (newPass) {
+    if (newPass.length < 4) { uiAlert('Password must be at least 4 characters'); return; }
+    MASTER.password = newPass;
+    DB.masterPass = hashPassword(newPass);
+  }
+
+  if (CU && CU.role === 'master') {
+    CU.name = newName;
+    CU.username = newUname;
+    CU.desig = newDesig;
+    if (newPass) CU.password = newPass;
+    if ($('sb-name')) $('sb-name').textContent = CU.name;
+    if ($('sb-av')) $('sb-av').textContent = initials(CU.name);
+  }
+
+  setAdminOverride('m1', { name: newName, username: newUname, desig: newDesig, password: newPass || undefined });
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
+  toast('Master Administrator credentials updated & saved ✓', 'var(--ok)');
+  audit('Master Administrator credentials updated: "' + newName + '" (@' + newUname + ')', 'var(--ok)');
+}
+
+function switchMasterTab(tab) {
+  var modal = document.getElementById('m-master-settings');
+  if (!modal) return;
+  modal.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('on'); });
+  modal.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('on'); });
+  var t = modal.querySelector('.tab[onclick*="\''+tab+'\'"]');
+  var p = document.getElementById('mstab-'+tab);
+  if (t) t.classList.add('on');
+  if (p) p.classList.add('on');
+
+  if (tab === 'master') loadMasterModalFields();
+  if (tab === 'admincreds') renderAdminCredentials();
+  if (tab === 'loginhistory') renderLoginHistory();
+  if (tab === 'security') { renderExportLockSettings(); renderAnnouncementField(); }
 }
 
 </script>
