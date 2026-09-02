@@ -2596,6 +2596,22 @@ html[data-theme="dark"] #l-pass::placeholder {
       </button>
 
       <!-- USER PROFILE CARD IN TOPBAR (MOVED TO TOP NEXT TO THEME TOGGLE) -->
+            <!-- LIVE LUNAR TIDE & STREAM MINI-WIDGET (TOPBAR CENTER) -->
+      <div id="topbar-tide-mini-widget" onclick="gpGo('tides')" title="Click to open Lunar Tide Engine" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:4px 12px;background:linear-gradient(135deg,var(--bg2) 0%,rgba(14,165,233,0.08) 100%);border:1px solid rgba(14,165,233,0.3);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s;margin-right:auto;margin-left:14px" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg2)'" onmouseout="this.style.borderColor='rgba(14,165,233,0.3)';this.style.background='linear-gradient(135deg,var(--bg2) 0%,rgba(14,165,233,0.08) 100%)'">
+        <span style="font-size:16px;animation:pulse 2s infinite">🌊</span>
+        <div style="display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11.5px;font-weight:800;color:var(--t1)">⚓ Sikka Port: <span id="tb-tide-height" style="color:var(--accent)">+2.16 m</span></span>
+            <span id="tb-tide-status" class="chip chip-ok" style="font-size:8.5px;padding:1px 5px;font-weight:700">📈 Flood</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--t3)">
+            <span id="tb-lunar-phase">🌖 Waning Gibbous (70%)</span>
+            <span>·</span>
+            <span id="tb-tide-stream">⚡ Stream: 2.5 kts</span>
+          </div>
+        </div>
+      </div>
+
       <div class="user-row header-user-widget" id="header-user-widget" style="display:flex;align-items:center;gap:8px;padding:3px 8px 3px 6px;border:1px solid var(--b2);border-radius:10px;background:var(--bg1);box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-left:4px">
         <div class="user-av" id="sb-av" onclick="editMyProfile()" title="Click to edit profile" style="cursor:pointer;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.2)">F</div>
         <div style="min-width:0;cursor:pointer;display:flex;flex-direction:column" onclick="editMyProfile()" title="Click to edit profile">
@@ -3557,21 +3573,135 @@ html[data-theme="dark"] #l-pass::placeholder {
       <div id="orb-content"></div>
     </div>
 
-    <!-- PORT ENTRY / VTMS LOG -->
+    <!-- PORT ENTRY & OFFICIAL VTMS DIRECTORY -->
     <div class="page" id="p-vtms">
-      <div class="page-hdr">
-        <div class="page-hdr-title">Port Entry / VTMS Intimation Log</div>
-        <div style="display:flex;gap:6px">
-          <select class="fi" id="vtms-vessel-filter" style="width:160px;font-size:11px" onchange="renderVTMS()"><option value="">All Vessels</option></select>
-          <button class="btn btn-ghost btn-sm" onclick="exportExcel('vtms')">Export</button>
-          <button class="btn btn-primary" onclick="openModal('m-vtms-entry')">
-            <svg viewBox="0 0 24 24" fill="none" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/></svg>
-            Log Entry
-          </button>
+      <div class="page-hdr" style="margin-bottom:14px">
+        <div>
+          <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
+            <span>📡 VTMS &amp; Port Authorities Directory</span>
+            <span class="chip chip-accent" style="font-size:10px">VHF Channels &amp; 24/7 Operations</span>
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Official Vessel Traffic Management Stations, VHF working frequencies, emergency radar towers, multiple email routing &amp; port officers</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="openModal('m-add-port-vtms')">➕ Add Custom Port / Station</button>
+          <button class="btn btn-outline btn-sm" onclick="openModal('m-vtms-entry')">📝 Log Port Entry / Exit</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportVTMSDirectoryCSV()">📥 Export Directory CSV</button>
         </div>
       </div>
-      <div id="vtms-content"></div>
+
+      <!-- TAB BAR: DIRECTORY VS LOG -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--b1);padding-bottom:8px">
+        <button type="button" id="vtms-tab-btn-dir" class="btn btn-primary btn-sm" onclick="switchVtmsTab('dir')" style="font-weight:700">🏢 Port Authorities &amp; VTMS Stations (<span id="vtms-dir-count">10</span>)</button>
+        <button type="button" id="vtms-tab-btn-log" class="btn btn-ghost btn-sm" onclick="switchVtmsTab('log')" style="font-weight:700">📝 Port Entry / Exit Log (<span id="nb-vtms">0</span>)</button>
+      </div>
+
+      <!-- SECTION 1: OFFICIAL VTMS DIRECTORY -->
+      <div id="vtms-sec-dir">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <input class="fi search-input" id="vtms-dir-search" placeholder="Search by Port Name, VHF Channel, Authority, State, or Officer..." oninput="renderVTMSDirectory()" style="max-width:380px"/>
+          <select class="fi" id="vtms-state-filter" onchange="renderVTMSDirectory()" style="width:160px">
+            <option value="">All Regions / States</option>
+            <option value="Gujarat">Gujarat (Gulf of Kutch)</option>
+            <option value="Maharashtra">Maharashtra (Mumbai / JNPT)</option>
+            <option value="Kerala">Kerala (Cochin)</option>
+            <option value="Tamil Nadu">Tamil Nadu (Chennai / KPL)</option>
+            <option value="Andhra Pradesh">Andhra Pradesh (Vizag)</option>
+            <option value="West Bengal">West Bengal (Kolkata / Haldia)</option>
+          </select>
+          <div style="margin-left:auto;font-size:11px;color:var(--t3)">💡 <em>Click any email or phone to instantly compose or dial</em></div>
+        </div>
+
+        <div id="vtms-dir-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:20px"></div>
+      </div>
+
+      <!-- SECTION 2: PORT ENTRY LOG -->
+      <div id="vtms-sec-log" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+          <select class="fi" id="vtms-vessel-filter" style="width:180px;font-size:11px" onchange="renderVTMSLog()"><option value="">All Vessels</option></select>
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('vtms')">Export Log Excel</button>
+        </div>
+        <div id="vtms-content"></div>
+      </div>
     </div>
+
+    <!-- EDIT / UPDATE PORT VTMS MODAL -->
+    <div class="overlay" id="m-edit-port-vtms" style="z-index:10600!important">
+      <div class="modal modal-wide" style="max-width:680px;max-height:92vh;overflow-y:auto">
+        <button class="modal-close" data-close="m-edit-port-vtms"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <div class="modal-title" style="color:var(--accent)">✏️ Update Port &amp; VTMS Station Details</div>
+        <div class="modal-sub">Update VHF frequencies, emergency contact numbers, multi-email distribution list, and port officer contacts</div>
+        <input type="hidden" id="ep-port-id"/>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Port / Station Name <span class="req">*</span></label><input class="fi" id="ep-port-name"/></div>
+          <div class="fg"><label class="fl">State / Maritime Region <span class="req">*</span></label><input class="fi" id="ep-port-state"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Port Authority / Agency</label><input class="fi" id="ep-port-authority"/></div>
+          <div class="fg"><label class="fl">VHF Working Channels <span class="req">*</span></label><input class="fi" id="ep-port-vhf" placeholder="e.g. Ch 16, Ch 12, Ch 69"/></div>
+        </div>
+        <div class="fg">
+          <label class="fl">Multiple Email IDs <span class="req">*</span> <span style="font-size:9.5px;color:var(--t3)">(Separate multiple emails with commas)</span></label>
+          <input class="fi" id="ep-port-emails" placeholder="e.g. vtms@port.org, harbourmaster@port.org, ops@port.org"/>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">24/7 Emergency Hotline <span class="req">*</span></label><input class="fi" id="ep-port-hotline" placeholder="+91 XXXXX XXXXX"/></div>
+          <div class="fg"><label class="fl">Secondary / Radar Control Phone</label><input class="fi" id="ep-port-phone" placeholder="+91 XXXXX XXXXX"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Harbour Master / Conservator</label><input class="fi" id="ep-port-officer" placeholder="Name &amp; Title"/></div>
+          <div class="fg"><label class="fl">Officer Mobile Number</label><input class="fi" id="ep-port-officer-phone" placeholder="+91 XXXXX XXXXX"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Pilot Boarding Ground (PBG)</label><input class="fi" id="ep-port-pbg" placeholder="e.g. Lat 22° 32.5' N, Long 069° 48.2' E"/></div>
+          <div class="fg"><label class="fl">Maximum Permissible Draft</label><input class="fi" id="ep-port-draft" placeholder="e.g. 14.5 m (HW dependent)"/></div>
+        </div>
+        <div class="fg"><label class="fl">Operational Remarks &amp; Towing Instructions</label><input class="fi" id="ep-port-notes" placeholder="Special berthing, tug escort rules, tide constraints"/></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('m-edit-port-vtms')">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="savePortVTMSEdit()">💾 Save Port Details</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD CUSTOM PORT VTMS MODAL -->
+    <div class="overlay" id="m-add-port-vtms" style="z-index:10600!important">
+      <div class="modal modal-wide" style="max-width:680px;max-height:92vh;overflow-y:auto">
+        <button class="modal-close" data-close="m-add-port-vtms"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <div class="modal-title" style="color:var(--accent)">➕ Add New Port / VTMS Station</div>
+        <div class="modal-sub">Register custom anchorage, private terminal, or international port authority directory record</div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Port / Station Name <span class="req">*</span></label><input class="fi" id="np-port-name" placeholder="e.g. Pipavav Port / Sikka Anchorage"/></div>
+          <div class="fg"><label class="fl">State / Maritime Region <span class="req">*</span></label><input class="fi" id="np-port-state" placeholder="e.g. Gujarat / Maharashtra"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Port Authority / Agency</label><input class="fi" id="np-port-authority" placeholder="e.g. Gujarat Maritime Board / APM Terminals"/></div>
+          <div class="fg"><label class="fl">VHF Working Channels <span class="req">*</span></label><input class="fi" id="np-port-vhf" placeholder="e.g. Ch 16, Ch 14, Ch 73"/></div>
+        </div>
+        <div class="fg">
+          <label class="fl">Multiple Email IDs <span class="req">*</span> <span style="font-size:9.5px;color:var(--t3)">(Separate multiple emails with commas)</span></label>
+          <input class="fi" id="np-port-emails" placeholder="e.g. vtms@port.org, harbourmaster@port.org, ops@port.org"/>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">24/7 Emergency Hotline <span class="req">*</span></label><input class="fi" id="np-port-hotline" placeholder="+91 XXXXX XXXXX"/></div>
+          <div class="fg"><label class="fl">Secondary / Radar Control Phone</label><input class="fi" id="np-port-phone" placeholder="+91 XXXXX XXXXX"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Harbour Master / Conservator</label><input class="fi" id="np-port-officer" placeholder="Name &amp; Title"/></div>
+          <div class="fg"><label class="fl">Officer Mobile Number</label><input class="fi" id="np-port-officer-phone" placeholder="+91 XXXXX XXXXX"/></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Pilot Boarding Ground (PBG)</label><input class="fi" id="np-port-pbg" placeholder="e.g. Lat 20° 54.0' N, Long 071° 30.0' E"/></div>
+          <div class="fg"><label class="fl">Maximum Permissible Draft</label><input class="fi" id="np-port-draft" placeholder="e.g. 12.0 m"/></div>
+        </div>
+        <div class="fg"><label class="fl">Operational Remarks</label><input class="fi" id="np-port-notes" placeholder="Notes"/></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('m-add-port-vtms')">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="addCustomPortVTMS()">Add Port Station</button>
+        </div>
+      </div>
+    </div>
+
 
     <!-- PRE-DEPARTURE SAFETY CHECKLIST -->
     <div class="page" id="p-checklist">
@@ -8861,24 +8991,57 @@ var CU = null; // current user
 /* Rights transfer / edit modal */
 var ALL_RIGHTS = ['vessels','fuel','certificates','crew','maintenance','deficiency','voyage','mat-request','mat-provided','spares','drydock','equip-register','part-specs','compliance','doccenter','vendors','quotations','invoices','salary','dor','workorders','visit','tides','actlog','finance_process','task_assign','vault_access'];
 function openAdminRightsModal(adminId) {
-  var a = allAdmins().find(function(x){return x.id===adminId;}); if (!a) return;
+  var a = allAdmins().find(function(x){return String(x.id).trim()===String(adminId).trim();});
+  if (!a && (adminId === 'm1' || adminId === (MASTER ? MASTER.id : 'm1'))) a = resolveAdmin(MASTER);
+  if (!a) { toast('Admin not found', 'var(--err)'); return; }
+  
   var current = a.permissions || [];
-  var otherAdmins = allAdmins().filter(function(x){return x.id!==adminId;});
-  var copyOpts = otherAdmins.map(function(x){ return '<option value="'+x.id+'">'+esc(x.name)+'</option>'; }).join('');
+  var otherAdmins = allAdmins().filter(function(x){return String(x.id).trim()!==String(adminId).trim();});
+  var copyOpts = otherAdmins.map(function(x){ return '<option value="'+x.id+'">'+esc(x.name)+' (@'+esc(x.username)+')</option>'; }).join('');
+  
   var checks = ALL_RIGHTS.map(function(r){
     var on = current.indexOf(r)!==-1;
-    return '<label style="display:inline-flex;align-items:center;gap:5px;font-size:11px;width:48%;padding:3px 0"><input type="checkbox" class="ar-right" value="'+r+'"'+(on?' checked':'')+'/> '+r+'</label>';
+    var label = r.replace(/_/g, ' ').replace(/-/g, ' ').toUpperCase();
+    return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;width:48%;padding:4px 0;cursor:pointer"><input type="checkbox" class="ar-right" value="'+r+'"'+(on?' checked':'')+' style="accent-color:var(--accent)"/> <span>'+label+'</span></label>';
   }).join('');
+  
   var m = document.createElement('div'); m.className='overlay on';
-  m.innerHTML = '<div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto"><div class="modal-hdr"><div class="modal-title">Access Rights — '+esc(a.name)+'</div><button class="modal-close" onclick="this.closest(\'.overlay\').remove()">✕</button></div>'
-    + '<div style="display:flex;gap:8px;align-items:end;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--b1)">'
-      + '<div class="fg" style="margin:0;flex:1"><label class="fl">Transfer / copy rights from</label><select class="fi" id="ar-copy-from"><option value="">— Select admin —</option>'+copyOpts+'</select></div>'
-      + '<button class="btn btn-outline btn-sm" onclick="arCopyRights()">Copy their rights</button></div>'
-    + '<div style="display:flex;flex-wrap:wrap;gap:2px">'+checks+'</div>'
+  m.id = 'm-admin-rights-active';
+  m.innerHTML = '<div class="modal" style="max-width:620px;max-height:90vh;overflow-y:auto">'
+    + '<div class="modal-hdr" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      + '<div><div class="modal-title" style="color:var(--accent)">🔑 Access Rights &amp; Operational Permissions</div>'
+      + '<div class="modal-sub" style="font-size:11px;color:var(--t3)">Configuring permissions for: <strong>'+esc(a.name)+'</strong> (@'+esc(a.username)+')</div></div>'
+      + '<button class="modal-close" onclick="this.closest(\'.overlay\').remove()">✕</button>'
+    + '</div>'
+    
+    // Quick Action Rights Buttons (1-Click Full Operational Rights)
+    + '<div style="background:rgba(14,165,233,0.07);border:1px solid rgba(14,165,233,0.25);border-radius:8px;padding:10px 12px;margin:10px 0 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">'
+      + '<button type="button" class="btn btn-primary btn-sm" onclick="grantFullOperationalRights()" style="font-weight:700;font-size:11px">⚡ Grant Full Operational Rights (Executive Admin)</button>'
+      + '<button type="button" class="btn btn-outline btn-sm" onclick="selectAllAdminRights(true)" style="font-size:10px">✓ Select All</button>'
+      + '<button type="button" class="btn btn-ghost btn-sm" onclick="selectAllAdminRights(false)" style="font-size:10px;color:var(--err)">✕ Clear All</button>'
+      + '<div style="font-size:9.5px;color:var(--t3);width:100%;margin-top:2px"><em>Full Operational Rights equips this Fleet Admin with complete vessel, crew, voyage, fuel, and financial powers while strictly reserving Master Admin destructive system configuration.</em></div>'
+    + '</div>'
+    
+    + '<div style="display:flex;gap:8px;align-items:end;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--b1)">'
+      + '<div class="fg" style="margin:0;flex:1"><label class="fl" style="font-size:10px">Copy rights from another admin</label><select class="fi" id="ar-copy-from"><option value="">— Select admin —</option>'+copyOpts+'</select></div>'
+      + '<button type="button" class="btn btn-outline btn-sm" onclick="arCopyRights()">Copy Their Rights</button>'
+    + '</div>'
+    
+    + '<div style="display:flex;flex-wrap:wrap;gap:4px;max-height:36vh;overflow-y:auto;padding:6px 4px;border:1px solid var(--b2);border-radius:8px;background:var(--bg2)">'+checks+'</div>'
     + '<input type="hidden" id="ar-admin-id" value="'+adminId+'"/>'
-    + '<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-ghost" style="flex:1" onclick="this.closest(\'.overlay\').remove()">Cancel</button>'
-      + '<button class="btn btn-primary" style="flex:2" onclick="saveAdminRights()">Save Rights</button></div></div>';
+    + '<div style="display:flex;gap:10px;margin-top:16px"><button type="button" class="btn btn-ghost" style="flex:1" onclick="this.closest(\'.overlay\').remove()">Cancel</button>'
+      + '<button type="button" class="btn btn-primary" style="flex:2;font-weight:700" onclick="saveAdminRights()">💾 Save Access Rights</button></div></div>';
   document.body.appendChild(m);
+}
+
+function grantFullOperationalRights() {
+  document.querySelectorAll('.ar-right').forEach(function(cb){ cb.checked = true; });
+  toast('Full Operational Rights selected (27/27 modules) ✓', 'var(--ok)');
+}
+
+function selectAllAdminRights(selectAll) {
+  document.querySelectorAll('.ar-right').forEach(function(cb){ cb.checked = !!selectAll; });
+  toast(selectAll ? 'All rights selected' : 'All rights cleared');
 }
 function arCopyRights() {
   var fromId = val('ar-copy-from'); if (!fromId) { uiAlert('Select an admin to copy from'); return; }
@@ -14294,6 +14457,25 @@ function jumpToNextSyzygy() {
 }
 
 function renderTides() {
+  // Update Topbar Mini Widget
+  try {
+    var _tbPort = (val('lunar-port-sel') || 'sikka');
+    var _tbDate = (val('lunar-date-picker') || new Date().toISOString().split('T')[0]);
+    var _tbSched = calculateDailyTideSchedule(_tbPort, _tbDate);
+    var _now = new Date();
+    var _nowHr = _now.getHours() + _now.getMinutes() / 60;
+    var _liveLvl = getWaterLevelAtTime(_tbSched, _nowHr);
+    var _isRising = getWaterLevelAtTime(_tbSched, _nowHr + 0.25) >= _liveLvl;
+    
+    if ($('tb-tide-height')) $('tb-tide-height').textContent = '+' + _liveLvl.toFixed(2) + ' m';
+    if ($('tb-tide-status')) {
+      $('tb-tide-status').textContent = _isRising ? '📈 Flood' : '📉 Ebb';
+      $('tb-tide-status').className = 'chip ' + (_isRising ? 'chip-ok' : 'chip-warn');
+    }
+    if ($('tb-lunar-phase')) $('tb-lunar-phase').textContent = _tbSched.astro.phaseIcon + ' ' + _tbSched.astro.phaseName + ' (' + _tbSched.astro.illum.toFixed(0) + '%)';
+    if ($('tb-tide-stream')) $('tb-tide-stream').textContent = '⚡ Stream: ' + _tbSched.currentSpeedKts + ' kts';
+  } catch(e) {}
+
   var portSel = document.getElementById('lunar-port-sel');
   var dateIn = document.getElementById('lunar-date-picker');
   if (!dateIn || !dateIn.value) {
@@ -26418,9 +26600,396 @@ function saveORBEntry() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   VTMS / PORT ENTRY LOG
+   OFFICIAL MARITIME VTMS & PORT AUTHORITIES DIRECTORY
+   Comprehensive VHF frequencies, emergency hotlines, multi-emails & officers
 ══════════════════════════════════════════════════════════════ */
+
+var DEFAULT_VTMS_DIRECTORY = [
+  {
+    id: 'vtms-sikka',
+    name: 'Sikka Port (Gulf of Kutch)',
+    state: 'Gujarat',
+    authority: 'Reliance Marine Terminal / Gujarat Maritime Board (GMB)',
+    vhf: 'Ch 16 (Distress/Calling), Ch 12 (Port Operations), Ch 69 (Tug Assist), Ch 71 (Pilotage)',
+    emails: ['sikka.vtms@gmbports.org', 'marine.sikka@ril.com', 'portconservator.sikka@gujarat.gov.in', 'signalstation.sikka@gmail.com'],
+    hotline: '+91 288 2344211',
+    phone: '+91 288 2344212 / +91 98252 09841',
+    officer: 'Capt. P. K. Sharma (Harbour Master) / Shri R. Patel (Dy. Conservator)',
+    officerPhone: '+91 98252 09840',
+    pbg: 'Lat 22° 32.50\' N, Long 069° 48.20\' E',
+    draft: '19.5 m (SPM deepwater) / 6.5 m (Wharf)',
+    notes: '24/7 radar surveillance. Mandatory intimation 2 hrs prior to entering Sikka pilotage waters.'
+  },
+  {
+    id: 'vtms-bedi',
+    name: 'Bedi / Rozi Port (Jamnagar)',
+    state: 'Gujarat',
+    authority: 'Gujarat Maritime Board (GMB Jamnagar Division)',
+    vhf: 'Ch 16 (Calling), Ch 14 (Bedi Port Control), Ch 09 (Pilot & Tug Coordination)',
+    emails: ['bediport@gmbports.org', 'conservator.bedi@gujarat.gov.in', 'portofficer.bedi@gmail.com'],
+    hotline: '+91 288 2750033',
+    phone: '+91 288 2750034 / +91 98252 14421',
+    officer: 'Capt. S. Jadeja (Port Officer) / Shri V. Mehta (Traffic Mgr)',
+    officerPhone: '+91 98252 14420',
+    pbg: 'Lat 22° 35.80\' N, Long 070° 02.40\' E (Rozi Anchorage)',
+    draft: '7.5 m (High Tide Dependent)',
+    notes: 'Tidal lighterage port. High tidal range (up to 6.2m). Strict UKC compliance mandatory.'
+  },
+  {
+    id: 'vtms-kandla',
+    name: 'Deendayal Port (Kandla & Vadinar)',
+    state: 'Gujarat',
+    authority: 'Deendayal Port Authority (Major Port of India)',
+    vhf: 'Ch 16 (Calling), Ch 12 (Kandla VTS), Ch 08 (Vadinar VTS), Ch 77 (Tug Assist)',
+    emails: ['dc@deendayalport.gov.in', 'hm@deendayalport.gov.in', 'vts.kandla@deendayalport.gov.in', 'marinecontrol@deendayalport.gov.in'],
+    hotline: '+91 2833 270220',
+    phone: '+91 2833 270244 / +91 98252 23411',
+    officer: 'Capt. Pradeep Mohanty (Dy. Conservator) / Capt. T. Roy (Harbour Master)',
+    officerPhone: '+91 98252 23400',
+    pbg: 'Fairway Buoy: Lat 22° 49.50\' N, Long 070° 07.20\' E',
+    draft: '14.0 m (Cargo Berths) / 22.0 m (Vadinar SPM)',
+    notes: 'High tidal bore zone. Strong cross-currents during Spring Syzygy tides (up to 4.5 kts).'
+  },
+  {
+    id: 'vtms-mundra',
+    name: 'Mundra Port (APSEZ)',
+    state: 'Gujarat',
+    authority: 'Adani Ports and Special Economic Zone (APSEZ)',
+    vhf: 'Ch 16 (Calling), Ch 73 (Mundra Marine Control), Ch 77 (Tug Escort)',
+    emails: ['mundra.marine@adani.com', 'vts.mundra@adani.com', 'harbourmaster.mundra@adani.com', 'controltower.mundra@adani.com'],
+    hotline: '+91 2838 255255',
+    phone: '+91 2838 255777 / +91 98791 00234',
+    officer: 'Capt. Arvind Kumar (Harbour Master) / Marine Ops Superintendent',
+    officerPhone: '+91 98791 00200',
+    pbg: 'Lat 22° 42.00\' N, Long 069° 42.50\' E',
+    draft: '17.5 m (Deep draught container & bulk berths)',
+    notes: 'All-weather deep draught commercial port with 24/7 dedicated tug escort and VTS radar.'
+  },
+  {
+    id: 'vtms-navlakhi',
+    name: 'Navlakhi Port',
+    state: 'Gujarat',
+    authority: 'Gujarat Maritime Board (GMB)',
+    vhf: 'Ch 16 (Calling), Ch 11 (Navlakhi Traffic)',
+    emails: ['navlakhi@gmbports.org', 'portofficer.navlakhi@gujarat.gov.in'],
+    hotline: '+91 2829 288222',
+    phone: '+91 98252 09112',
+    officer: 'Shri K. Dave (Port Conservator)',
+    officerPhone: '+91 98252 09110',
+    pbg: 'Lat 22° 58.00\' N, Long 070° 25.00\' E',
+    draft: '8.2 m (Spring Tide Window)',
+    notes: 'Inner Gulf lighterage terminal. Pilotage non-compulsory but advisory for coastal tugs.'
+  },
+  {
+    id: 'vtms-mumbai',
+    name: 'Mumbai Port Authority (MbPA) & JNPT',
+    state: 'Maharashtra',
+    authority: 'Mumbai Port Authority / Jawaharlal Nehru Port Authority',
+    vhf: 'Ch 16 (Distress), Ch 12 (Mumbai VTS), Ch 13 (JNPT Traffic), Ch 69 (Tug Ops)',
+    emails: ['dc@mumbaiport.gov.in', 'vts@jnport.gov.in', 'marine@jnport.gov.in', 'harbourmaster@jnport.gov.in'],
+    hotline: '+91 22 6656 4051',
+    phone: '+91 22 2724 4156 / +91 98200 44551',
+    officer: 'Capt. B. S. Kumar (Dy. Conservator) / Capt. Amit Kapoor (JNPT HM)',
+    officerPhone: '+91 98200 44550',
+    pbg: 'Prongs Reef: Lat 18° 50.00\' N, Long 072° 48.00\' E',
+    draft: '15.0 m (JNPT Channel) / 11.5 m (Mumbai Docks)',
+    notes: 'High-density vessel traffic corridor. Continuous VTS radar reporting at designated waypoints.'
+  },
+  {
+    id: 'vtms-cochin',
+    name: 'Cochin Port Authority (CoPA)',
+    state: 'Kerala',
+    authority: 'Cochin Port Authority',
+    vhf: 'Ch 16 (Calling), Ch 12 (Cochin VTS), Ch 14 (Pilotage)',
+    emails: ['dc@cochinport.gov.in', 'vts@cochinport.gov.in', 'marinecontrol@cochinport.gov.in'],
+    hotline: '+91 484 2666417',
+    phone: '+91 484 2582500',
+    officer: 'Capt. Joseph Alapat (Deputy Conservator)',
+    officerPhone: '+91 94471 23450',
+    pbg: 'Fairway Buoy: Lat 09° 57.50\' N, Long 076° 09.50\' E',
+    draft: '14.5 m (Vallarpadam ICTT)',
+    notes: 'Micro-tidal port (range 1.0m). Pilotage compulsory for all commercial vessels > 200 GT.'
+  },
+  {
+    id: 'vtms-chennai',
+    name: 'Chennai Port & Kamarajar Port (Ennore)',
+    state: 'Tamil Nadu',
+    authority: 'Chennai Port Authority / Kamarajar Port Limited',
+    vhf: 'Ch 16 (Calling), Ch 14 (Chennai VTS), Ch 12 (KPL VTS)',
+    emails: ['dc@chennaiport.gov.in', 'vts@chennaiport.gov.in', 'marine@kpl.gov.in'],
+    hotline: '+91 44 2536 2201',
+    phone: '+91 44 2795 0001 / +91 98400 12345',
+    officer: 'Capt. R. Srinivasan (Harbour Master)',
+    officerPhone: '+91 98400 12340',
+    pbg: 'Lat 13° 06.00\' N, Long 080° 20.00\' E',
+    draft: '16.5 m',
+    notes: 'East Coast deepwater harbor. Cyclone tracking protocols in effect during monsoon.'
+  },
+  {
+    id: 'vtms-vizag',
+    name: 'Visakhapatnam Port Authority (VPA)',
+    state: 'Andhra Pradesh',
+    authority: 'Visakhapatnam Port Authority',
+    vhf: 'Ch 16 (Calling), Ch 12 (Vizag VTS), Ch 09 (Tug Working)',
+    emails: ['dc@vizagport.com', 'vts@vizagport.com', 'harbourmaster@vizagport.com'],
+    hotline: '+91 891 287 3111',
+    phone: '+91 891 256 5023',
+    officer: 'Capt. P. Subbarao (Deputy Conservator)',
+    officerPhone: '+91 98481 99880',
+    pbg: 'Lat 17° 40.50\' N, Long 083° 21.50\' E',
+    draft: '18.1 m (Outer Harbour) / 14.5 m (Inner Harbour)',
+    notes: 'Landlocked natural harbor and outer deepwater berths with state-of-the-art VTS radar.'
+  },
+  {
+    id: 'vtms-kolkata',
+    name: 'SMP Kolkata & Haldia Dock Complex',
+    state: 'West Bengal',
+    authority: 'Syama Prasad Mookerjee Port Authority',
+    vhf: 'Ch 16 (Calling), Ch 12 (Kolkata VTS), Ch 14 (Haldia Traffic)',
+    emails: ['dc@kolkataporttrust.gov.in', 'vts.haldia@kolkataporttrust.gov.in', 'marineops.hdc@kolkataporttrust.gov.in'],
+    hotline: '+91 33 2230 3451',
+    phone: '+91 3224 252100',
+    officer: 'Capt. S. Chatterjee (Marine Superintendent)',
+    officerPhone: '+91 98300 55440',
+    pbg: 'Sandheads: Lat 21° 00.00\' N, Long 088° 15.00\' E',
+    draft: '8.5 m (Tidal & Hooghly draft constraints)',
+    notes: 'Riverine port with long pilotage distance (Sandheads to Kolkata/Haldia). Tidal bore advisory.'
+  }
+];
+
+function getVTMSDirectory() {
+  if (!DB.vtmsDirectory || !DB.vtmsDirectory.length) {
+    DB.vtmsDirectory = JSON.parse(JSON.stringify(DEFAULT_VTMS_DIRECTORY));
+    saveDB();
+  }
+  return DB.vtmsDirectory;
+}
+
+function switchVtmsTab(tab) {
+  var btnDir = document.getElementById('vtms-tab-btn-dir');
+  var btnLog = document.getElementById('vtms-tab-btn-log');
+  var secDir = document.getElementById('vtms-sec-dir');
+  var secLog = document.getElementById('vtms-sec-log');
+
+  if (btnDir) btnDir.className = (tab === 'dir') ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  if (btnLog) btnLog.className = (tab === 'log') ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  if (secDir) secDir.style.display = (tab === 'dir') ? 'block' : 'none';
+  if (secLog) secLog.style.display = (tab === 'log') ? 'block' : 'none';
+
+  if (tab === 'dir') renderVTMSDirectory();
+  if (tab === 'log') renderVTMSLog();
+}
+
+function renderVTMSDirectory() {
+  var cardsEl = document.getElementById('vtms-dir-cards');
+  var countEl = document.getElementById('vtms-dir-count');
+  var q = (val('vtms-dir-search') || '').trim().toLowerCase();
+  var stateFilter = (val('vtms-state-filter') || '').trim();
+
+  var list = getVTMSDirectory();
+  if (countEl) countEl.textContent = list.length;
+  if (!cardsEl) return;
+
+  var filtered = list.filter(function(p) {
+    if (stateFilter && p.state !== stateFilter) return false;
+    if (q) {
+      var searchStr = (p.name + ' ' + p.state + ' ' + p.authority + ' ' + p.vhf + ' ' + (p.emails||[]).join(' ') + ' ' + p.officer + ' ' + p.notes).toLowerCase();
+      if (searchStr.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    cardsEl.innerHTML = '<div class="empty" style="grid-column:1/-1;padding:32px">No port stations matching search filter.</div>';
+    return;
+  }
+
+  cardsEl.innerHTML = filtered.map(function(p) {
+    var emailList = Array.isArray(p.emails) ? p.emails : (p.emails ? String(p.emails).split(/[,;]/) : []);
+    var emailChips = emailList.map(function(em) {
+      em = em.trim();
+      if (!em) return '';
+      return '<a href="mailto:' + esc(em) + '" style="font-size:10px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;background:rgba(14,165,233,0.08);padding:2px 7px;border-radius:6px;border:1px solid rgba(14,165,233,0.25)" title="Click to email ' + esc(em) + '">✉️ ' + esc(em) + '</a>';
+    }).join(' ');
+
+    var isCustom = p.id && p.id.startsWith('custom-');
+    var delBtn = isCustom ? '<button class="btn btn-danger btn-sm" style="font-size:9px" onclick="deleteCustomPortVTMS(\'' + p.id + '\')">Delete</button>' : '';
+
+    return '<div class="data-card" style="padding:16px;border-top:3px solid var(--accent);display:flex;flex-direction:column;justify-content:space-between">'
+      + '<div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">'
+          + '<div>'
+            + '<div style="font-size:14px;font-weight:800;color:var(--t1)">⚓ ' + esc(p.name) + '</div>'
+            + '<div style="font-size:10px;color:var(--t3);font-weight:600;margin-top:1px">' + esc(p.authority) + ' · <span style="color:var(--accent)">' + esc(p.state) + '</span></div>'
+          + '</div>'
+          + '<span class="chip chip-ok" style="font-size:9px;font-weight:700">24/7 VTS ACTIVE</span>'
+        + '</div>'
+
+        // VHF & Hotline Strip
+        + '<div style="background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:8px 10px;margin:10px 0">'
+          + '<div style="font-size:10px;color:var(--t2)"><strong>📡 VHF Channels:</strong> <span style="font-family:var(--fm);color:var(--accent);font-weight:700">' + esc(p.vhf) + '</span></div>'
+          + '<div style="font-size:10px;color:var(--t2);margin-top:4px"><strong>🚨 Emergency Hotline:</strong> <a href="tel:' + esc(p.hotline.replace(/[^0-9+]/g,'')) + '" style="font-family:var(--fm);color:var(--err);font-weight:800;text-decoration:none">' + esc(p.hotline) + '</a> ' + (p.phone ? '· ' + esc(p.phone) : '') + '</div>'
+        + '</div>'
+
+        // Multi-Email Section
+        + '<div style="margin-bottom:10px">'
+          + '<div style="font-size:10px;font-weight:700;color:var(--t2);margin-bottom:4px">📧 Official Dispatch &amp; Intimation Emails:</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:4px">' + (emailChips || '<span style="color:var(--t3);font-size:10px">No emails registered</span>') + '</div>'
+        + '</div>'
+
+        // Officers & Coordinates
+        + '<div style="font-size:10px;color:var(--t2);margin-bottom:4px"><strong>👤 Port Officers:</strong> ' + esc(p.officer || 'Harbour Master Desk') + (p.officerPhone ? ' (<a href="tel:'+esc(p.officerPhone.replace(/[^0-9+]/g,''))+'" style="color:var(--accent)">'+esc(p.officerPhone)+'</a>)' : '') + '</div>'
+        + (p.pbg ? '<div style="font-size:9.5px;color:var(--t3);margin-bottom:4px"><strong>📍 PBG Coordinates:</strong> <span style="font-family:var(--fm)">' + esc(p.pbg) + '</span> · <strong>Max Draft:</strong> ' + esc(p.draft || 'N/A') + '</div>' : '')
+        + (p.notes ? '<div style="font-size:9.5px;color:var(--t3);background:rgba(245,158,11,0.06);border-left:2px solid var(--warn);padding:4px 8px;margin-top:6px">📝 ' + esc(p.notes) + '</div>' : '')
+      + '</div>'
+
+      // Actions Footer
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--b1)">'
+        + '<a href="mailto:' + (emailList[0]||'') + '?subject=VTMS%20Pre-Arrival%20Intimation%20-%20TugWatch" class="btn btn-outline btn-sm" style="font-size:10px;font-weight:700">✉️ Compose Intimation</a>'
+        + '<div style="display:flex;gap:4px">'
+          + '<button class="btn btn-primary btn-sm" style="font-size:10px;font-weight:700;padding:3px 9px" onclick="openEditPortVTMSModal(\'' + p.id + '\')">✏️ Edit Details</button>'
+          + delBtn
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function openEditPortVTMSModal(portId) {
+  var list = getVTMSDirectory();
+  var p = list.find(function(x){ return x.id === portId; });
+  if (!p) { toast('Port station not found', 'var(--err)'); return; }
+
+  if ($('ep-port-id')) $('ep-port-id').value = p.id;
+  if ($('ep-port-name')) $('ep-port-name').value = p.name || '';
+  if ($('ep-port-state')) $('ep-port-state').value = p.state || '';
+  if ($('ep-port-authority')) $('ep-port-authority').value = p.authority || '';
+  if ($('ep-port-vhf')) $('ep-port-vhf').value = p.vhf || '';
+  var emails = Array.isArray(p.emails) ? p.emails.join(', ') : (p.emails || '');
+  if ($('ep-port-emails')) $('ep-port-emails').value = emails;
+  if ($('ep-port-hotline')) $('ep-port-hotline').value = p.hotline || '';
+  if ($('ep-port-phone')) $('ep-port-phone').value = p.phone || '';
+  if ($('ep-port-officer')) $('ep-port-officer').value = p.officer || '';
+  if ($('ep-port-officer-phone')) $('ep-port-officer-phone').value = p.officerPhone || '';
+  if ($('ep-port-pbg')) $('ep-port-pbg').value = p.pbg || '';
+  if ($('ep-port-draft')) $('ep-port-draft').value = p.draft || '';
+  if ($('ep-port-notes')) $('ep-port-notes').value = p.notes || '';
+
+  _doOpenModal('m-edit-port-vtms');
+}
+
+function savePortVTMSEdit() {
+  var id = val('ep-port-id');
+  var name = val('ep-port-name').trim();
+  if (!name) { uiAlert('Port name is required'); return; }
+
+  var emailsRaw = val('ep-port-emails');
+  var emailList = emailsRaw ? emailsRaw.split(/[,;]/).map(function(s){ return s.trim(); }).filter(Boolean) : [];
+
+  var list = getVTMSDirectory();
+  var p = list.find(function(x){ return x.id === id; });
+  if (!p) {
+    p = { id: id || ('custom-' + uid()) };
+    list.push(p);
+  }
+
+  p.name = name;
+  p.state = val('ep-port-state').trim() || 'Coastal India';
+  p.authority = val('ep-port-authority').trim();
+  p.vhf = val('ep-port-vhf').trim() || 'Ch 16 / Ch 12';
+  p.emails = emailList;
+  p.hotline = val('ep-port-hotline').trim();
+  p.phone = val('ep-port-phone').trim();
+  p.officer = val('ep-port-officer').trim();
+  p.officerPhone = val('ep-port-officer-phone').trim();
+  p.pbg = val('ep-port-pbg').trim();
+  p.draft = val('ep-port-draft').trim();
+  p.notes = val('ep-port-notes').trim();
+
+  DB.vtmsDirectory = list;
+  saveDB();
+  closeModal('m-edit-port-vtms');
+  renderVTMSDirectory();
+  toast('Port & VTMS station details updated ✓', 'var(--ok)');
+  audit('Updated VTMS Port Directory: ' + name, 'var(--ok)');
+}
+
+function addCustomPortVTMS() {
+  var name = val('np-port-name').trim();
+  if (!name) { uiAlert('Port Name is required'); return; }
+
+  var emailsRaw = val('np-port-emails');
+  var emailList = emailsRaw ? emailsRaw.split(/[,;]/).map(function(s){ return s.trim(); }).filter(Boolean) : [];
+
+  var newStation = {
+    id: 'custom-' + uid(),
+    name: name,
+    state: val('np-port-state').trim() || 'Coastal',
+    authority: val('np-port-authority').trim(),
+    vhf: val('np-port-vhf').trim() || 'Ch 16',
+    emails: emailList,
+    hotline: val('np-port-hotline').trim(),
+    phone: val('np-port-phone').trim(),
+    officer: val('np-port-officer').trim(),
+    officerPhone: val('np-port-officer-phone').trim(),
+    pbg: val('np-port-pbg').trim(),
+    draft: val('np-port-draft').trim(),
+    notes: val('np-port-notes').trim()
+  };
+
+  DB.vtmsDirectory = getVTMSDirectory();
+  DB.vtmsDirectory.unshift(newStation);
+  saveDB();
+  closeModal('m-add-port-vtms');
+  renderVTMSDirectory();
+  toast('New Port station "' + name + '" added to VTMS directory ✓', 'var(--ok)');
+  audit('Added custom VTMS Station: ' + name, 'var(--accent)');
+  clearFields(['np-port-name','np-port-state','np-port-authority','np-port-vhf','np-port-emails','np-port-hotline','np-port-phone','np-port-officer','np-port-officer-phone','np-port-pbg','np-port-draft','np-port-notes']);
+}
+
+function deleteCustomPortVTMS(portId) {
+  if (!confirm('Remove this custom port station from directory?')) return;
+  DB.vtmsDirectory = getVTMSDirectory().filter(function(x){ return x.id !== portId; });
+  saveDB();
+  renderVTMSDirectory();
+  toast('Port station removed');
+}
+
+function exportVTMSDirectoryCSV() {
+  var list = getVTMSDirectory();
+  var csv = 'Port Name,Region/State,Port Authority,VHF Channels,Email Contacts,Emergency Hotline,Secondary Phone,Port Officers,PBG Coordinates,Draft Limits,Notes\n';
+  list.forEach(function(p){
+    csv += [
+      '"' + (p.name||'') + '"',
+      '"' + (p.state||'') + '"',
+      '"' + (p.authority||'') + '"',
+      '"' + (p.vhf||'') + '"',
+      '"' + ((p.emails||[]).join('; ')) + '"',
+      '"' + (p.hotline||'') + '"',
+      '"' + (p.phone||'') + '"',
+      '"' + (p.officer||'') + (p.officerPhone ? ' ('+p.officerPhone+')' : '') + '"',
+      '"' + (p.pbg||'') + '"',
+      '"' + (p.draft||'') + '"',
+      '"' + (p.notes||'') + '"'
+    ].join(',') + '\n';
+  });
+
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'TugWatch_VTMS_Port_Directory_' + new Date().toISOString().split('T')[0] + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('VTMS Port Directory exported as CSV ✓', 'var(--ok)');
+}
+
 function renderVTMS() {
+  renderVTMSDirectory();
+  renderVTMSLog();
+}
+
+function renderVTMSLog() {
   var el = document.getElementById('vtms-content'); if (!el) return;
   var vf = document.getElementById('vtms-vessel-filter');
   if (vf && vf.options.length <= 1) { (DB.vessels||[]).forEach(function(v){ var o=document.createElement('option');o.value=v.id;o.textContent=v.name;vf.appendChild(o); }); }
@@ -26428,7 +26997,7 @@ function renderVTMS() {
   var entries = (DB.vtmsLog||[]).filter(function(e){ return !fil || e.vessel === fil; });
   var nb = document.getElementById('nb-vtms');
   if (nb) nb.textContent = (DB.vtmsLog||[]).length;
-  if (!entries.length) { el.innerHTML='<div class="empty">No port entry / VTMS records yet.</div>'; return; }
+  if (!entries.length) { el.innerHTML='<div class="empty" style="padding:28px">No port entry / VTMS records logged yet. Click "Log Port Entry / Exit" to record a vessel movement.</div>'; return; }
   var typeColors = { entry:'chip-ok', exit:'chip-warn', vtms:'chip-accent', anchorage:'chip-info', pilotage:'chip-muted' };
   var statusColors = { Sent:'chip-accent', Acknowledged:'chip-warn', Approved:'chip-ok', Cleared:'chip-ok', Pending:'chip-err' };
   el.innerHTML = '<div class="data-card"><table><thead><tr><th>Date</th><th>Vessel</th><th>Type</th><th>Port</th><th>Berth</th><th>Agent</th><th>Ack Ref</th><th>Status</th><th>By</th></tr></thead><tbody>' +
@@ -26436,6 +27005,7 @@ function renderVTMS() {
       return '<tr><td style="font-family:var(--fm);font-size:10px">'+e.date+(e.time?' '+e.time:'')+'</td><td><strong>'+vname(e.vessel)+'</strong></td><td><span class="chip '+(typeColors[e.type]||'chip-muted')+'" style="font-size:9px">'+e.type+'</span></td><td>'+e.port+'</td><td style="font-size:10px">'+e.berth+'</td><td style="font-size:10px">'+e.agent+'</td><td style="font-family:var(--fm);font-size:10px">'+e.ack+'</td><td><span class="chip '+(statusColors[e.status]||'chip-muted')+'" style="font-size:9px">'+e.status+'</span></td><td style="font-size:9px;color:var(--t3)">'+e._by+'</td></tr>';
     }).join('') + '</tbody></table></div>';
 }
+
 
 function saveVTMSEntry() {
   var vessel = val('vtms-vessel'); if (!vessel) { uiAlert('Select vessel'); return; }
