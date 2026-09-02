@@ -8974,12 +8974,8 @@ function canExportData() {
   return true;
 }
 
-var ADMINS = [
-  { id:'a1', name:'Administrator 1', username:'admin1', password:'admin123', role:'admin', desig:'Fleet Administrator', color:'#0ea5e9' },
-  { id:'a2', name:'Administrator 2', username:'admin2', password:'ops123',   role:'admin', desig:'Operations Manager',  color:'#6366f1' },
-  { id:'a3', name:'Administrator 3', username:'admin3', password:'safe123',  role:'admin', desig:'Safety Officer',      color:'#10b981' },
-  { id:'a4', name:'Administrator 4', username:'admin4', password:'tech123',  role:'admin', desig:'Technical Manager',   color:'#f59e0b' },
-];
+// Zero default dummy admins — all fleet administrators are created and managed by Master Admin
+var ADMINS = [];
 
 var CU = null; // current user
 /* ══════════════════════════════════════════════════════════════
@@ -9083,7 +9079,12 @@ function resolveAdmin(a) {
   });
 }
 function allAdmins() {
-  return ADMINS.map(resolveAdmin).concat((DB.dynamicAdmins||[]).map(function(d){ return resolveAdmin(d); }));
+  DB.dynamicAdmins = DB.dynamicAdmins || [];
+  // Filter out any legacy dummy seed accounts (a1, a2, a3, a4, admin1..admin4)
+  DB.dynamicAdmins = DB.dynamicAdmins.filter(function(a){
+    return a && a.id && !['a1','a2','a3','a4'].includes(a.id) && !['ADMIN1','ADMIN2','ADMIN3','ADMIN4'].includes((a.username||'').toUpperCase());
+  });
+  return (ADMINS.concat(DB.dynamicAdmins)).map(function(d){ return resolveAdmin(d); });
 }
 function setAdminOverride(adminId, fields) {
   DB.adminOverrides = DB.adminOverrides || {};
@@ -9218,27 +9219,16 @@ function saveAdminEditModal() {
   if (!newName) { uiAlert('Display Name is required'); return; }
   if (!newUname) { uiAlert('Username is required'); return; }
 
-  var a = null;
-  if (adminId === 'm1' || adminId === 'master' || (typeof MASTER !== 'undefined' && adminId === MASTER.id)) {
-    a = MASTER;
-  } else {
-    a = allAdmins().find(function(x){ return String(x.id).trim() === String(adminId).trim(); });
-    if (!a) a = (DB.dynamicAdmins || []).find(function(x){ return String(x.id).trim() === String(adminId).trim(); });
-    if (!a) a = ADMINS.find(function(x){ return String(x.id).trim() === String(adminId).trim(); });
-  }
-  if (!a) {
-    uiAlert('Admin account (' + adminId + ') could not be found.');
-    return;
-  }
-
-  var currentUname = (a.username || '').toUpperCase();
+  var isMaster = (adminId === 'm1' || adminId === 'master' || (typeof MASTER !== 'undefined' && adminId === MASTER.id));
+  
   // Check username collision if changed
-  if (newUname !== currentUname) {
-    var allU = [MASTER].concat(ADMINS).concat(DB.users||[]).concat(DB.dynamicAdmins||[]).filter(function(u){ return String(u.id).trim() !== String(adminId).trim(); }).map(function(u){ return (u.username||'').toUpperCase(); });
-    if (allU.indexOf(newUname) !== -1) {
-      uiAlert('Username "@' + newUname + '" is already taken by another account.');
-      return;
-    }
+  var allUsers = [MASTER].concat(DB.users||[]).concat(DB.dynamicAdmins||[]);
+  var isCollision = allUsers.some(function(u){
+    return String(u.id).trim() !== String(adminId).trim() && String(u.username||'').trim().toUpperCase() === newUname;
+  });
+  if (isCollision) {
+    uiAlert('Username "@' + newUname + '" is already taken by another account.');
+    return;
   }
 
   var updates = {
@@ -9246,14 +9236,11 @@ function saveAdminEditModal() {
     username: newUname,
     desig: newDesig
   };
+  if (newPass) updates.password = newPass;
 
-  if (newPass) {
-    updates.password = newPass;
-  }
-
-  // Set override for all admin IDs
   setAdminOverride(adminId, updates);
-  if (adminId === 'm1' || adminId === 'master' || a.role === 'master' || (typeof MASTER !== 'undefined' && adminId === MASTER.id)) {
+
+  if (isMaster) {
     setAdminOverride('m1', updates);
     MASTER.name = newName;
     MASTER.username = newUname;
@@ -9265,23 +9252,38 @@ function saveAdminEditModal() {
       MASTER.password = newPass;
       DB.masterPass = hashPassword(newPass);
     }
-    if (CU && (CU.role === 'master' || CU.id === MASTER.id)) {
+    if (CU && (CU.role === 'master' || CU.id === MASTER.id || CU.id === 'm1')) {
       CU.name = newName;
       CU.username = newUname;
       CU.desig = newDesig;
       if (newPass) CU.password = newPass;
     }
   } else {
-    var d = (DB.dynamicAdmins || []).find(function(x){ return String(x.id).trim() === String(adminId).trim(); });
-    if (d) {
-      d.name = newName;
-      d.username = newUname;
-      d.desig = newDesig;
-      if (newPass) d.password = newPass;
+    // Dynamic admin
+    DB.dynamicAdmins = DB.dynamicAdmins || [];
+    var target = DB.dynamicAdmins.find(function(x){ return String(x.id).trim() === String(adminId).trim(); });
+    if (target) {
+      target.name = newName;
+      target.username = newUname;
+      target.desig = newDesig;
+      if (newPass) target.password = newPass;
+    } else {
+      DB.dynamicAdmins.push({
+        id: adminId,
+        name: newName,
+        username: newUname,
+        password: newPass || 'admin123',
+        role: 'admin',
+        desig: newDesig,
+        color: '#0ea5e9',
+        _by: (CU ? CU.name : 'Master'),
+        createdAt: today()
+      });
     }
   }
 
-  if (CU && (String(CU.id).trim() === String(adminId).trim() || String(CU.username||'').trim().toUpperCase() === currentUname)) {
+  // Update live current user if editing self
+  if (CU && (String(CU.id).trim() === String(adminId).trim() || (isMaster && CU.role === 'master'))) {
     CU.name = newName;
     CU.username = newUname;
     CU.desig = newDesig;
@@ -9290,12 +9292,13 @@ function saveAdminEditModal() {
     var _sbav = $('sb-av'); if (_sbav) _sbav.textContent = initials(CU.name);
   }
 
+  // Save to LocalStorage + Cloud DB
   saveDB();
   closeModal('m-edit-admin-modal');
 
-  logSecurityEvent('Admin Profile Updated', '@' + currentUname + ' updated to "' + newName + '" (@' + newUname + ')' + (newPass ? ' with new password' : '') + ' by ' + (CU ? CU.name : 'Master'));
-  audit('Admin @' + currentUname + ' updated to "' + newName + '" (@' + newUname + ')' + (newPass ? ' [Password Changed]' : ''), 'var(--ok)');
-  toast('Admin account @' + newUname + ' updated successfully ✓');
+  logSecurityEvent('Admin Profile Updated', '@' + newUname + ' ("' + newName + '") updated by ' + (CU ? CU.name : 'Master'));
+  audit('Admin updated: "' + newName + '" (@' + newUname + ')' + (newPass ? ' [Password Changed]' : ''), 'var(--ok)');
+  toast('Admin account @' + newUname + ' saved successfully ✓', 'var(--ok)');
 
   if (typeof renderAdminCredentials === 'function') renderAdminCredentials();
   if (typeof renderAdminList === 'function') renderAdminList();
@@ -12968,7 +12971,7 @@ function renderUsers(){
         var deactBtn = !isMaster ? '' : (isDisabled
           ? '<button class="btn btn-ok btn-sm" style="font-size:9px" data-reactivate-admin="'+a.id+'">Reactivate</button>'
           : '<button class="btn btn-warn btn-sm" style="font-size:9px" data-deactivate-admin="'+a.id+'">Deactivate</button>');
-        var delBtn = (isMaster && !isFixed) ? '<button class="btn btn-danger btn-sm" style="font-size:9px" onclick="deleteAdmin('+(ai-ADMINS.length)+')">Delete</button>' : '';
+        var delBtn = (isMaster && !isFixed) ? '<button class="btn btn-danger btn-sm" style="font-size:9px" onclick="deleteAdmin(\'' + a.id + '\')">Delete</button>' : '';
 
         return '<tr style="opacity:' + (isDisabled ? 0.45 : 1) + '">' +
           '<td><strong>' + esc(a.name) + '</strong>' + (isDisabled ? ' <span style="color:var(--err);font-size:9px">[Deactivated]</span>' : '') + '</td>' +
@@ -15366,7 +15369,7 @@ function renderAdminList() {
     var deactBtn = isM ? '' : (isDisabled
       ? '<button class="btn btn-ok btn-sm" style="font-size:9px" data-reactivate-admin="'+a.id+'">Reactivate</button>'
       : '<button class="btn btn-warn btn-sm" style="font-size:9px" data-deactivate-admin="'+a.id+'">Deactivate</button>');
-    var delBtn = !isFixed ? '<button class="btn btn-danger btn-sm" style="font-size:9px" onclick="deleteAdmin('+(ai-1-ADMINS.length)+')">Delete</button>' : '';
+    var delBtn = !isFixed ? '<button class="btn btn-danger btn-sm" style="font-size:9px" onclick="deleteAdmin(\'' + a.id + '\')">Delete</button>' : '';
 
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1);opacity:'+(isDisabled?.4:1)+'">' +
       '<div><div style="font-size:12px;font-weight:700;color:var(--t1)">'+esc(a.name)+(isDisabled?' <span style="color:var(--err);font-size:10px">[Deactivated]</span>':'')+' <span class="'+(isM?'role-chip-master':'role-chip-admin')+'" style="font-size:8px;margin-left:4px">'+(isM?'👑 MASTER':'🛡️ ADMIN')+'</span></div>' +
@@ -15511,12 +15514,34 @@ function createAdmin() {
   audit('Master created admin: '+name,'var(--warn)');toast('Admin created: '+name);
   clearFields(['na-name','na-user','na-pass','na-desig']);
 }
-function deleteAdmin(i) {
-  if(!CU||CU.role!=='master')return;
-  var a=(DB.dynamicAdmins||[])[i];if(!a)return;
-  if(!confirm('Delete admin "'+a.name+'"?'))return;
-  DB.dynamicAdmins.splice(i,1);saveDB();renderAdminList();renderUsers();
-  audit('Master deleted admin: '+a.name,'var(--err)');toast('Admin deleted');
+function deleteAdmin(param) {
+  if (!CU || CU.role !== 'master') { uiAlert('Only Master Admin can delete admins'); return; }
+  DB.dynamicAdmins = DB.dynamicAdmins || [];
+  var target = null;
+  var targetIdx = -1;
+
+  if (typeof param === 'string') {
+    targetIdx = DB.dynamicAdmins.findIndex(function(x){ return String(x.id).trim() === String(param).trim(); });
+    if (targetIdx !== -1) target = DB.dynamicAdmins[targetIdx];
+  } else if (typeof param === 'number') {
+    targetIdx = param;
+    target = DB.dynamicAdmins[targetIdx];
+  }
+
+  if (!target) { toast('Admin not found', 'var(--err)'); return; }
+  if (!confirm('Are you sure you want to completely delete administrator "' + target.name + '" (@' + target.username + ')?')) return;
+
+  var deletedName = target.name;
+  DB.dynamicAdmins.splice(targetIdx, 1);
+  if (DB.adminOverrides) delete DB.adminOverrides[target.id];
+
+  saveDB();
+  if (typeof renderAdminList === 'function') renderAdminList();
+  if (typeof renderUsers === 'function') renderUsers();
+  if (typeof renderAdminCredentials === 'function') renderAdminCredentials();
+
+  audit('Master deleted admin: ' + deletedName, 'var(--err)');
+  toast('Admin "' + deletedName + '" deleted successfully ✓');
 }
 
 /* ── VESSEL CHARTER PO ──────────────────────────────────────── */
