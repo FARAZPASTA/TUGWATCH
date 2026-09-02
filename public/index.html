@@ -2577,8 +2577,10 @@ html[data-theme="dark"] #l-pass::placeholder {
         <input type="text" id="global-search-input" placeholder="Search vessels, crew, certs, tasks, vendors..." oninput="runGlobalSearch(this.value)" onkeydown="if(event.key==='Escape')closeGlobalSearch()" autocomplete="off" style="width:260px;padding:6px 32px 6px 12px;background:var(--s3);border:1px solid var(--accent-dim);border-radius:20px;color:var(--t1);font-size:11px;outline:none;font-family:var(--ff)"/>
         <span onclick="closeGlobalSearch()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--t3);font-size:16px;line-height:1">&#215;</span>
       </div>
-      <button id="search-toggle-btn" onclick="toggleGlobalSearch()" title="Search (Ctrl+K)" style="display:none;background:var(--s3);border:1px solid var(--b2);border-radius:8px;padding:5px 10px;cursor:pointer;color:var(--t3);align-items:center;gap:5px;font-size:11px">
-        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <button id="search-toggle-btn" onclick="toggleGlobalSearch()" title="Search anywhere (Ctrl+K or ⌘K)" style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:5px 11px;cursor:pointer;color:var(--t2);font-size:11px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--t1)'" onmouseout="this.style.borderColor='var(--b2)';this.style.color='var(--t2)'">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Search</span>
+        <kbd style="font-family:var(--fm);font-size:9.5px;background:var(--s4);padding:1px 5px;border-radius:4px;color:var(--t3);border:1px solid var(--b1)">⌘K</kbd>
       </button>
 
       <!-- BIGGER LIVE TIME CLOCK -->
@@ -25291,6 +25293,16 @@ function runGlobalSearch(q) {
     // ── OIL RECORD BOOK ──────────────────────────────────
     (DB.orbEntries||[]).forEach(function(e) {
       hit('ORB Entry','🛢', 'Code '+e.code+' — '+e.operation.substring(0,40), vname(e.vessel)+(e.date?' · '+fmtDate(e.date):'')+(e.position?' · '+e.position:''), 'orb', e.officer+' '+e.tanks);
+    });
+
+        // ── OFFICIAL VTMS & PORT DIRECTORY ─────────────────
+    (getVTMSDirectory()||[]).forEach(function(p) {
+      hit('VTMS Station', '📡', p.name, p.authority + ' · VHF: ' + p.vhf + ' · ' + p.hotline, 'vtms', (p.emails||[]).join(' ') + ' ' + p.officer + ' ' + p.state + ' ' + p.notes);
+    });
+
+    // ── ADMINISTRATORS ──────────────────────────────────
+    ([resolveAdmin(MASTER)].concat(allAdmins())).forEach(function(a) {
+      hit('Admin Account', '🛡️', a.name, '@' + (a.username||'') + ' · ' + (a.desig||'Administrator'), 'users', a.role + ' ' + a.email);
     });
 
     // ── VTMS / PORT ENTRY ────────────────────────────────
