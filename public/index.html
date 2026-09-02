@@ -27814,42 +27814,11 @@ function fillVendorCategorySelect(){ fillDynamicSelect('vn-cat'); }
 ══════════════════════════════════════════════════════════════ */
 
 // Override saveTideChart to also save to DocVault
-var _origSaveTideChart = saveTideChart;
-saveTideChart = function() {
-  var title = (document.getElementById('tc-title')||{}).value;
-  var file  = document.getElementById('tc-file') && document.getElementById('tc-file').files[0];
-  if (!title || !title.trim()) { uiAlert('Enter chart title'); return; }
-  if (!file) { uiAlert('Select a chart file'); return; }
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    DB.tideCharts = DB.tideCharts||[];
-    var chart = {
-      id:uid(), title:title.trim(),
-      loc:(document.getElementById('tc-loc')||{}).value||'',
-      from:(document.getElementById('tc-from')||{}).value||'',
-      to:(document.getElementById('tc-to')||{}).value||'',
-      source:(document.getElementById('tc-source')||{}).value||'',
-      fileName:file.name, fileType:file.type, data:ev.target.result,
-      ts:Date.now(), by:CU?CU.user:''
-    };
-    DB.tideCharts.push(chart);
-    // Auto-save to DocVault
-    DB.vaultFolders = DB.vaultFolders||[];
-    var folder = DB.vaultFolders.find(function(f){ return f.name==='Tide Charts'; });
-    if (!folder) { folder={id:uid(),name:'Tide Charts',cat:'Navigational',files:[]}; DB.vaultFolders.push(folder); }
-    folder.files = folder.files||[];
-    folder.files.push({name:title+' — '+file.name, type:'tide-chart', refId:chart.id, date:today(), by:CU?CU.user:''});
-    saveDB();
-    closeModal('m-tide-chart');
-    renderTides();
-    toast('Tide chart uploaded and saved to DocVault: '+title);
-    audit('Tide chart uploaded: '+title, 'var(--ok)');
-    clearFields(['tc-title','tc-from','tc-to','tc-source']);
-    if (document.getElementById('tc-file')) document.getElementById('tc-file').value='';
-    if (document.getElementById('tc-prev')) document.getElementById('tc-prev').textContent='';
-  };
-  reader.readAsDataURL(file);
-};
+/* Legacy Tide Shims for back-compat */
+window.saveTideChart = function() { toast('Tide predictions calculated via Lunar Astronomical Engine'); };
+window.addTideLocation = function() {};
+window.addTideEntry = function() {};
+window.processTideCSV = function() {};
 
 /* ══════════════════════════════════════════════════════════════
    INVOICE / OUTWARD CHALLAN: DATE-RANGE EXCEL EXPORT + VAULT SAVE
