@@ -8085,6 +8085,10 @@ function initFirebase() {
     try { FB_STORAGE = firebase.storage(); } catch(e){ FB_STORAGE = null; console.warn('Firebase Storage unavailable:', e); }
     FB_READY = true;
     console.log('TugWatch: Firebase initialized ✓');
+    // Pre-fetch accounts from cloud so new browsers have immediate credentials
+    loadFromFirebase(function(){
+      if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
+    });
 
     // Set persistence to LOCAL (stays logged in across browser sessions)
     FB_AUTH.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
@@ -15557,7 +15561,15 @@ function saveStaffEditModal() {
   }
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   closeModal('m-edit-staff-modal');
   renderUsers();
@@ -32433,7 +32445,15 @@ function executeUniversalRestore(targetData, mode, sourceName) {
 
   // Save to LocalStorage + Push to Firebase
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   // Re-render entire UI
   if (typeof renderDashboard === 'function') renderDashboard();
@@ -32885,7 +32905,15 @@ function saveMasterCredentialsV8() {
   setAdminOverride('m1', { name: newName, username: newUname, desig: newDesig, password: newPass || undefined });
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   populateGodMasterCard();
   toast('Master Administrator credentials updated & saved ✓', 'var(--ok)');
@@ -33003,7 +33031,15 @@ function saveCompanyProfileV8() {
   comp.phone = (val('gp-comp-phone') || val('mg-comp-phone') || '').trim();
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   populateGodCompanyProfile();
   toast('Company profile saved successfully ✓', 'var(--ok)');
@@ -33290,7 +33326,15 @@ function saveUnifiedUserModal() {
   }
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   closeModal('m-unified-user-modal');
   renderMasterGovernanceCenter();
@@ -33316,7 +33360,15 @@ function deleteUserV8(userId, type) {
   }
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   renderMasterGovernanceCenter();
   if (typeof renderUsers === 'function') renderUsers();
@@ -33340,7 +33392,15 @@ function saveCompanyProfileV8() {
   comp.phone = val('mg-comp-phone').trim();
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   toast('Company profile saved successfully ✓', 'var(--ok)');
   audit('Governance: Updated Company Profile (' + compName + ')', 'var(--ok)');
@@ -33446,7 +33506,15 @@ function toggleMasterLock(key, val) {
   DB.masterLocks = DB.masterLocks || {};
   DB.masterLocks[key] = !!val;
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
   toast('Master security lock updated ✓', 'var(--ok)');
   audit('Master security lock toggled: ' + key + ' = ' + val, 'var(--warn)');
 }
@@ -33543,7 +33611,15 @@ function saveMasterFromModal() {
   setAdminOverride('m1', { name: newName, username: newUname, desig: newDesig, password: newPass || undefined });
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
   toast('Master Administrator credentials updated & saved ✓', 'var(--ok)');
@@ -34188,7 +34264,15 @@ function saveUnifiedAccountModal() {
   DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   closeModal('m-unified-account-modal');
   renderUnifiedAccountsTable();
@@ -34209,7 +34293,15 @@ function deleteAccountClean(accountId) {
   DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   renderUnifiedAccountsTable();
   toast('Account "' + acc.name + '" deleted permanently');
@@ -34242,7 +34334,15 @@ function saveCompanyProfileClean() {
   comp.phone = (val('co-phone') || '').trim();
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   populateCompanyProfileClean();
   toast('Company details saved successfully ✓', 'var(--ok)');
@@ -34445,7 +34545,15 @@ function saveMyProfileSelfService() {
   var _sbav = $('sb-av'); if (_sbav) _sbav.textContent = initials(CU.name);
 
   saveDB();
-  if (FB_READY && FB_DB) saveToFirebase();
+  if (FB_READY && FB_DB) {
+    saveToFirebase();
+    // Direct granular collection writes for 0-latency multi-device sync
+    try {
+      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
+      FB_DB.ref('tugwatch/users').set(DB.users);
+      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
+    } catch(e) { console.warn('Direct FB sync:', e); }
+  }
 
   closeModal('m-my-profile-modal');
   if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
