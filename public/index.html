@@ -33677,29 +33677,7 @@ function getMasterAccount() {
   };
 }
 
-function resolveAdmin(a) {
-  if (!a) return null;
-  if (a.id === 'm1' || a.id === 'master' || a.role === 'master') {
-    return getMasterAccount();
-  }
-  var overrides = (DB.adminOverrides && DB.adminOverrides[a.id]) || {};
-  return {
-    id: a.id,
-    name: overrides.name || a.name || 'Fleet Administrator',
-    username: (overrides.username || a.username || '').toUpperCase(),
-    password: overrides.password || a.password || 'admin123',
-    role: 'admin',
-    desig: overrides.desig || a.desig || 'Fleet Administrator',
-    color: a.color || '#0ea5e9',
-    phone: a.phone || '',
-    whatsapp: a.whatsapp || '',
-    email: a.email || '',
-    emergencyContact: a.emergencyContact || '',
-    address: a.address || '',
-    documents: a.documents || [],
-    permissions: a.permissions || ['all_operational', 'finance_process', 'task_assign', 'vault_access']
-  };
-}
+
 
 function verifyCredential(inputPass, storedPass) {
   if (!storedPass) return false;
@@ -33720,81 +33698,7 @@ function allUsersList() {
   return (DB.accounts || []).filter(function(a){ return a && a.role === 'staff'; });
 }
 
-/* ── DETERMINISTIC LOGIN & CREDENTIAL VERIFICATION ─────────────── */
-function doLogin() {
-  if (typeof loadDB === 'function') loadDB();
-  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
 
-  var rawU = val('l-user') || '';
-  var u = (rawU.trim()).toUpperCase();
-  var p = val('l-pass') || '';
-  var err = $('l-err');
-  if (err) { err.classList.remove('on'); err.style.display = 'none'; }
-
-  if (!u || !p) {
-    if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Please enter your username and password.'; }
-    return;
-  }
-
-  var found = null;
-
-  // 1. Check Root Master Admin
-  var masterAcc = getMasterAccount();
-  if (masterAcc.username.toUpperCase() === u && verifyCredential(p, masterAcc.password)) {
-    found = masterAcc;
-  }
-
-  // 2. Check DB.accounts Directly
-  if (!found) {
-    var accounts = DB.accounts || [];
-    for (var i = 0; i < accounts.length; i++) {
-      var acc = accounts[i];
-      if (acc && (acc.username || '').toUpperCase() === u && verifyCredential(p, acc.password)) {
-        found = acc;
-        break;
-      }
-    }
-  }
-
-  // 3. Fallback for legacy DB.users or DB.dynamicAdmins
-  if (!found) {
-    var legacyList = (DB.users || []).concat(DB.dynamicAdmins || []);
-    for (var j = 0; j < legacyList.length; j++) {
-      var item = legacyList[j];
-      if (item && (item.username || '').toUpperCase() === u && verifyCredential(p, item.password)) {
-        found = item;
-        break;
-      }
-    }
-  }
-
-  if (!found) {
-    if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid username or password. Please verify credentials.'; }
-    return;
-  }
-
-  CU = found;
-  if (CU && CU.username) CU.username = CU.username.toUpperCase();
-
-  var _ls = $('login-screen'); if (_ls) _ls.style.display = 'none';
-  var _app = $('app');
-  if (_app) {
-    _app.style.display = 'flex';
-    _app.classList.add('tw-authenticated');
-  }
-
-  // Synchronize Cloud & Populate UI
-  if (FB_READY && FB_DB) {
-    loadFromFirebase(function(ok) {
-      if (ok && typeof setupFirebaseListeners === 'function') setupFirebaseListeners();
-      afterLoginHydration();
-    });
-  } else {
-    afterLoginHydration();
-  }
-}
-window.doLogin = doLogin;
-window.verifyCredential = verifyCredential;
 
 function afterLoginHydration() {
   fillVesselSelects();
@@ -34575,69 +34479,7 @@ window.renderMasterGovernanceCenter = renderMasterGovernanceCenter;
 
 
 /* ── BULLETPROOF ACCOUNTS PERSISTENCE & CLOUD SYNC ──────────── */
-function ensureAccountsMigrated() {
-  DB.accounts = DB.accounts || [];
 
-  // 1. Ingest any accounts from DB.users
-  (DB.users || []).forEach(function(u) {
-    if (u && (u.id || u.username)) {
-      var exists = DB.accounts.find(function(a){
-        return (u.id && String(a.id).trim() === String(u.id).trim()) ||
-               (u.username && String(a.username||'').toUpperCase() === String(u.username||'').toUpperCase());
-      });
-      if (!exists) {
-        DB.accounts.push({
-          id: u.id || uid(),
-          name: u.name || 'Staff User',
-          username: (u.username || '').toUpperCase(),
-          password: u.password && !u.password.startsWith('h:') ? u.password : (u.password || 'staff123'),
-          role: 'staff',
-          desig: u.desig || 'Staff User',
-          phone: u.phone || '',
-          whatsapp: u.whatsapp || '',
-          email: u.email || '',
-          emergencyContact: u.emergencyContact || '',
-          address: u.address || '',
-          documents: u.documents || [],
-          permissions: u.permissions || ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'],
-          createdAt: u.createdAt || today()
-        });
-      }
-    }
-  });
-
-  // 2. Ingest any accounts from DB.dynamicAdmins
-  (DB.dynamicAdmins || []).forEach(function(da) {
-    if (da && (da.id || da.username) && !['a1','a2','a3','a4'].includes(da.id) && !['ADMIN1','ADMIN2','ADMIN3','ADMIN4'].includes((da.username||'').toUpperCase())) {
-      var exists = DB.accounts.find(function(a){
-        return (da.id && String(a.id).trim() === String(da.id).trim()) ||
-               (da.username && String(a.username||'').toUpperCase() === String(da.username||'').toUpperCase());
-      });
-      if (!exists) {
-        DB.accounts.push({
-          id: da.id || uid(),
-          name: da.name || 'Fleet Administrator',
-          username: (da.username || '').toUpperCase(),
-          password: da.password || 'admin123',
-          role: 'admin',
-          desig: da.desig || 'Fleet Administrator',
-          phone: da.phone || '',
-          whatsapp: da.whatsapp || '',
-          email: da.email || '',
-          emergencyContact: da.emergencyContact || '',
-          address: da.address || '',
-          documents: da.documents || [],
-          permissions: da.permissions || ['all_operational'],
-          createdAt: da.createdAt || today()
-        });
-      }
-    }
-  });
-
-  // 3. Mirror back into dynamicAdmins and users
-  DB.dynamicAdmins = DB.accounts.filter(function(a){ return a.role === 'admin'; });
-  DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
-}
 
 </script>
 

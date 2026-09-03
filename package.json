@@ -1,0 +1,15 @@
+{
+  "name": "tugwatch",
+  "version": "8.0.0",
+  "description": "TugWatch \u2014 Marine Fleet Operations OS",
+  "private": true,
+  "scripts": {
+    "verify": "node scripts/verify-integrity.js",
+    "test:browsers": "node scripts/test-cross-browser.js",
+    "deploy:safe": "npm run verify && npx firebase-tools deploy --only hosting"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "playwright": "^1.49.1"
+  }
+}
