@@ -2611,13 +2611,13 @@ html[data-theme="dark"] #l-pass::placeholder {
       </div>
 
       <div class="user-row header-user-widget" id="header-user-widget" style="display:flex;align-items:center;gap:8px;padding:3px 8px 3px 6px;border:1px solid var(--b2);border-radius:10px;background:var(--bg1);box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-left:4px">
-        <div class="user-av" id="sb-av" onclick="editMyProfile()" title="Click to edit profile" style="cursor:pointer;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.2)">F</div>
+        <div class="user-av" id="hdr-user-av" onclick="editMyProfile()" title="Click to edit profile" style="cursor:pointer;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.2)">F</div>
         <div style="min-width:0;cursor:pointer;display:flex;flex-direction:column" onclick="editMyProfile()" title="Click to edit profile">
           <div style="display:flex;align-items:center;gap:4px">
-            <div class="user-name" id="sb-name" style="font-weight:800;font-size:12px;color:var(--t1);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis">Faraz</div>
+            <div class="user-name" id="hdr-user-name" style="font-weight:800;font-size:12px;color:var(--t1);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis">Faraz</div>
             <span style="font-size:10px;opacity:0.6" title="Edit profile">✏️</span>
           </div>
-          <span id="sb-role-chip" class="role-chip-master" style="white-space:nowrap;font-size:8.5px;padding:1px 6px;border-radius:20px;display:inline-flex;align-items:center;margin-top:2px">MASTER ADMIN</span>
+          <span id="hdr-user-role" class="role-chip-master" style="white-space:nowrap;font-size:8.5px;padding:1px 6px;border-radius:20px;display:inline-flex;align-items:center;margin-top:2px">MASTER ADMIN</span>
         </div>
         <div style="display:flex;gap:4px;align-items:center;margin-left:4px;border-left:1px solid var(--b2);padding-left:6px">
           <button onclick="openChangePassword()" title="Change password" style="background:var(--bg2);border:1px solid var(--b2);border-radius:6px;cursor:pointer;color:var(--t2);padding:3px 7px;font-size:9.5px;font-weight:600;display:flex;align-items:center;gap:3px;transition:all .12s" onmouseover="this.style.background='var(--s3)';this.style.color='var(--t1)'" onmouseout="this.style.background='var(--bg2)';this.style.color='var(--t2)'">
@@ -8459,6 +8459,13 @@ function loadFromFirebase(callback) {
         if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
         if (typeof renderUsers === 'function') renderUsers();
         if (typeof renderDashboard === 'function') renderDashboard();
+  // Ensure default page is dashboard
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('on'); });
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); });
+  var dashNav = document.querySelector('.nav-item[data-page="dashboard"]');
+  if (dashNav) dashNav.classList.add('on');
+  var dashPage = document.getElementById('p-dashboard');
+  if (dashPage) dashPage.classList.add('on');
         console.log('TugWatch: Loaded & Merged from Firebase ✓', Object.keys(data).length, 'collections');
       }
       if (callback) callback(true);
@@ -33728,25 +33735,70 @@ function updateRoleVisibility() {
   if (!CU) return;
   var isMaster = CU.role === 'master';
   var isMasterOrAdmin = (isMaster || CU.role === 'admin');
+  var roleTitle = isMaster ? 'Master Admin' : (CU.role === 'admin' ? 'Fleet Admin' : 'Staff User');
+  var roleChipClass = isMaster ? 'role-chip-master' : (CU.role === 'admin' ? 'role-chip-admin' : 'role-chip-staff');
+  var userInitials = initials(CU.name || CU.username || 'U');
 
-  var _sbn = $('sb-name'); if (_sbn) _sbn.textContent = CU.name;
-  var _sbav = $('sb-av'); if (_sbav) _sbav.textContent = initials(CU.name);
-  var _sbrc = $('sb-role-chip');
-  if (_sbrc) {
-    _sbrc.textContent = isMaster ? 'Master Admin' : (CU.role === 'admin' ? 'Fleet Admin' : 'Staff');
-    _sbrc.className = isMaster ? 'role-chip-master' : (CU.role === 'admin' ? 'role-chip-admin' : 'role-chip-staff');
-  }
+  // Update all Name elements (header & sidebar)
+  ['sb-name', 'hdr-user-name'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.textContent = CU.name || CU.username;
+  });
 
+  // Update all Avatar elements
+  ['sb-av', 'hdr-user-av'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) {
+      el.textContent = userInitials;
+      el.style.background = isMaster
+        ? 'linear-gradient(135deg,#dc2626,#991b1b)'
+        : (CU.role === 'admin' ? 'linear-gradient(135deg,#0284c7,#0369a1)' : 'linear-gradient(135deg,#16a34a,#15803d)');
+    }
+  });
+
+  // Update all Role Chip elements
+  ['sb-role-chip', 'hdr-user-role'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) {
+      el.textContent = roleTitle.toUpperCase();
+      el.className = roleChipClass;
+    }
+  });
+
+  // Master-only items
+  document.querySelectorAll('.master-only').forEach(function(el) {
+    if (el.classList.contains('page')) return;
+    el.style.display = isMaster ? '' : 'none';
+  });
+
+  // Admin-only items
   document.querySelectorAll('.admin-only').forEach(function(el) {
     if (el.classList.contains('page')) return;
     el.style.display = isMasterOrAdmin ? '' : 'none';
   });
 
-  document.querySelectorAll('.master-only').forEach(function(el) {
-    if (el.classList.contains('page')) return;
-    el.style.display = isMaster ? '' : 'none';
-  });
+  // Staff module permission filtering
+  if (CU.role === 'staff' && Array.isArray(CU.permissions)) {
+    document.querySelectorAll('nav .nav-item[data-page]').forEach(function(item) {
+      var page = item.dataset.page;
+      if (!page || page === 'dashboard') { item.style.display = ''; return; }
+      if (CU.permissions.includes(page) || CU.permissions.includes('all_operational')) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  } else if (isMasterOrAdmin) {
+    document.querySelectorAll('nav .nav-item[data-page]').forEach(function(item) {
+      if (item.classList.contains('master-only') && !isMaster) {
+        item.style.display = 'none';
+      } else {
+        item.style.display = '';
+      }
+    });
+  }
 }
+window.updateRoleVisibility = updateRoleVisibility;
 
 
 
