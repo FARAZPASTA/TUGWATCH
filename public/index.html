@@ -2308,7 +2308,7 @@ html[data-theme="dark"] #l-pass::placeholder {
       <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/><line x1="17" y1="8" x2="23" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/><line x1="23" y1="8" x2="17" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/></svg>
       Ex-Crew Records<span class="nav-badge nb-default" id="nb-excrew">0</span>
     </div>
-    <div class="nav-item" onclick="if(CU&&CU.role==='master'){if(typeof switchMasterTab==='function'){openMasterSettings();switchMasterTab('admincreds');}else openCreateUserModal('admin');}else toast('Master Admin only','var(--err)')" style="cursor:pointer;border:1px solid rgba(14,165,233,.2);background:rgba(14,165,233,.06);margin-bottom:4px">
+    <div class="nav-item" onclick="if(CU&&CU.role==='master'){if(typeof switchMasterTab==='function'){openMasterSettings();switchMasterTab('admincreds');}else openAccountModal('admin');}else toast('Master Admin only','var(--err)')" style="cursor:pointer;border:1px solid rgba(14,165,233,.2);background:rgba(14,165,233,.06);margin-bottom:4px">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.5"/><path d="M4 20v-1a8 8 0 0116 0v1" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span style="color:#38bdf8;font-weight:700;font-size:12px">🛡️ Fleet Administrators</span>
     </div>
@@ -2695,160 +2695,102 @@ html[data-theme="dark"] #l-pass::placeholder {
     </div>
 
         <!-- MASTER CONTROL PANEL (NO BRANDING, NO TIDE) -->
+    <!-- UNIFIED TEAM & GOVERNANCE CONTROL DESK -->
     <div class="page" id="p-godpanel">
-      <div class="page-hdr" style="margin-bottom:12px">
+      <div class="page-hdr" style="margin-bottom:14px">
         <div>
           <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
             <span style="font-size:20px">👑</span>
-            <span>Master Administrator Control Center</span>
-            <span class="chip chip-accent" style="font-size:10px">v8.0 Clean</span>
+            <span>Master Control &amp; Team Directory</span>
+            <span class="chip chip-accent" style="font-size:10px">v8.0 Unified</span>
           </div>
-          <div style="font-size:11px;color:var(--t3);margin-top:2px">Executive system control — manage Master credentials, Fleet Admins, Staff KYC documents, and database safety</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Manage Fleet Administrators, Staff Logins, KYC Documents, Company Information, and Database Backups</div>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn btn-primary btn-sm" onclick="openCreateUserModal('admin')">➕ Add Fleet Admin</button>
-          <button class="btn btn-ok btn-sm" onclick="openCreateUserModal('staff')">➕ Add Staff User</button>
+          <button class="btn btn-primary btn-sm" onclick="openAccountModal('admin')" style="font-weight:700">➕ Add Fleet Admin</button>
+          <button class="btn btn-ok btn-sm" onclick="openAccountModal('staff')" style="font-weight:700">➕ Add Staff User</button>
           <button class="btn btn-ghost btn-sm" onclick="exportFullDatabaseBackup()">💾 Backup Master DB</button>
         </div>
       </div>
 
-      <!-- MASTER TABS BAR (FLEET ADMINS DEFAULT, NO MASTER PROFILE) -->
-      <div style="display:flex;gap:4px;border-bottom:1px solid var(--b1);margin-bottom:16px;overflow-x:auto;padding-bottom:2px" id="gp-tabs-bar">
-        <button class="tab-btn on" id="gptab-admins" onclick="switchGodTab('admins')">🛡️ Fleet Admins</button>
-        <button class="tab-btn" id="gptab-staff" onclick="switchGodTab('staff')">👥 Staff &amp; KYC Vault</button>
-        <button class="tab-btn" id="gptab-company" onclick="switchGodTab('company')">🏢 Company Profile</button>
-        <button class="tab-btn" id="gptab-locks" onclick="switchGodTab('locks')">🔒 Security &amp; Export Locks</button>
-        <button class="tab-btn" id="gptab-elevation" onclick="switchGodTab('elevation')">⚡ Master Elevation</button>
-        <button class="tab-btn" id="gptab-database" onclick="switchGodTab('database')">💾 Database &amp; Backup</button>
-        <button class="tab-btn" id="gptab-audit" onclick="switchGodTab('audit')">📜 Audit Log</button>
+      <!-- SECTION 1: UNIFIED TEAM DIRECTORY TABLE -->
+      <div class="data-card" style="padding:18px;margin-bottom:18px;border-top:3px solid var(--accent)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--t1)">👥 Team &amp; User Access Directory (<span id="acc-total-count">0</span> Accounts)</div>
+            <div style="font-size:10.5px;color:var(--t3)">Complete list of Fleet Administrators and Shore Staff with instant 1-click editing and KYC document dossiers</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary btn-sm" onclick="openAccountModal('admin')">➕ Add Fleet Admin</button>
+            <button class="btn btn-ok btn-sm" onclick="openAccountModal('staff')">➕ Add Staff User</button>
+          </div>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="border-bottom:2px solid var(--b1);text-align:left;font-size:11px;color:var(--t2)">
+              <th style="padding:8px 6px">Full Name &amp; Title</th>
+              <th style="padding:8px 6px">Login Username</th>
+              <th style="padding:8px 6px">Account Role</th>
+              <th style="padding:8px 6px">Phone &amp; KYC Docs</th>
+              <th style="padding:8px 6px">Password</th>
+              <th style="padding:8px 6px;text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="acc-unified-tbody"></tbody>
+        </table>
       </div>
 
-      <!-- TAB 1: FLEET ADMINISTRATORS (DEFAULT ACTIVE) -->
-      <div id="gp-tab-content-admins" class="gp-tab-panel" style="display:block">
-        <div class="data-card" style="padding:18px;border-top:3px solid var(--accent)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Fleet Administrators Directory (<span id="gp-admin-count">0</span>)</div>
-              <div style="font-size:10.5px;color:var(--t3)">Full operational administrators created and empowered by you</div>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="openCreateUserModal('admin')" style="font-weight:700">➕ Add New Fleet Admin</button>
+      <!-- SECTION 2: COMPANY HEADER DETAILS -->
+      <div class="data-card" style="padding:18px;margin-bottom:18px;border-top:3px solid #8b5cf6">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--t1)">🏢 Company &amp; Maritime Registry Profile</div>
+            <div style="font-size:10.5px;color:var(--t3)">Details automatically printed on Delivery Challans, POs, and Invoices</div>
           </div>
-          <table style="width:100%;border-collapse:collapse">
-            <thead>
-              <tr style="border-bottom:2px solid var(--b1);text-align:left;font-size:11px;color:var(--t2)">
-                <th style="padding:8px 6px">Admin Profile</th>
-                <th style="padding:8px 6px">Username</th>
-                <th style="padding:8px 6px">Contact &amp; KYC Docs</th>
-                <th style="padding:8px 6px">Operational Rights</th>
-                <th style="padding:8px 6px">Password</th>
-                <th style="padding:8px 6px;text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="gp-admins-tbody"></tbody>
-          </table>
+          <button class="btn btn-primary btn-sm" onclick="saveCompanyProfileClean()" style="font-weight:700">💾 Save Company Info</button>
+        </div>
+        <div class="fr3">
+          <div class="fg"><label class="fl">Company Registered Name <span class="req">*</span></label><input class="fi" id="co-name" placeholder="Saarvin Marine Pvt Ltd" style="font-weight:700"/></div>
+          <div class="fg"><label class="fl">GST / Tax Registration Number</label><input class="fi" id="co-gst" placeholder="24XXXXX0000X1Z5"/></div>
+          <div class="fg"><label class="fl">PAN Number</label><input class="fi" id="co-pan" placeholder="XXXXX0000X"/></div>
+        </div>
+        <div class="fr3">
+          <div class="fg"><label class="fl">Registered Office Address</label><input class="fi" id="co-addr" placeholder="Jamnagar / Mumbai Office"/></div>
+          <div class="fg"><label class="fl">Official Email</label><input class="fi" id="co-email" placeholder="ops@saarvin.in"/></div>
+          <div class="fg"><label class="fl">Contact Phone</label><input class="fi" id="co-phone" placeholder="+91 288 XXXXXXX"/></div>
         </div>
       </div>
 
-      <!-- TAB 3: STAFF & KYC VAULT -->
-      <div id="gp-tab-content-staff" class="gp-tab-panel" style="display:none">
-        <div class="data-card" style="padding:18px;border-top:3px solid var(--ok)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Office Staff Logins &amp; KYC Document Vault (<span id="gp-staff-count">0</span>)</div>
-              <div style="font-size:10.5px;color:var(--t3)">Operational shore staff accounts, contact information, agreements, and module access control</div>
-            </div>
-            <button class="btn btn-ok btn-sm" onclick="openCreateUserModal('staff')" style="font-weight:700">➕ Add Staff User</button>
-          </div>
-          <table style="width:100%;border-collapse:collapse">
-            <thead>
-              <tr style="border-bottom:2px solid var(--b1);text-align:left;font-size:11px;color:var(--t2)">
-                <th style="padding:8px 6px">Staff Member</th>
-                <th style="padding:8px 6px">Login Username</th>
-                <th style="padding:8px 6px">Phone &amp; KYC Docs</th>
-                <th style="padding:8px 6px">Assigned Modules</th>
-                <th style="padding:8px 6px">Password</th>
-                <th style="padding:8px 6px;text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="gp-staff-tbody"></tbody>
-          </table>
+      <!-- SECTION 3: BACKUP & RECOVERY -->
+      <div class="data-card" style="padding:18px;border-top:3px solid var(--ok)">
+        <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">💾 Master Database Backup &amp; Universal Recovery</div>
+        <div style="font-size:10.5px;color:var(--t3);margin-bottom:14px">Export lossless JSON or ZIP snapshots and restore system state instantly</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="exportFullDatabaseBackup()">📥 Download Master Backup (.json)</button>
+          <button class="btn btn-success" onclick="exportVesselAndFolderZipBackup()">🗂️ Download Vessel-wise ZIP Archive (.zip)</button>
+          <button class="btn btn-outline" onclick="openModal('m-backup-manager')">📂 Open Restore Center</button>
         </div>
       </div>
+    </div>
 
-      <!-- TAB 4: COMPANY PROFILE -->
-      <div id="gp-tab-content-company" class="gp-tab-panel" style="display:none">
-        <div class="data-card" style="padding:18px;border-top:3px solid #8b5cf6">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Company &amp; Maritime Registry Profile</div>
-              <div style="font-size:10.5px;color:var(--t3)">Official company details appearing on invoices, challans, and inspection headers</div>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="saveCompanyProfileV8()" style="font-weight:700">💾 Save Company Info</button>
+    <!-- p-users mirrors the same unified page -->
+    <div class="page" id="p-users">
+      <div class="page-hdr" style="margin-bottom:14px">
+        <div>
+          <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:20px">👥</span>
+            <span>Team &amp; User Access Directory</span>
+            <span class="chip chip-accent" style="font-size:10px">v8.0 Unified</span>
           </div>
-          <div class="fr3">
-            <div class="fg"><label class="fl">Company Registered Name <span class="req">*</span></label><input class="fi" id="gp-comp-name" placeholder="Saarvin Marine Pvt Ltd"/></div>
-            <div class="fg"><label class="fl">GST / Tax Registration Number</label><input class="fi" id="gp-comp-gst" placeholder="24XXXXX0000X1Z5"/></div>
-            <div class="fg"><label class="fl">PAN Number</label><input class="fi" id="gp-comp-pan" placeholder="XXXXX0000X"/></div>
-          </div>
-          <div class="fr3">
-            <div class="fg"><label class="fl">Registered Office Address</label><input class="fi" id="gp-comp-addr" placeholder="Office address, Jamnagar / Mumbai"/></div>
-            <div class="fg"><label class="fl">Official Email</label><input class="fi" id="gp-comp-email" placeholder="ops@saarvin.in"/></div>
-            <div class="fg"><label class="fl">Contact Phone</label><input class="fi" id="gp-comp-phone" placeholder="+91 288 XXXXXXX"/></div>
-          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Manage Fleet Administrators, Staff Logins, KYC Documents, and module permissions</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-primary btn-sm" onclick="openAccountModal('admin')" style="font-weight:700">➕ Add Fleet Admin</button>
+          <button class="btn btn-ok btn-sm" onclick="openAccountModal('staff')" style="font-weight:700">➕ Add Staff User</button>
         </div>
       </div>
-
-      <!-- TAB 5: SECURITY & EXPORT LOCKS -->
-      <div id="gp-tab-content-locks" class="gp-tab-panel" style="display:none">
-        <div class="data-card" style="padding:18px">
-          <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">🔒 System Data Export &amp; Modification Locks</div>
-          <div style="font-size:10.5px;color:var(--t3);margin-bottom:14px">Restrict non-master staff from downloading full Excel sheets or wiping fleet history</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer">
-              <input type="checkbox" id="gp-lock-export" onchange="toggleMasterLock('exportLocked', this.checked)"/>
-              <span><strong>Lock Excel &amp; Data Exports</strong> (Only Master Admin can download full company sheets)</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer">
-              <input type="checkbox" id="gp-lock-vessels" onchange="toggleMasterLock('vesselsLocked', this.checked)"/>
-              <span><strong>Lock Vessel Deletions</strong> (Prevent accidental vessel or certificate removals)</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 6: MASTER ELEVATION -->
-      <div id="gp-tab-content-elevation" class="gp-tab-panel" style="display:none">
-        <div class="data-card" style="padding:18px">
-          <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">⚡ Temporary Master Elevation</div>
-          <div style="font-size:10.5px;color:var(--t3);margin-bottom:14px">Generate a single-use 6-digit PIN to temporarily elevate a staff login to Master rights for remote assistance</div>
-          <button class="btn btn-warn btn-sm" onclick="generateTempMasterElevationPIN()" style="font-weight:700">🔑 Generate 15-Minute Elevation PIN</button>
-          <div id="gp-elevation-result" style="margin-top:10px;font-size:12px;font-weight:700;color:var(--accent)"></div>
-        </div>
-      </div>
-
-      <!-- TAB 7: DATABASE & BACKUP -->
-      <div id="gp-tab-content-database" class="gp-tab-panel" style="display:none">
-        <div class="data-card" style="padding:18px">
-          <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">💾 Master Database Backup &amp; Recovery</div>
-          <div style="font-size:10.5px;color:var(--t3);margin-bottom:14px">Export lossless JSON / ZIP backups or restore the system state</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="exportFullDatabaseBackup()">📥 Download Master Database (.json)</button>
-            <button class="btn btn-success" onclick="exportVesselAndFolderZipBackup()">🗂️ Download Vessel-wise ZIP Archive (.zip)</button>
-            <button class="btn btn-outline" onclick="openModal('m-backup-manager')">📂 Open Universal Restore Center</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 8: AUDIT LOG -->
-      <div id="gp-tab-content-audit" class="gp-tab-panel" style="display:none">
-        <div class="data-card" style="padding:18px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="font-size:13px;font-weight:800;color:var(--t1)">📜 Administrative &amp; Security Audit Trail</div>
-            <button class="btn btn-ghost btn-sm" onclick="renderGovernanceAudit()">🔄 Refresh Trail</button>
-          </div>
-          <div id="gp-audit-container" style="max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
-        </div>
-      </div>
+      <div id="p-users-mirror-container"></div>
     </div>
 
 
@@ -3142,154 +3084,6 @@ html[data-theme="dark"] #l-pass::placeholder {
       </div>
       <div id="hiring-list"></div>
     </div>
-
-    <!-- UNIFIED USER & GOVERNANCE MANAGEMENT (p-users) -->
-    <div class="page" id="p-users">
-      <div class="page-hdr" style="margin-bottom:14px">
-        <div>
-          <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:20px">👑</span>
-            <span>Master Governance &amp; User Management</span>
-            <span class="chip chip-accent" style="font-size:10px">v8.0 Unified</span>
-          </div>
-          <div style="font-size:11px;color:var(--t3);margin-top:2px">Single Unified Control Desk — manage Master credentials, Fleet Admins, Staff logins, KYC documents, and company security</div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn btn-primary btn-sm" onclick="openCreateUserModal('admin')">➕ Add Fleet Admin</button>
-          <button class="btn btn-ok btn-sm" onclick="openCreateUserModal('staff')">➕ Add Staff User</button>
-          <button class="btn btn-ghost btn-sm" onclick="exportFullDatabaseBackup()">💾 Backup Master DB</button>
-        </div>
-      </div>
-
-      <!-- SECTION 1: MASTER ADMINISTRATOR CARD (1-CLICK INLINE CREDENTIALS) -->
-      <div class="data-card" style="padding:18px;border-top:3px solid #dc2626;margin-bottom:18px;background:linear-gradient(180deg,var(--bg1) 0%,rgba(220,38,38,0.02) 100%)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">👑</span>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Master Administrator Account (Your Personal Login)</div>
-              <div style="font-size:10.5px;color:var(--t3)">Permanent root authority — holds all permissions, system configuration, and data ownership</div>
-            </div>
-          </div>
-          <span class="role-chip-master" style="font-size:9.5px;padding:3px 10px">ROOT MASTER</span>
-        </div>
-
-        <div class="fr4" style="gap:10px">
-          <div class="fg" style="margin:0">
-            <label class="fl">Display Name <span class="req">*</span></label>
-            <input class="fi" id="mg-master-name" placeholder="Full Name (e.g. Faraz)" style="font-weight:700"/>
-          </div>
-          <div class="fg" style="margin:0">
-            <label class="fl">Username (Login Handle) <span class="req">*</span></label>
-            <input class="fi" id="mg-master-user" placeholder="USERNAME" style="text-transform:uppercase!important;font-weight:700;font-family:var(--fm)" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/>
-          </div>
-          <div class="fg" style="margin:0">
-            <label class="fl">Maritime Designation / Title</label>
-            <input class="fi" id="mg-master-desig" placeholder="e.g. Managing Director / Master"/>
-          </div>
-          <div class="fg" style="margin:0">
-            <label class="fl">New Master Password <span style="font-size:9px;color:var(--t3)">(leave blank to keep current)</span></label>
-            <div style="position:relative;display:flex;align-items:center">
-              <input class="fi" id="mg-master-pass" type="password" placeholder="Enter new password" style="padding-right:32px"/>
-              <button type="button" class="btn btn-ghost btn-sm" onclick="var p=document.getElementById('mg-master-pass');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:2px;padding:2px 6px">👁</button>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--b1)">
-          <div style="font-size:11px;color:var(--t3)">💡 <em>Updates save immediately to local storage and sync to Firebase Cloud.</em></div>
-          <button type="button" class="btn btn-danger" onclick="saveMasterCredentialsV8()" style="font-weight:800;padding:7px 20px;background:#dc2626;color:#fff;border:none">
-            💾 Save Master Credentials
-          </button>
-        </div>
-      </div>
-
-      <!-- SECTION 2: FLEET ADMINISTRATORS DIRECTORY -->
-      <div class="data-card" style="padding:18px;border-top:3px solid var(--accent);margin-bottom:18px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">🛡️</span>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Fleet Administrators Directory (<span id="mg-admin-count">0</span>)</div>
-              <div style="font-size:10.5px;color:var(--t3)">Full operational administrators created and empowered by you</div>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="openCreateUserModal('admin')" style="font-weight:700">➕ Add New Fleet Admin</button>
-        </div>
-
-        <div id="mg-admins-table-container">
-          <table style="width:100%;border-collapse:collapse">
-            <thead>
-              <tr style="border-bottom:2px solid var(--b1);text-align:left;font-size:11px;color:var(--t2)">
-                <th style="padding:8px 6px">Admin Profile</th>
-                <th style="padding:8px 6px">Username</th>
-                <th style="padding:8px 6px">Contact &amp; KYC Docs</th>
-                <th style="padding:8px 6px">Operational Rights</th>
-                <th style="padding:8px 6px">Password</th>
-                <th style="padding:8px 6px;text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mg-admins-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- SECTION 3: OFFICE STAFF USERS & PERMISSIONS -->
-      <div class="data-card" style="padding:18px;border-top:3px solid var(--ok);margin-bottom:18px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">👥</span>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Office Staff Logins &amp; KYC Document Vault (<span id="mg-staff-count">0</span>)</div>
-              <div style="font-size:10.5px;color:var(--t3)">Operational shore staff accounts, contact information, agreements, and module access control</div>
-            </div>
-          </div>
-          <button class="btn btn-ok btn-sm" onclick="openCreateUserModal('staff')" style="font-weight:700">➕ Add Staff User</button>
-        </div>
-
-        <div id="mg-staff-table-container">
-          <table style="width:100%;border-collapse:collapse">
-            <thead>
-              <tr style="border-bottom:2px solid var(--b1);text-align:left;font-size:11px;color:var(--t2)">
-                <th style="padding:8px 6px">Staff Member</th>
-                <th style="padding:8px 6px">Login Username</th>
-                <th style="padding:8px 6px">Phone &amp; KYC Docs</th>
-                <th style="padding:8px 6px">Assigned Modules</th>
-                <th style="padding:8px 6px">Password</th>
-                <th style="padding:8px 6px;text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="mg-staff-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- SECTION 4: COMPANY MARITIME PROFILE -->
-      <div class="data-card" style="padding:18px;border-top:3px solid #8b5cf6">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b1);padding-bottom:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">🏢</span>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--t1)">Company &amp; Maritime Registry Profile</div>
-              <div style="font-size:10.5px;color:var(--t3)">Official company details appearing on invoices, challans, and inspection headers</div>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveCompanyProfileV8()" style="font-weight:700">💾 Save Company Info</button>
-        </div>
-
-        <div class="fr3">
-          <div class="fg"><label class="fl">Company Registered Name <span class="req">*</span></label><input class="fi" id="mg-comp-name" placeholder="Saarvin Marine Pvt Ltd"/></div>
-          <div class="fg"><label class="fl">GST / Tax Registration Number</label><input class="fi" id="mg-comp-gst" placeholder="24XXXXX0000X1Z5"/></div>
-          <div class="fg"><label class="fl">PAN Number</label><input class="fi" id="mg-comp-pan" placeholder="XXXXX0000X"/></div>
-        </div>
-        <div class="fr3">
-          <div class="fg"><label class="fl">Registered Office Address</label><input class="fi" id="mg-comp-addr" placeholder="Office address, Jamnagar / Mumbai"/></div>
-          <div class="fg"><label class="fl">Official Email</label><input class="fi" id="mg-comp-email" placeholder="ops@saarvin.in"/></div>
-          <div class="fg"><label class="fl">Contact Phone</label><input class="fi" id="mg-comp-phone" placeholder="+91 288 XXXXXXX"/></div>
-        </div>
-      </div>
-    </div>
-
 
     <!-- DOCUMENT VAULT -->
     <div class="page" id="p-vault">
@@ -7114,7 +6908,7 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div id="mstab-admincreds" class="tab-panel on">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-size:11px;color:var(--t3)">Manage dynamic Fleet Administrators created by Master</div>
-      <button class="btn btn-primary btn-sm" onclick="openCreateUserModal('admin')" style="font-weight:700">➕ Add Fleet Admin</button>
+      <button class="btn btn-primary btn-sm" onclick="openAccountModal('admin')" style="font-weight:700">➕ Add Fleet Admin</button>
     </div>
     <div id="ms-admin-creds-list" style="margin-bottom:14px"></div>
   </div>
@@ -9336,12 +9130,12 @@ function editMyProfile() {
   if (!CU) return;
   if (CU.role === 'master') {
     if (typeof gpGo === 'function') gpGo('godpanel');
-    else if (typeof openEditUserModalV8 === 'function') openEditUserModalV8('m1', 'admin');
+    else if (typeof openEditAccountModal === 'function') openEditAccountModal('m1', 'admin');
   } else if (CU.role === 'admin') {
-    if (typeof openEditUserModalV8 === 'function') openEditUserModalV8(CU.id, 'admin');
+    if (typeof openEditAccountModal === 'function') openEditAccountModal(CU.id, 'admin');
     else openAdminEditModal(CU.id);
   } else if (CU.role === 'staff') {
-    if (typeof openEditUserModalV8 === 'function') openEditUserModalV8(CU.id, 'staff');
+    if (typeof openEditAccountModal === 'function') openEditAccountModal(CU.id, 'staff');
     else openStaffEditModal(CU.id);
   }
 }
@@ -33032,7 +32826,7 @@ function renderGovernanceAdmins() {
         + '<td style="padding:10px 6px"><span class="chip chip-accent" style="font-size:8.5px;font-weight:700">⚡ FULL OPERATIONAL (27/27)</span></td>'
         + '<td style="padding:10px 6px;font-family:var(--fm);color:var(--ok);font-size:10px">' + (a.password && !a.password.startsWith('h:') ? esc(a.password) : '••••••••') + '</td>'
         + '<td style="padding:10px 6px;text-align:right">'
-          + '<button class="btn btn-primary btn-sm" style="font-size:10px;font-weight:700;padding:3px 9px;margin-right:4px" onclick="openEditUserModalV8(\'' + a.id + '\', \'admin\')">✏️ Edit</button>'
+          + '<button class="btn btn-primary btn-sm" style="font-size:10px;font-weight:700;padding:3px 9px;margin-right:4px" onclick="openEditAccountModal(\'' + a.id + '\', \'admin\')">✏️ Edit</button>'
           + '<button class="btn btn-danger btn-sm" style="font-size:9.5px;padding:3px 8px" onclick="deleteUserV8(\'' + a.id + '\', \'admin\')">Delete</button>'
         + '</td>'
       + '</tr>';
@@ -33070,7 +32864,7 @@ function renderGovernanceStaff() {
         + '<td style="padding:10px 6px"><span class="chip chip-ok" style="font-size:8.5px;font-weight:700">' + permCount + ' Modules Enabled</span></td>'
         + '<td style="padding:10px 6px;font-family:var(--fm);color:var(--ok);font-size:10px">' + (u.password && !u.password.startsWith('h:') ? esc(u.password) : '••••••••') + '</td>'
         + '<td style="padding:10px 6px;text-align:right">'
-          + '<button class="btn btn-primary btn-sm" style="font-size:10px;font-weight:700;padding:3px 9px;margin-right:4px" onclick="openEditUserModalV8(\'' + u.id + '\', \'staff\')">✏️ Edit</button>'
+          + '<button class="btn btn-primary btn-sm" style="font-size:10px;font-weight:700;padding:3px 9px;margin-right:4px" onclick="openEditAccountModal(\'' + u.id + '\', \'staff\')">✏️ Edit</button>'
           + '<button class="btn btn-danger btn-sm" style="font-size:9.5px;padding:3px 8px" onclick="deleteUserV8(\'' + u.id + '\', \'staff\')">Delete</button>'
         + '</td>'
       + '</tr>';
@@ -33147,7 +32941,7 @@ function openCreateUserModal(type) {
   _doOpenModal('m-unified-user-modal');
 }
 
-function openEditUserModalV8(userId, type) {
+function openEditAccountModal(userId, type) {
   _tempUserDocs = [];
   var target = null;
   if (type === 'admin') {
@@ -33907,6 +33701,424 @@ function selectLoginRole(role) {
     if (bS) { bS.style.background = '#fff'; bS.style.color = '#16a34a'; bS.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'; bS.style.fontWeight = '800'; }
     if (uInput) { uInput.placeholder = 'ENTER STAFF USERNAME'; }
   }
+}
+
+
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   OPTION 1: UNIFIED SINGLE MASTER DIRECTORY ENGINE (DB.accounts)
+   Zero Fragmentation · Immutable UUIDs · Transparent Passwords · 1-Click Saves
+══════════════════════════════════════════════════════════════════════════ */
+
+var _tempAccountDocs = [];
+var _selectedAccountDocFile = null;
+
+var ALL_SYSTEM_MODULES = [
+  { key: 'vessels', name: '🚢 Vessels Fleet' },
+  { key: 'certificates', name: '📜 Certificates' },
+  { key: 'fuel', name: '⚡ Fuel & HSD Logs' },
+  { key: 'crew', name: '👤 Crew Manifest' },
+  { key: 'maintenance', name: '🔧 Maintenance' },
+  { key: 'deficiency', name: '⚠️ Deficiencies' },
+  { key: 'voyage', name: '🗺️ Voyage Logs' },
+  { key: 'mat-provided', name: '📦 Material Challans' },
+  { key: 'mat-request', name: '🛒 Material Indents' },
+  { key: 'spares', name: '⚙️ Spares Inventory' },
+  { key: 'invoices', name: '🧾 Invoices & Ledger' },
+  { key: 'salary', name: '💰 Crew Salary' },
+  { key: 'vtms', name: '📡 VTMS Port Directory' },
+  { key: 'tides', name: '🌙 Lunar Tide Engine' },
+  { key: 'vault', name: '📁 Document Vault' },
+  { key: 'actlog', name: '📜 Activity Log' }
+];
+
+function ensureAccountsMigrated() {
+  DB.accounts = DB.accounts || [];
+  if (!DB.accounts.length) {
+    (DB.dynamicAdmins || []).forEach(function(a) {
+      if (a && a.id && !['a1','a2','a3','a4'].includes(a.id) && !['ADMIN1','ADMIN2','ADMIN3','ADMIN4'].includes((a.username||'').toUpperCase())) {
+        DB.accounts.push({
+          id: a.id,
+          name: a.name || 'Fleet Administrator',
+          username: (a.username || '').toUpperCase(),
+          password: a.password || 'admin123',
+          role: 'admin',
+          desig: a.desig || 'Fleet Administrator',
+          phone: a.phone || '',
+          whatsapp: a.whatsapp || '',
+          email: a.email || '',
+          emergencyContact: a.emergencyContact || '',
+          address: a.address || '',
+          documents: a.documents || [],
+          permissions: a.permissions || ['all_operational'],
+          createdAt: a.createdAt || today()
+        });
+      }
+    });
+
+    (DB.users || []).forEach(function(u) {
+      if (u && u.id) {
+        DB.accounts.push({
+          id: u.id,
+          name: u.name || 'Staff User',
+          username: (u.username || '').toUpperCase(),
+          password: u.password && !u.password.startsWith('h:') ? u.password : 'staff123',
+          role: 'staff',
+          desig: u.desig || 'Staff User',
+          phone: u.phone || '',
+          whatsapp: u.whatsapp || '',
+          email: u.email || '',
+          emergencyContact: u.emergencyContact || '',
+          address: u.address || '',
+          documents: u.documents || [],
+          permissions: u.permissions || ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'],
+          createdAt: u.createdAt || today()
+        });
+      }
+    });
+  }
+}
+
+function renderMasterGovernanceCenter() {
+  ensureAccountsMigrated();
+  renderUnifiedAccountsTable();
+  populateCompanyProfileClean();
+}
+
+function renderGodPanel() { renderMasterGovernanceCenter(); }
+function renderGodpanel() { renderMasterGovernanceCenter(); }
+function renderUsers() { renderMasterGovernanceCenter(); }
+
+function renderUnifiedAccountsTable() {
+  ensureAccountsMigrated();
+  var tbody = document.getElementById('acc-unified-tbody');
+  var countEl = document.getElementById('acc-total-count');
+
+  if (countEl) countEl.textContent = (DB.accounts || []).length;
+  if (!tbody) return;
+
+  if (!DB.accounts.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--t3);font-size:12px">No team accounts created yet. Click "➕ Add Fleet Admin" or "➕ Add Staff User" above to add a team member.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = DB.accounts.map(function(acc) {
+    var isAdm = acc.role === 'admin';
+    var roleBadge = isAdm
+      ? '<span class="chip chip-accent" style="font-size:9px;font-weight:800;background:rgba(14,165,233,0.12);color:#0284c7;border:1px solid rgba(14,165,233,0.3)">🛡️ FLEET ADMIN</span>'
+      : '<span class="chip chip-ok" style="font-size:9px;font-weight:800;background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.3)">👥 STAFF USER</span>';
+
+    var docCount = (acc.documents || []).length;
+    var docBadge = docCount > 0
+      ? '<span class="chip chip-ok" style="font-size:8.5px;cursor:pointer;margin-left:4px" onclick="openUserDocsModal(\'' + acc.id + '\')">📂 ' + docCount + ' Doc(s)</span>'
+      : '<span style="color:var(--t3);font-size:9px;margin-left:4px">No docs</span>';
+
+    var contactStr = (acc.phone ? '📞 ' + esc(acc.phone) : '') + (acc.email ? ' · ✉️ ' + esc(acc.email) : '');
+
+    return '<tr style="border-bottom:1px solid var(--b1);font-size:11.5px">'
+      + '<td style="padding:12px 6px"><strong>' + esc(acc.name) + '</strong><div style="font-size:9.5px;color:var(--t3)">' + esc(acc.desig || (isAdm ? 'Fleet Administrator' : 'Staff User')) + '</div></td>'
+      + '<td style="padding:12px 6px;font-family:var(--fm);font-weight:800;color:var(--accent)">@' + esc((acc.username||'').toUpperCase()) + '</td>'
+      + '<td style="padding:12px 6px">' + roleBadge + '</td>'
+      + '<td style="padding:12px 6px"><div style="font-size:10px">' + (contactStr || '—') + '</div><div style="margin-top:2px">' + docBadge + '</div></td>'
+      + '<td style="padding:12px 6px;font-family:var(--fm);font-weight:700;color:var(--ok);font-size:11px">' + esc(acc.password || '••••••••') + '</td>'
+      + '<td style="padding:12px 6px;text-align:right">'
+        + '<button class="btn btn-primary btn-sm" style="font-size:10.5px;font-weight:700;padding:4px 12px;margin-right:6px" onclick="openEditAccountModal(\'' + acc.id + '\')">✏️ Edit</button>'
+        + '<button class="btn btn-danger btn-sm" style="font-size:10px;padding:4px 8px" onclick="deleteAccountClean(\'' + acc.id + '\')">Delete</button>'
+      + '</td>'
+    + '</tr>';
+  }).join('');
+}
+
+// ── OPEN ACCOUNT CREATE & EDIT MODALS ────────────────────
+function openAccountModal(defaultRole) {
+  _tempAccountDocs = [];
+  _selectedAccountDocFile = null;
+
+  if ($('acc-id')) $('acc-id').value = '';
+  if ($('acc-mode')) $('acc-mode').value = 'create';
+  if ($('acc-modal-title')) $('acc-modal-title').innerHTML = defaultRole === 'admin' ? '🛡️ Add Fleet Administrator' : '👥 Add Staff User';
+  if ($('acc-modal-sub')) $('acc-modal-sub').textContent = 'Enter account login credentials, contact info, and attach KYC documents';
+
+  if ($('acc-name')) $('acc-name').value = '';
+  if ($('acc-user')) $('acc-user').value = '';
+  if ($('acc-role')) $('acc-role').value = defaultRole || 'admin';
+  if ($('acc-desig')) $('acc-desig').value = defaultRole === 'admin' ? 'Fleet Administrator' : 'Operations Coordinator';
+  if ($('acc-pass')) $('acc-pass').value = '';
+  if ($('acc-phone')) $('acc-phone').value = '';
+  if ($('acc-whatsapp')) $('acc-whatsapp').value = '';
+  if ($('acc-email')) $('acc-email').value = '';
+  if ($('acc-emergency')) $('acc-emergency').value = '';
+  if ($('acc-address')) $('acc-address').value = '';
+  if ($('acc-selected-file-label')) $('acc-selected-file-label').textContent = '';
+
+  toggleAccountRolePerms(defaultRole || 'admin');
+  renderAccountDocsInModal();
+  _doOpenModal('m-unified-account-modal');
+}
+
+function openEditAccountModal(accountId) {
+  _tempAccountDocs = [];
+  _selectedAccountDocFile = null;
+
+  ensureAccountsMigrated();
+  var acc = (DB.accounts || []).find(function(x){ return String(x.id).trim() === String(accountId).trim(); });
+  if (!acc) { toast('Account not found', 'var(--err)'); return; }
+
+  if ($('acc-id')) $('acc-id').value = acc.id;
+  if ($('acc-mode')) $('acc-mode').value = 'edit';
+  if ($('acc-modal-title')) $('acc-modal-title').innerHTML = '✏️ Edit ' + (acc.role === 'admin' ? 'Fleet Administrator' : 'Staff User') + ' (' + esc(acc.name) + ')';
+  if ($('acc-modal-sub')) $('acc-modal-sub').textContent = 'Update credentials, reset password, change contacts, or attach KYC documents';
+
+  if ($('acc-name')) $('acc-name').value = acc.name || '';
+  if ($('acc-user')) $('acc-user').value = (acc.username || '').toUpperCase();
+  if ($('acc-role')) $('acc-role').value = acc.role || 'admin';
+  if ($('acc-desig')) $('acc-desig').value = acc.desig || '';
+  if ($('acc-pass')) $('acc-pass').value = acc.password || '';
+  if ($('acc-phone')) $('acc-phone').value = acc.phone || '';
+  if ($('acc-whatsapp')) $('acc-whatsapp').value = acc.whatsapp || '';
+  if ($('acc-email')) $('acc-email').value = acc.email || '';
+  if ($('acc-emergency')) $('acc-emergency').value = acc.emergencyContact || '';
+  if ($('acc-address')) $('acc-address').value = acc.address || '';
+  if ($('acc-selected-file-label')) $('acc-selected-file-label').textContent = '';
+
+  _tempAccountDocs = JSON.parse(JSON.stringify(acc.documents || []));
+
+  toggleAccountRolePerms(acc.role || 'admin', acc.permissions);
+  renderAccountDocsInModal();
+  _doOpenModal('m-unified-account-modal');
+}
+
+function toggleAccountRolePerms(role, existingPerms) {
+  var permSec = document.getElementById('acc-permissions-section');
+  if (!permSec) return;
+  if (role === 'staff') {
+    permSec.style.display = 'block';
+    renderAccountPermsCheckboxes(existingPerms);
+  } else {
+    permSec.style.display = 'none';
+  }
+}
+
+function renderAccountPermsCheckboxes(existingPerms) {
+  var container = document.getElementById('acc-perms-grid');
+  if (!container) return;
+  var perms = existingPerms || ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'];
+
+  container.innerHTML = ALL_SYSTEM_MODULES.map(function(m) {
+    var checked = perms.includes(m.key);
+    return '<label style="display:flex;align-items:center;gap:6px;font-size:10.5px;cursor:pointer">'
+      + '<input type="checkbox" class="acc-perm-cb" value="' + m.key + '"' + (checked ? ' checked' : '') + ' style="accent-color:var(--accent)"/> '
+      + '<span>' + m.name + '</span>'
+      + '</label>';
+  }).join('');
+}
+
+function toggleAllAccountPerms(selectAll) {
+  document.querySelectorAll('.acc-perm-cb').forEach(function(cb){ cb.checked = !!selectAll; });
+}
+
+// ── KYC DOCUMENT CONTROLLERS ─────────────────────────────
+function handleAccountDocSelected(inputEl) {
+  var file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  _selectedAccountDocFile = file;
+  if ($('acc-selected-file-label')) {
+    $('acc-selected-file-label').textContent = '✅ Selected: ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+  }
+}
+
+function addDocToAccountList() {
+  var title = (val('acc-new-doc-title') || '').trim();
+  if (!title) { uiAlert('Please enter a Document Title (e.g. Aadhaar Card / Offer Letter)'); return; }
+  if (!_selectedAccountDocFile) { uiAlert('Please select a file to attach'); return; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    _tempAccountDocs.push({
+      id: uid(),
+      title: title,
+      fileName: _selectedAccountDocFile.name,
+      fileType: _selectedAccountDocFile.type,
+      data: ev.target.result,
+      uploadedAt: new Date().toISOString()
+    });
+
+    if ($('acc-new-doc-title')) $('acc-new-doc-title').value = '';
+    if ($('acc-new-doc-file')) $('acc-new-doc-file').value = '';
+    if ($('acc-selected-file-label')) $('acc-selected-file-label').textContent = '';
+    _selectedAccountDocFile = null;
+
+    renderAccountDocsInModal();
+    toast('Document attached to list ✓');
+  };
+  reader.readAsDataURL(_selectedAccountDocFile);
+}
+
+function renderAccountDocsInModal() {
+  var container = document.getElementById('acc-docs-list-container');
+  if (!container) return;
+
+  if (!_tempAccountDocs.length) {
+    container.innerHTML = '<div style="font-size:10px;color:var(--t3);padding:4px 0">No documents attached yet.</div>';
+    return;
+  }
+
+  container.innerHTML = _tempAccountDocs.map(function(doc, idx) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg1);border:1px solid var(--b1);border-radius:6px;font-size:10.5px">'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+        + '<span>📄</span>'
+        + '<div><strong>' + esc(doc.title) + '</strong> <span style="font-size:9.5px;color:var(--t3)">(' + esc(doc.fileName) + ')</span></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:4px">'
+        + '<button type="button" class="btn btn-outline btn-sm" style="font-size:9px;padding:2px 6px" onclick="downloadAccountDocDirect(\'' + idx + '\')">⬇ Download</button>'
+        + '<button type="button" class="btn btn-danger btn-sm" style="font-size:9px;padding:2px 6px" onclick="_tempAccountDocs.splice(' + idx + ',1);renderAccountDocsInModal();">✕</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function downloadAccountDocDirect(idx) {
+  var doc = _tempAccountDocs[idx];
+  if (!doc || !doc.data) { toast('No document data', 'var(--warn)'); return; }
+  var a = document.createElement('a');
+  a.href = doc.data;
+  a.download = doc.fileName || (doc.title + '.pdf');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ── SAVE ACCOUNT HANDLER (OPTION 1) ──────────────────────
+function saveUnifiedAccountModal() {
+  var mode = val('acc-mode') || 'create';
+  var targetId = val('acc-id');
+  var role = val('acc-role') || 'admin';
+  var name = (val('acc-name') || '').trim();
+  var uname = (val('acc-user') || '').trim().toUpperCase();
+  var desig = (val('acc-desig') || '').trim();
+  var pass = (val('acc-pass') || '').trim();
+
+  if (!name) { uiAlert('Display Name is required'); return; }
+  if (!uname) { uiAlert('Username is required'); return; }
+  if (!pass) { uiAlert('Password is required'); return; }
+  if (/\s/.test(uname)) { uiAlert('Username cannot contain spaces'); return; }
+
+  ensureAccountsMigrated();
+
+  // Unique username check across MASTER and accounts
+  var isMasterCollision = uname === (DB.masterUsername || 'FARAZ').toUpperCase();
+  var isOtherAccountCollision = (DB.accounts || []).some(function(a){
+    return String(a.id).trim() !== String(targetId).trim() && (a.username||'').toUpperCase() === uname;
+  });
+
+  if (isMasterCollision || isOtherAccountCollision) {
+    uiAlert('Username "@' + uname + '" is already in use. Please select a different username.');
+    return;
+  }
+
+  var phone = (val('acc-phone') || '').trim();
+  var whatsapp = (val('acc-whatsapp') || '').trim();
+  var email = (val('acc-email') || '').trim();
+  var emergency = (val('acc-emergency') || '').trim();
+  var address = (val('acc-address') || '').trim();
+
+  var perms = role === 'admin'
+    ? ['all_operational', 'finance_process', 'task_assign', 'vault_access']
+    : Array.from(document.querySelectorAll('.acc-perm-cb:checked')).map(function(cb){ return cb.value; });
+
+  if (!perms.length && role === 'staff') perms = ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'];
+
+  var account = null;
+  if (mode === 'edit' && targetId) {
+    account = (DB.accounts || []).find(function(x){ return String(x.id).trim() === String(targetId).trim(); });
+  }
+
+  if (!account) {
+    account = {
+      id: uid(),
+      createdAt: today()
+    };
+    DB.accounts.push(account);
+  }
+
+  account.name = name;
+  account.username = uname;
+  account.role = role;
+  account.desig = desig || (role === 'admin' ? 'Fleet Administrator' : 'Staff User');
+  account.password = pass; // Clean transparent password
+  account.phone = phone;
+  account.whatsapp = whatsapp;
+  account.email = email;
+  account.emergencyContact = emergency;
+  account.address = address;
+  account.documents = _tempAccountDocs;
+  account.permissions = perms;
+
+  // Mirror into dynamicAdmins and users for backwards compatibility
+  DB.dynamicAdmins = DB.accounts.filter(function(a){ return a.role === 'admin'; });
+  DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  closeModal('m-unified-account-modal');
+  renderUnifiedAccountsTable();
+
+  toast((role === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "@' + uname + '" saved successfully ✓', 'var(--ok)');
+  audit('Team Directory: Saved ' + role + ' "' + name + '" (@' + uname + ')', 'var(--ok)');
+}
+
+function deleteAccountClean(accountId) {
+  ensureAccountsMigrated();
+  var acc = (DB.accounts || []).find(function(x){ return String(x.id).trim() === String(accountId).trim(); });
+  if (!acc) return;
+
+  if (!confirm('Are you sure you want to permanently delete ' + (acc.role === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "' + acc.name + '" (@' + acc.username + ')?')) return;
+
+  DB.accounts = DB.accounts.filter(function(x){ return String(x.id).trim() !== String(accountId).trim(); });
+  DB.dynamicAdmins = DB.accounts.filter(function(a){ return a.role === 'admin'; });
+  DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  renderUnifiedAccountsTable();
+  toast('Account "' + acc.name + '" deleted permanently');
+  audit('Team Directory: Deleted ' + acc.role + ' "' + acc.name + '"', 'var(--err)');
+}
+
+function populateCompanyProfileClean() {
+  var comp = (DB.companies && DB.companies[0]) ? DB.companies[0] : (DB.company || {});
+  if ($('co-name')) $('co-name').value = comp.name || 'Saarvin Marine';
+  if ($('co-gst')) $('co-gst').value = comp.gst || '';
+  if ($('co-pan')) $('co-pan').value = comp.pan || '';
+  if ($('co-addr')) $('co-addr').value = comp.address || '';
+  if ($('co-email')) $('co-email').value = comp.email || 'ops@saarvin.in';
+  if ($('co-phone')) $('co-phone').value = comp.phone || '';
+}
+
+function saveCompanyProfileClean() {
+  var compName = (val('co-name') || '').trim();
+  if (!compName) { uiAlert('Company Name is required'); return; }
+
+  DB.companies = DB.companies || [];
+  if (!DB.companies.length) DB.companies.push({ id: uid() });
+
+  var comp = DB.companies[0];
+  comp.name = compName;
+  comp.gst = (val('co-gst') || '').trim();
+  comp.pan = (val('co-pan') || '').trim();
+  comp.address = (val('co-addr') || '').trim();
+  comp.email = (val('co-email') || '').trim();
+  comp.phone = (val('co-phone') || '').trim();
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  populateCompanyProfileClean();
+  toast('Company details saved successfully ✓', 'var(--ok)');
+  audit('Company profile updated: ' + compName, 'var(--ok)');
 }
 
 </script>
