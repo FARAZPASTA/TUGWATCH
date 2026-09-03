@@ -8267,6 +8267,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkAndPerformDailyCloudBackup();
     flushOfflineSyncQueue();
     setupGranularRealtimeListeners();
+    restoreUserSession();
   }, 2000);
 });
 
@@ -9595,49 +9596,45 @@ function resolveAdminRequest(reqId, action) {
 }
 
 
-/* ── DETERMINISTIC MULTI-DEVICE UNIFIED LOGIN ENGINE ───────────── */
-function findUserLocally(u, p) {
-  if (typeof loadDB === 'function') loadDB();
-  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
+/* ── ROCK-SOLID DIRECT CLOUD & MULTI-DEVICE AUTH ENGINE ────────── */
+var CLOUD_RTDB_URL = "https://tugwatch-default-rtdb.firebaseio.com/tugwatch.json";
 
-  // 1. Check Root Master Admin
-  var masterUser = (DB.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).toUpperCase().replace(/^@/, '');
-  var masterPass = DB.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain');
-  if (masterUser === u && (p === masterPass || (typeof checkPassword === 'function' && checkPassword(p, masterPass)))) {
+function findUserInDataset(dataset, u, p) {
+  if (!dataset) return null;
+
+  // Master Root Check
+  var masterU = (dataset.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).toUpperCase().replace(/^@/, '');
+  var masterP = dataset.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain');
+  if (masterU === u && (p === masterP || (typeof checkPassword === 'function' && checkPassword(p, masterP)))) {
     return {
       id: 'm1',
-      name: DB.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
-      username: masterUser,
-      password: masterPass,
+      name: dataset.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
+      username: masterU,
+      password: masterP,
       role: 'master',
-      desig: DB.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
+      desig: dataset.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
       permissions: ['all_root', 'all_operational', 'finance_process', 'task_assign', 'vault_access']
     };
   }
 
-  // 2. Check DB.accounts directly
-  var accounts = DB.accounts || [];
-  for (var i = 0; i < accounts.length; i++) {
-    var acc = accounts[i];
+  // Accounts List Check
+  var list = [];
+  if (Array.isArray(dataset.accounts)) list = list.concat(dataset.accounts);
+  else if (dataset.accounts && typeof dataset.accounts === 'object') list = list.concat(Object.values(dataset.accounts));
+
+  if (Array.isArray(dataset.users)) list = list.concat(dataset.users);
+  else if (dataset.users && typeof dataset.users === 'object') list = list.concat(Object.values(dataset.users));
+
+  if (Array.isArray(dataset.dynamicAdmins)) list = list.concat(dataset.dynamicAdmins);
+  else if (dataset.dynamicAdmins && typeof dataset.dynamicAdmins === 'object') list = list.concat(Object.values(dataset.dynamicAdmins));
+
+  for (var i = 0; i < list.length; i++) {
+    var acc = list[i];
     if (acc && acc.username) {
       var accUname = String(acc.username).trim().toUpperCase().replace(/^@/, '');
       if (accUname === u) {
         if (p === acc.password || (typeof checkPassword === 'function' && checkPassword(p, acc.password))) {
           return acc;
-        }
-      }
-    }
-  }
-
-  // 3. Fallback for legacy DB.users or DB.dynamicAdmins
-  var fallbackList = (DB.users || []).concat(DB.dynamicAdmins || []);
-  for (var j = 0; j < fallbackList.length; j++) {
-    var item = fallbackList[j];
-    if (item && item.username) {
-      var itemUname = String(item.username).trim().toUpperCase().replace(/^@/, '');
-      if (itemUname === u) {
-        if (p === item.password || (typeof checkPassword === 'function' && checkPassword(p, item.password))) {
-          return item;
         }
       }
     }
@@ -9649,6 +9646,11 @@ function findUserLocally(u, p) {
 function completeLoginSuccess(found) {
   CU = found;
   if (CU && CU.username) CU.username = CU.username.toUpperCase();
+
+  // Save session to sessionStorage so page refresh stays logged in
+  try {
+    sessionStorage.setItem('tw_session_user', JSON.stringify(CU));
+  } catch(e) {}
 
   var _ls = $('login-screen'); if (_ls) _ls.style.display = 'none';
   var _app = $('app');
@@ -9667,7 +9669,7 @@ function completeLoginSuccess(found) {
   }
 }
 
-function doLogin() {
+async function doLogin() {
   var rawU = (val('l-user') || '').trim();
   var u = rawU.toUpperCase().replace(/^@/, '');
   var p = (val('l-pass') || '').trim();
@@ -9680,36 +9682,87 @@ function doLogin() {
   }
 
   // 1. Try local memory / localStorage first
-  var localUser = findUserLocally(u, p);
+  if (typeof loadDB === 'function') loadDB();
+  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
+  
+  var localUser = findUserInDataset(DB, u, p);
   if (localUser) {
     completeLoginSuccess(localUser);
     return;
   }
 
-  // 2. If not found in local memory (e.g. fresh browser like Firefox or new device), query Firebase cloud
-  if (FB_READY && FB_DB) {
-    var btn = document.getElementById('login-btn');
-    if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
+  // 2. Direct HTTPS fetch to Google Firebase Cloud Database (Zero dependency on SDK initialization)
+  var btn = document.getElementById('login-btn');
+  if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
 
+  try {
+    var resp = await fetch(CLOUD_RTDB_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (resp.ok) {
+      var cloudData = await resp.json();
+      if (cloudData && typeof cloudData === 'object') {
+        var cloudUser = findUserInDataset(cloudData, u, p);
+        if (cloudUser) {
+          // Ingest cloud accounts into local DB
+          if (cloudData.accounts) {
+            DB.accounts = Array.isArray(cloudData.accounts) ? cloudData.accounts : Object.values(cloudData.accounts);
+          }
+          if (typeof saveDB === 'function') saveDB();
+          if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+          completeLoginSuccess(cloudUser);
+          return;
+        }
+      }
+    }
+  } catch(netErr) {
+    console.warn('Cloud fetch verification error:', netErr);
+  }
+
+  // 3. Fallback to Firebase SDK if available
+  if (FB_READY && FB_DB) {
     loadFromFirebase(function(ok) {
       if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-      var cloudUser = findUserLocally(u, p);
-      if (cloudUser) {
-        completeLoginSuccess(cloudUser);
+      var sdkUser = findUserInDataset(DB, u, p);
+      if (sdkUser) {
+        completeLoginSuccess(sdkUser);
       } else {
         if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
       }
     });
-  } else {
-    if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
+    return;
   }
+
+  if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+  if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
 }
+
+function restoreUserSession() {
+  try {
+    var raw = sessionStorage.getItem('tw_session_user');
+    if (raw) {
+      var saved = JSON.parse(raw);
+      if (saved && (saved.username || saved.name)) {
+        CU = saved;
+        var _ls = $('login-screen'); if (_ls) _ls.style.display = 'none';
+        var _app = $('app');
+        if (_app) {
+          _app.style.display = 'flex';
+          _app.classList.add('tw-authenticated');
+        }
+        afterLoginHydration();
+        console.log('TugWatch: Restored active session for @' + CU.username + ' ✓');
+      }
+    }
+  } catch(e) {}
+}
+
 window.doLogin = doLogin;
-window.findUserLocally = findUserLocally;
+window.findUserInDataset = findUserInDataset;
 window.completeLoginSuccess = completeLoginSuccess;
+window.restoreUserSession = restoreUserSession;
 
 
 function doLogout() {
+  try { sessionStorage.removeItem('tw_session_user'); } catch(e){}
   if (CU) {
     DB.loginHistory = DB.loginHistory || [];
     DB.loginHistory.unshift({
