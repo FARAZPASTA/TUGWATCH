@@ -2133,25 +2133,14 @@ html[data-theme="dark"] #l-pass::placeholder {
         </div>
       </div>
 
-      <!-- ROLE SELECTOR TABS (MASTER / ADMIN / STAFF) -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:#f1f5f9;padding:4px;border-radius:10px;margin-bottom:14px;border:1px solid #e2e8f0" id="login-role-tabs">
-        <button type="button" class="btn btn-sm" id="lrt-master" onclick="selectLoginRole('master')" style="font-size:10.5px;font-weight:800;padding:6px 2px;background:#fff;color:#dc2626;box-shadow:0 1px 3px rgba(0,0,0,0.08);border-radius:7px;border:none">
-          👑 Master
-        </button>
-        <button type="button" class="btn btn-sm" id="lrt-admin" onclick="selectLoginRole('admin')" style="font-size:10.5px;font-weight:700;padding:6px 2px;background:transparent;color:#475569;border-radius:7px;border:none">
-          🛡️ Fleet Admin
-        </button>
-        <button type="button" class="btn btn-sm" id="lrt-staff" onclick="selectLoginRole('staff')" style="font-size:10.5px;font-weight:700;padding:6px 2px;background:transparent;color:#475569;border-radius:7px;border:none">
-          👥 Staff Login
-        </button>
-      </div>
+
 
       <!-- Login form -->
       <form onsubmit="event.preventDefault();doLogin()" action="javascript:void(0)" style="margin:0">
         <!-- Username -->
         <div style="margin-bottom:14px">
           <div class="login-card-lbl">Username</div>
-          <input id="l-user" type="text" class="login-input" placeholder="ENTER USER ID (E.G. FARAZ)"
+          <input id="l-user" type="text" class="login-input" placeholder="ENTER USERNAME (E.G. FARAZ / AVESH)"
             autocomplete="username" autocapitalize="characters" autocorrect="off" spellcheck="false"
             style="text-transform:uppercase!important;font-weight:700!important;letter-spacing:0.5px!important"
             oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"
@@ -34119,6 +34108,211 @@ function saveCompanyProfileClean() {
   populateCompanyProfileClean();
   toast('Company details saved successfully ✓', 'var(--ok)');
   audit('Company profile updated: ' + compName, 'var(--ok)');
+}
+
+
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UNIFIED LOGIN & SELF-SERVICE USER PROFILE MANAGEMENT
+   Clean Single Login · Transparent Self-Service Editing · Fortified Security
+══════════════════════════════════════════════════════════════════════════ */
+
+var _tempMyProfileDocs = [];
+var _selectedMyDocFile = null;
+
+// Hook sidebar profile card and topbar avatar to openMyProfileModal
+function editMyProfile() {
+  openMyProfileModal();
+}
+
+function openMyProfileModal() {
+  if (!CU) { toast('Please sign in first', 'var(--err)'); return; }
+
+  _tempMyProfileDocs = [];
+  _selectedMyDocFile = null;
+
+  var isMaster = CU.role === 'master';
+  var account = null;
+
+  if (isMaster) {
+    account = {
+      id: 'm1',
+      name: DB.masterName || (MASTER ? MASTER.name : 'Faraz'),
+      username: (DB.masterUsername || (MASTER ? MASTER.username : 'FARAZ')).toUpperCase(),
+      role: 'master',
+      desig: DB.masterDesig || (MASTER ? MASTER.desig : 'Master Administrator'),
+      phone: DB.masterPhone || (MASTER ? MASTER.phone : ''),
+      whatsapp: DB.masterWhatsapp || '',
+      email: DB.masterEmail || 'ops@saarvin.in',
+      documents: DB.masterDocuments || []
+    };
+  } else {
+    ensureAccountsMigrated();
+    account = (DB.accounts || []).find(function(x){
+      return String(x.id).trim() === String(CU.id).trim() || String(x.username||'').toUpperCase() === String(CU.username||'').toUpperCase();
+    }) || CU;
+  }
+
+  if ($('mp-display-badge')) $('mp-display-badge').textContent = account.name || 'User Profile';
+  if ($('mp-user-badge')) $('mp-user-badge').textContent = '@' + (account.username || '').toUpperCase();
+  if ($('mp-role-badge')) $('mp-role-badge').textContent = isMaster ? '👑 MASTER ADMIN' : (account.role === 'admin' ? '🛡️ FLEET ADMIN' : '👥 STAFF USER');
+
+  if ($('mp-name')) $('mp-name').value = account.name || '';
+  if ($('mp-desig')) $('mp-desig').value = account.desig || '';
+  if ($('mp-phone')) $('mp-phone').value = account.phone || '';
+  if ($('mp-whatsapp')) $('mp-whatsapp').value = account.whatsapp || '';
+  if ($('mp-email')) $('mp-email').value = account.email || '';
+  if ($('mp-new-pass')) $('mp-new-pass').value = '';
+  if ($('mp-selected-file-label')) $('mp-selected-file-label').textContent = '';
+
+  _tempMyProfileDocs = JSON.parse(JSON.stringify(account.documents || []));
+  renderMyDocsInModal();
+  _doOpenModal('m-my-profile-modal');
+}
+
+function handleMyDocSelected(inputEl) {
+  var file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  _selectedMyDocFile = file;
+  if ($('mp-selected-file-label')) {
+    $('mp-selected-file-label').textContent = '✅ Selected: ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+  }
+}
+
+function addDocToMyProfileList() {
+  var title = (val('mp-new-doc-title') || '').trim();
+  if (!title) { uiAlert('Please enter a Document Title (e.g. Aadhaar Card)'); return; }
+  if (!_selectedMyDocFile) { uiAlert('Please select a file to attach'); return; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    _tempMyProfileDocs.push({
+      id: uid(),
+      title: title,
+      fileName: _selectedMyDocFile.name,
+      fileType: _selectedMyDocFile.type,
+      data: ev.target.result,
+      uploadedAt: new Date().toISOString()
+    });
+
+    if ($('mp-new-doc-title')) $('mp-new-doc-title').value = '';
+    if ($('mp-new-doc-file')) $('mp-new-doc-file').value = '';
+    if ($('mp-selected-file-label')) $('mp-selected-file-label').textContent = '';
+    _selectedMyDocFile = null;
+
+    renderMyDocsInModal();
+    toast('KYC Document attached ✓');
+  };
+  reader.readAsDataURL(_selectedMyDocFile);
+}
+
+function renderMyDocsInModal() {
+  var container = document.getElementById('mp-docs-list-container');
+  if (!container) return;
+
+  if (!_tempMyProfileDocs.length) {
+    container.innerHTML = '<div style="font-size:10px;color:var(--t3);padding:4px 0">No documents attached yet.</div>';
+    return;
+  }
+
+  container.innerHTML = _tempMyProfileDocs.map(function(doc, idx) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg1);border:1px solid var(--b1);border-radius:6px;font-size:10.5px">'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+        + '<span>📄</span>'
+        + '<div><strong>' + esc(doc.title) + '</strong> <span style="font-size:9.5px;color:var(--t3)">(' + esc(doc.fileName) + ')</span></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:4px">'
+        + '<button type="button" class="btn btn-outline btn-sm" style="font-size:9px;padding:2px 6px" onclick="downloadMyDocDirect(\'' + idx + '\')">⬇ Download</button>'
+        + '<button type="button" class="btn btn-danger btn-sm" style="font-size:9px;padding:2px 6px" onclick="_tempMyProfileDocs.splice(' + idx + ',1);renderMyDocsInModal();">✕</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function downloadMyDocDirect(idx) {
+  var doc = _tempMyProfileDocs[idx];
+  if (!doc || !doc.data) { toast('No document data', 'var(--warn)'); return; }
+  var a = document.createElement('a');
+  a.href = doc.data;
+  a.download = doc.fileName || (doc.title + '.pdf');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function saveMyProfileSelfService() {
+  if (!CU) return;
+  var newName = (val('mp-name') || '').trim();
+  var newDesig = (val('mp-desig') || '').trim();
+  var newPhone = (val('mp-phone') || '').trim();
+  var newWhatsapp = (val('mp-whatsapp') || '').trim();
+  var newEmail = (val('mp-email') || '').trim();
+  var newPass = (val('mp-new-pass') || '').trim();
+
+  if (!newName) { uiAlert('Display Name is required'); return; }
+
+  if (newPass && newPass.length < 4) {
+    uiAlert('Password must be at least 4 characters');
+    return;
+  }
+
+  var isMaster = CU.role === 'master';
+
+  if (isMaster) {
+    MASTER.name = newName;
+    MASTER.desig = newDesig;
+    MASTER.phone = newPhone;
+    DB.masterName = newName;
+    DB.masterDesig = newDesig;
+    DB.masterPhone = newPhone;
+    DB.masterWhatsapp = newWhatsapp;
+    DB.masterEmail = newEmail;
+    DB.masterDocuments = _tempMyProfileDocs;
+
+    if (newPass) {
+      MASTER.password = newPass;
+      DB.masterPass = newPass;
+    }
+
+    CU.name = newName;
+    CU.desig = newDesig;
+    if (newPass) CU.password = newPass;
+  } else {
+    ensureAccountsMigrated();
+    var acc = (DB.accounts || []).find(function(x){
+      return String(x.id).trim() === String(CU.id).trim() || String(x.username||'').toUpperCase() === String(CU.username||'').toUpperCase();
+    });
+
+    if (acc) {
+      acc.name = newName;
+      acc.desig = newDesig;
+      acc.phone = newPhone;
+      acc.whatsapp = newWhatsapp;
+      acc.email = newEmail;
+      acc.documents = _tempMyProfileDocs;
+      if (newPass) acc.password = newPass;
+
+      CU.name = newName;
+      CU.desig = newDesig;
+      if (newPass) CU.password = newPass;
+
+      DB.dynamicAdmins = DB.accounts.filter(function(a){ return a.role === 'admin'; });
+      DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
+    }
+  }
+
+  var _sbn = $('sb-name'); if (_sbn) _sbn.textContent = CU.name;
+  var _sbav = $('sb-av'); if (_sbav) _sbav.textContent = initials(CU.name);
+
+  saveDB();
+  if (FB_READY && FB_DB) saveToFirebase();
+
+  closeModal('m-my-profile-modal');
+  if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
+
+  toast('Your profile & security settings have been updated ✓', 'var(--ok)');
+  audit('Self-Service Profile updated by @' + CU.username + (newPass ? ' [Password Changed]' : ''), 'var(--ok)');
 }
 
 </script>
