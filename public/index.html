@@ -8370,28 +8370,36 @@ function syncToFirebase(collection, data) {
   }
 }
 
-/* ── Full DB write to Firebase ─────────────────────────── */
+/* ── Safe Non-Destructive Cloud Sync to Firebase ───────── */
 function saveToFirebase() {
   if (!FB_READY || !FB_DB || FB_SYNCING) return;
   FB_SYNCING = true;
-  var snapshot = {};
   
+  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
+  
+  var snapshot = {};
   Object.keys(DB).forEach(function(key) {
-    if (DB[key] !== undefined) {
+    if (DB[key] !== undefined && DB[key] !== null) {
       snapshot[key] = DB[key];
     }
   });
-  
-  FB_DB.ref('tugwatch').set(snapshot)
+
+  if (Array.isArray(DB.accounts) && DB.accounts.length) {
+    snapshot.accounts = DB.accounts;
+    snapshot.users = DB.users || DB.accounts.filter(function(a){ return a.role === 'staff'; });
+    snapshot.dynamicAdmins = DB.dynamicAdmins || DB.accounts.filter(function(a){ return a.role === 'admin'; });
+  }
+
+  // Use update instead of set to prevent wiping unpopulated keys across devices
+  FB_DB.ref('tugwatch').update(snapshot)
     .then(function(){
       FB_SYNCING = false;
-      // Show sync indicator
       var si = document.getElementById('fb-sync-indicator');
       if (si) { si.style.opacity='1'; setTimeout(function(){ si.style.opacity='0'; }, 1500); }
     })
     .catch(function(e){
       FB_SYNCING = false;
-      console.warn('Firebase full save error:', e);
+      console.warn('Firebase save error:', e);
     });
 }
 
