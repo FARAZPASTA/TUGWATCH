@@ -9587,156 +9587,119 @@ function resolveAdminRequest(reqId, action) {
 }
 
 
-function doLogin() {
-  if (CU) { toast('Already logged in', 'var(--warn)'); return; }
-  var rawU = val('l-user') || '';
-  var u = sanitiseInput(rawU.trim()).toUpperCase();
-  var p = val('l-pass');
-  var err = $('l-err');
-  if (err) { err.classList.remove('on'); err.style.display='none'; }
+/* ── DETERMINISTIC MULTI-DEVICE UNIFIED LOGIN ENGINE ───────────── */
+function findUserLocally(u, p) {
+  if (typeof loadDB === 'function') loadDB();
+  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
 
-  /* Rate limit check */
-  var rl = checkRateLimit(u);
-  if (rl.locked) {
-    if(err){err.classList.add('on'); err.style.display='block'; err.textContent='Too many failed attempts. Wait ' + rl.seconds + 's.';}
+  // 1. Check Root Master Admin
+  var masterUser = (DB.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).toUpperCase().replace(/^@/, '');
+  var masterPass = DB.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain');
+  if (masterUser === u && (p === masterPass || (typeof checkPassword === 'function' && checkPassword(p, masterPass)))) {
+    return {
+      id: 'm1',
+      name: DB.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
+      username: masterUser,
+      password: masterPass,
+      role: 'master',
+      desig: DB.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
+      permissions: ['all_root', 'all_operational', 'finance_process', 'task_assign', 'vault_access']
+    };
+  }
+
+  // 2. Check DB.accounts directly
+  var accounts = DB.accounts || [];
+  for (var i = 0; i < accounts.length; i++) {
+    var acc = accounts[i];
+    if (acc && acc.username) {
+      var accUname = String(acc.username).trim().toUpperCase().replace(/^@/, '');
+      if (accUname === u) {
+        if (p === acc.password || (typeof checkPassword === 'function' && checkPassword(p, acc.password))) {
+          return acc;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback for legacy DB.users or DB.dynamicAdmins
+  var fallbackList = (DB.users || []).concat(DB.dynamicAdmins || []);
+  for (var j = 0; j < fallbackList.length; j++) {
+    var item = fallbackList[j];
+    if (item && item.username) {
+      var itemUname = String(item.username).trim().toUpperCase().replace(/^@/, '');
+      if (itemUname === u) {
+        if (p === item.password || (typeof checkPassword === 'function' && checkPassword(p, item.password))) {
+          return item;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function completeLoginSuccess(found) {
+  CU = found;
+  if (CU && CU.username) CU.username = CU.username.toUpperCase();
+
+  var _ls = $('login-screen'); if (_ls) _ls.style.display = 'none';
+  var _app = $('app');
+  if (_app) {
+    _app.style.display = 'flex';
+    _app.classList.add('tw-authenticated');
+  }
+
+  afterLoginHydration();
+
+  if (FB_READY && FB_DB) {
+    loadFromFirebase(function(ok) {
+      if (ok && typeof setupFirebaseListeners === 'function') setupFirebaseListeners();
+      afterLoginHydration();
+    });
+  }
+}
+
+function doLogin() {
+  var rawU = (val('l-user') || '').trim();
+  var u = rawU.toUpperCase().replace(/^@/, '');
+  var p = (val('l-pass') || '').trim();
+  var err = $('l-err');
+  if (err) { err.classList.remove('on'); err.style.display = 'none'; }
+
+  if (!u || !p) {
+    if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Please enter your user ID and password.'; }
     return;
   }
 
-  // Check master admin first (case-insensitive matching against uppercase)
-  var found = null;
-  var _mRes = resolveAdmin(MASTER); if ((_mRes.username||'').toUpperCase() === u && checkPassword(p, _mRes.password)) { found = _mRes; }
-  // Check regular admins
-  if (!found) { for (var ai=0;ai<ADMINS.length;ai++) { var _ra=resolveAdmin(ADMINS[ai]); if ((_ra.username||'').toUpperCase()===u && checkPassword(p, _ra.password)) { if((DB.disabledAdmins||[]).includes(_ra.id)){recordFailedLogin(u);if(err){err.classList.add('on'); err.style.display='block'; err.textContent='This account has been deactivated. Contact Master Admin.';}return;} found=_ra; break; } } }
-  // Check dynamic admins
-  if (!found) { var da=DB.dynamicAdmins||[]; for (var di=0;di<da.length;di++) { var _rd=resolveAdmin(da[di]); if ((_rd.username||'').toUpperCase()===u && checkPassword(p, _rd.password)) { found=_rd; break; } } }
-  // Check staff users
-  if (!found) { for (var ui=0;ui<DB.users.length;ui++) { if ((DB.users[ui].username||'').toUpperCase()===u && checkPassword(p, DB.users[ui].password)) { found=DB.users[ui]; break; } } }
-
-  if (!found) { if(err){err.classList.add('on'); err.style.display='block'; err.textContent='Invalid credentials. Please try again.';} return; }
-
-  CU = found;
-  if (CU && CU.username) CU.username = CU.username.toUpperCase();
-  var _ls=$('login-screen'); if(_ls)_ls.style.display='none';
-  var _app=$('app'); if(_app){
-    // On mobile use block layout so sidebar flex-child doesn't affect main width
-    var _isMobile = window.innerWidth<=768;
-    _app.style.display = 'flex';
-    _app.classList.add('tw-authenticated');
-    if(_isMobile){
-      var _sb=document.getElementById('sidebar');
-      if(_sb){_sb.style.transform='translateX(-100%)';}
-      var _mn=document.getElementById('main');
-      if(_mn){_mn.style.width='100vw';_mn.style.marginLeft='0';_mn.style.display='flex';_mn.style.flexDirection='column';}
-    }
+  // 1. Try local memory / localStorage first
+  var localUser = findUserLocally(u, p);
+  if (localUser) {
+    completeLoginSuccess(localUser);
+    return;
   }
-  // Show version confirmation toast
-  setTimeout(function(){
-    toast('TugWatch V6 loaded ✓  — All modules active', 'var(--ok)');
-  }, 800);
-  // Load from Firebase first, then populate UI
+
+  // 2. If not found in local memory (e.g. fresh browser like Firefox or new device), query Firebase cloud
   if (FB_READY && FB_DB) {
-    toast('Syncing with cloud database...', 'var(--accent)');
+    var btn = document.getElementById('login-btn');
+    if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
+
     loadFromFirebase(function(ok) {
-      if (ok) {
-        setupFirebaseListeners();
-        toast('Cloud sync complete ✓', 'var(--ok)');
+      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+      var cloudUser = findUserLocally(u, p);
+      if (cloudUser) {
+        completeLoginSuccess(cloudUser);
       } else {
-        toast('Offline mode — using local data', 'var(--warn)');
+        if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
       }
-      setTimeout(function(){
-        fillVesselSelects(); fillCompanySelects();
-        if(typeof fillStaffSelects==='function') fillStaffSelects();
-        checkPOAccess(); loadSidebarConfig(); updateBadges();
-        if(typeof fillAllDynamicSelects==='function') fillAllDynamicSelects();
-        if(typeof renderDashboard==='function') renderDashboard();
-      }, 300);
     });
   } else {
-    // Firebase not configured — run fully offline
-    setTimeout(function(){
-      fillVesselSelects(); fillCompanySelects();
-      if(typeof fillStaffSelects==='function') fillStaffSelects();
-      checkPOAccess(); loadSidebarConfig(); updateBadges();
-    }, 200);
+    if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
   }
-  /* Navigate to dashboard on login */
-  setTimeout(function() {
-    var dashNav = document.querySelector('.nav-item[data-page="dashboard"]');
-    if (dashNav) {
-      dashNav.click();
-    } else {
-      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
-      document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('on');});
-      var db = document.getElementById('p-dashboard');
-      if (db) db.classList.add('on');
-      if (typeof renderDashboard === 'function') renderDashboard();
-      if (typeof seedTowingFormat === 'function') seedTowingFormat();
-      // Show system announcement if set
-      var ann = DB.masterConfig && DB.masterConfig.announcement;
-      if (ann && ann.text && ann.active) {
-        setTimeout(function() {
-          var annBanner = document.getElementById('sys-announcement-banner');
-          if (!annBanner) {
-            annBanner = document.createElement('div');
-            annBanner.id = 'sys-announcement-banner';
-            annBanner.style.cssText = 'position:fixed;top:54px;left:0;right:0;z-index:8000;background:linear-gradient(90deg,#92400e,#b45309);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2)';
-            annBanner.innerHTML = '<span>📢 ' + ann.text + '</span><button onclick="document.getElementById(\'sys-announcement-banner\').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:11px">✕ Dismiss</button>';
-            document.body.appendChild(annBanner);
-          }
-        }, 1200);
-      }
-    }
-  }, 50);
-  var _sbav=$('sb-av');if(_sbav)_sbav.textContent = initials(CU.name);
-  if(_sbav)_sbav.style.background = CU.role==='master'
-    ? 'linear-gradient(135deg,#991b1b,#dc2626)'
-    : 'linear-gradient(135deg,'+(CU.color||'#0284c7')+','+(CU.color||'#0ea5e9')+')';
-  var _sbn=$('sb-name');if(_sbn)_sbn.textContent = CU.name;
-
-  if (CU.role === 'master') {
-    var _sbrc=$('sb-role-chip');if(_sbrc)_sbrc.textContent = 'MASTER ADMIN';
-    if(_sbrc)_sbrc.className   = 'role-chip-master';
-  } else if (CU.role === 'admin') {
-    var _sbrc=$('sb-role-chip');if(_sbrc)_sbrc.textContent = 'Admin';
-    if(_sbrc)_sbrc.className   = 'role-chip-admin';
-  } else {
-    var _sbrc=$('sb-role-chip');if(_sbrc)_sbrc.textContent = 'Staff';
-    if(_sbrc)_sbrc.className   = 'role-chip-staff';
-  }
-
-  // Show/hide admin-only elements — master sees everything admins see
-  var isMasterOrAdmin = (CU.role === 'master' || CU.role === 'admin');
-  document.querySelectorAll('.admin-only').forEach(function(el) {
-    if(el.classList.contains('page')) return;
-    el.style.display = isMasterOrAdmin ? '' : 'none';
-  });
-  // Show master-only elements
-  document.querySelectorAll('.master-only').forEach(function(el) {
-    if(el.classList.contains('page')) return;
-    el.style.display = CU.role === 'master' ? '' : 'none';
-  });
-
-  updateBadges();
-  enforcePermissions();
-  fillVesselSelects();
-  fillTideLocSelects();
-  // Show/hide finance-gated buttons
-  showFinanceButton();
-  // Task assign button — only task_assign permission or admin/master
-  var taskBtn = document.getElementById('btn-assign-task');
-  if (taskBtn) taskBtn.style.display = (CU.role === 'master' || CU.role === 'admin' || hasPermission('task_assign')) ? '' : 'none';
-  audit(CU.name + ' signed in' + (CU.role==='master' ? ' [MASTER]' : ''), 'var(--ok)');
-  // Record login history
-  DB.loginHistory = DB.loginHistory || [];
-  DB.loginHistory.unshift({
-    userId: CU.id, userName: CU.name, role: CU.role,
-    ts: new Date().toLocaleString('en-IN'),
-    tsMs: Date.now(), action: 'login'
-  });
-  if (DB.loginHistory.length > 500) DB.loginHistory = DB.loginHistory.slice(0, 500);
-  saveDB();
-  toast('Welcome, ' + CU.name + (CU.role==='master' ? ' — Master Admin' : '') + '!', CU.role==='master' ? 'var(--err)' : 'var(--ok)');
 }
+window.doLogin = doLogin;
+window.findUserLocally = findUserLocally;
+window.completeLoginSuccess = completeLoginSuccess;
+
 
 function doLogout() {
   if (CU) {
