@@ -33618,43 +33618,33 @@ function resolveAdmin(a) {
   };
 }
 
+function verifyCredential(inputPass, storedPass) {
+  if (!storedPass) return false;
+  if (inputPass === storedPass) return true;
+  if (typeof checkPassword === 'function') {
+    return checkPassword(inputPass, storedPass);
+  }
+  return false;
+}
+
 function allAdmins() {
-  var list = [];
-  (DB.dynamicAdmins || []).forEach(function(da) {
-    if (da && da.id && !['a1','a2','a3','a4'].includes(da.id) && !['ADMIN1','ADMIN2','ADMIN3','ADMIN4'].includes((da.username||'').toUpperCase())) {
-      list.push(resolveAdmin(da));
-    }
-  });
-  return list;
+  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
+  return (DB.accounts || []).filter(function(a){ return a && a.role === 'admin'; });
 }
 
 function allUsersList() {
-  return (DB.users || []).map(function(u) {
-    return {
-      id: u.id,
-      name: u.name || 'Staff User',
-      username: (u.username || '').toUpperCase(),
-      password: u.password || '',
-      role: 'staff',
-      desig: u.desig || 'Staff User',
-      color: u.color || '#10b981',
-      phone: u.phone || '',
-      whatsapp: u.whatsapp || '',
-      email: u.email || '',
-      emergencyContact: u.emergencyContact || '',
-      address: u.address || '',
-      documents: u.documents || [],
-      permissions: u.permissions || ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms']
-    };
-  });
+  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
+  return (DB.accounts || []).filter(function(a){ return a && a.role === 'staff'; });
 }
 
 /* ── DETERMINISTIC LOGIN & CREDENTIAL VERIFICATION ─────────────── */
 function doLogin() {
-  if (CU) { toast('Already logged in', 'var(--warn)'); return; }
+  if (typeof loadDB === 'function') loadDB();
+  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
+
   var rawU = val('l-user') || '';
   var u = (rawU.trim()).toUpperCase();
-  var p = val('l-pass');
+  var p = val('l-pass') || '';
   var err = $('l-err');
   if (err) { err.classList.remove('on'); err.style.display = 'none'; }
 
@@ -33667,33 +33657,29 @@ function doLogin() {
 
   // 1. Check Root Master Admin
   var masterAcc = getMasterAccount();
-  if (masterAcc.username.toUpperCase() === u && checkPassword(p, masterAcc.password)) {
+  if (masterAcc.username.toUpperCase() === u && verifyCredential(p, masterAcc.password)) {
     found = masterAcc;
   }
 
-  // 2. Check Fleet Administrators
+  // 2. Check DB.accounts Directly
   if (!found) {
-    var admins = allAdmins();
-    for (var i = 0; i < admins.length; i++) {
-      var a = admins[i];
-      if (a.username.toUpperCase() === u && checkPassword(p, a.password)) {
-        if ((DB.disabledAdmins || []).includes(a.id)) {
-          if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'This administrator account has been deactivated.'; }
-          return;
-        }
-        found = a;
+    var accounts = DB.accounts || [];
+    for (var i = 0; i < accounts.length; i++) {
+      var acc = accounts[i];
+      if (acc && (acc.username || '').toUpperCase() === u && verifyCredential(p, acc.password)) {
+        found = acc;
         break;
       }
     }
   }
 
-  // 3. Check Staff Users
+  // 3. Fallback for legacy DB.users or DB.dynamicAdmins
   if (!found) {
-    var users = allUsersList();
-    for (var j = 0; j < users.length; j++) {
-      var su = users[j];
-      if (su.username.toUpperCase() === u && checkPassword(p, su.password)) {
-        found = su;
+    var legacyList = (DB.users || []).concat(DB.dynamicAdmins || []);
+    for (var j = 0; j < legacyList.length; j++) {
+      var item = legacyList[j];
+      if (item && (item.username || '').toUpperCase() === u && verifyCredential(p, item.password)) {
+        found = item;
         break;
       }
     }
@@ -33717,13 +33703,15 @@ function doLogin() {
   // Synchronize Cloud & Populate UI
   if (FB_READY && FB_DB) {
     loadFromFirebase(function(ok) {
-      if (ok) setupFirebaseListeners();
+      if (ok && typeof setupFirebaseListeners === 'function') setupFirebaseListeners();
       afterLoginHydration();
     });
   } else {
     afterLoginHydration();
   }
 }
+window.doLogin = doLogin;
+window.verifyCredential = verifyCredential;
 
 function afterLoginHydration() {
   fillVesselSelects();
