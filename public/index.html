@@ -5009,21 +5009,6 @@ html[data-theme="dark"] #l-pass::placeholder {
     <button class="btn btn-primary" onclick="saveMatProvided()">Save &amp; Print Challan</button>
   </div>
 </div></div>
-  <div class="fg"><label class="fl">Item Description <span class="req">*</span></label><input class="fi" id="mp-item" placeholder="e.g. Engine Oil 15W40"/></div>
-  <div class="fr3"><div class="fg"><label class="fl">Quantity</label><input class="fi" id="mp-qty" type="number" placeholder="0"/></div><div class="fg"><label class="fl">Unit</label><select class="fi" id="mp-unit"><option>Ltrs</option><option>Kgs</option><option>Nos</option><option>Mtrs</option><option>Sets</option><option>Boxes</option><option>Bags</option><option>Other</option></select></div><div class="fg"><label class="fl">Cost (₹)</label><input class="fi" id="mp-cost" type="number" placeholder="0"/></div></div>
-  <div class="fg"><label class="fl">Supplier / Vendor</label><input class="fi" id="mp-supplier" placeholder="Supplier name"/></div>
-  <div class="fg"><label class="fl">Received By (on vessel)</label><input class="fi" id="mp-rcvby" placeholder="Master / Chief Officer name"/></div>
-  <div class="fg"><label class="fl">Remarks</label><input class="fi" id="mp-rem" placeholder="Notes"/></div>
-  <div class="fg"><label class="fl">Material Photo(s)</label>
-    <div class="drop-zone" style="margin-bottom:0">
-      <input type="file" id="mp-photos" multiple accept="image/*,.pdf"/>
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      <p><strong>Click to upload</strong> material photos or delivery note (optional)</p>
-    </div>
-  </div>
-
-  <div class="modal-footer"><button class="btn btn-ghost" data-close="m-mat-add">Cancel</button><button class="btn btn-primary" onclick="addMatProvided()">Save</button></div>
-</div></div>
 
 <!-- RAISE MATERIAL REQUEST -->
 <div class="overlay" id="m-mat-req"><div class="modal modal-wide">
@@ -8409,7 +8394,7 @@ function loadFromFirebase(callback) {
       var data = snapshot.val();
       if (data && typeof data === 'object') {
         Object.keys(data).forEach(function(key) {
-          if (key === 'users' || key === 'dynamicAdmins' || key === 'vessels' || key === 'crew' || key === 'companies' || key === 'officeStaff' || key === 'vehicles' || key === 'vendors' || key === 'contactsDir') {
+          if (key === 'accounts' || key === 'users' || key === 'dynamicAdmins' || key === 'vessels' || key === 'crew' || key === 'companies' || key === 'officeStaff' || key === 'vehicles' || key === 'vendors' || key === 'contactsDir') {
             var cloudArr = Array.isArray(data[key]) ? data[key] : [];
             var localArr = Array.isArray(DB[key]) ? DB[key] : [];
             var itemMap = {};
@@ -34410,6 +34395,74 @@ window.openEditAccountModal = openEditAccountModal;
 window.deleteAccountClean = deleteAccountClean;
 window.saveUnifiedAccountModal = saveUnifiedAccountModal;
 window.renderMasterGovernanceCenter = renderMasterGovernanceCenter;
+
+
+
+
+/* ── BULLETPROOF ACCOUNTS PERSISTENCE & CLOUD SYNC ──────────── */
+function ensureAccountsMigrated() {
+  DB.accounts = DB.accounts || [];
+
+  // 1. Ingest any accounts from DB.users
+  (DB.users || []).forEach(function(u) {
+    if (u && (u.id || u.username)) {
+      var exists = DB.accounts.find(function(a){
+        return (u.id && String(a.id).trim() === String(u.id).trim()) ||
+               (u.username && String(a.username||'').toUpperCase() === String(u.username||'').toUpperCase());
+      });
+      if (!exists) {
+        DB.accounts.push({
+          id: u.id || uid(),
+          name: u.name || 'Staff User',
+          username: (u.username || '').toUpperCase(),
+          password: u.password && !u.password.startsWith('h:') ? u.password : (u.password || 'staff123'),
+          role: 'staff',
+          desig: u.desig || 'Staff User',
+          phone: u.phone || '',
+          whatsapp: u.whatsapp || '',
+          email: u.email || '',
+          emergencyContact: u.emergencyContact || '',
+          address: u.address || '',
+          documents: u.documents || [],
+          permissions: u.permissions || ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'],
+          createdAt: u.createdAt || today()
+        });
+      }
+    }
+  });
+
+  // 2. Ingest any accounts from DB.dynamicAdmins
+  (DB.dynamicAdmins || []).forEach(function(da) {
+    if (da && (da.id || da.username) && !['a1','a2','a3','a4'].includes(da.id) && !['ADMIN1','ADMIN2','ADMIN3','ADMIN4'].includes((da.username||'').toUpperCase())) {
+      var exists = DB.accounts.find(function(a){
+        return (da.id && String(a.id).trim() === String(da.id).trim()) ||
+               (da.username && String(a.username||'').toUpperCase() === String(da.username||'').toUpperCase());
+      });
+      if (!exists) {
+        DB.accounts.push({
+          id: da.id || uid(),
+          name: da.name || 'Fleet Administrator',
+          username: (da.username || '').toUpperCase(),
+          password: da.password || 'admin123',
+          role: 'admin',
+          desig: da.desig || 'Fleet Administrator',
+          phone: da.phone || '',
+          whatsapp: da.whatsapp || '',
+          email: da.email || '',
+          emergencyContact: da.emergencyContact || '',
+          address: da.address || '',
+          documents: da.documents || [],
+          permissions: da.permissions || ['all_operational'],
+          createdAt: da.createdAt || today()
+        });
+      }
+    }
+  });
+
+  // 3. Mirror back into dynamicAdmins and users
+  DB.dynamicAdmins = DB.accounts.filter(function(a){ return a.role === 'admin'; });
+  DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
+}
 
 </script>
 
