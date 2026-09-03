@@ -2195,7 +2195,7 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div><div class="logo-name">TugWatch</div><div class="logo-ver">v6.0 · SENTINEL</div></div>
   </div>
   <nav>
-    <div class="nav-item master-only" id="master-settings-btn" onclick="openMasterSettings()" style="background:linear-gradient(90deg,rgba(220,38,38,.12),transparent);border:1px solid rgba(220,38,38,.25);margin:8px 0 6px;border-radius:8px">
+    <div class="nav-item master-only" id="master-settings-btn" data-page="godpanel" style="background:linear-gradient(90deg,rgba(220,38,38,.12),transparent);border:1px solid rgba(220,38,38,.25);margin:8px 0 6px;border-radius:8px">
       <svg viewBox="0 0 24 24" fill="none" style="color:#ef4444;width:18px;height:18px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       <span style="color:#ef4444;font-weight:700;font-size:12px">👑 Master Governance</span>
     </div>
@@ -2297,7 +2297,7 @@ html[data-theme="dark"] #l-pass::placeholder {
       <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/><line x1="17" y1="8" x2="23" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/><line x1="23" y1="8" x2="17" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/></svg>
       Ex-Crew Records<span class="nav-badge nb-default" id="nb-excrew">0</span>
     </div>
-    <div class="nav-item" onclick="if(CU&&CU.role==='master'){if(typeof switchMasterTab==='function'){openMasterSettings();switchMasterTab('admincreds');}else openAccountModal('admin');}else toast('Master Admin only','var(--err)')" style="cursor:pointer;border:1px solid rgba(14,165,233,.2);background:rgba(14,165,233,.06);margin-bottom:4px">
+    <div class="nav-item master-only" data-page="godpanel" style="cursor:pointer;border:1px solid rgba(14,165,233,.2);background:rgba(14,165,233,.06);margin-bottom:4px">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.5"/><path d="M4 20v-1a8 8 0 0116 0v1" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span style="color:#38bdf8;font-weight:700;font-size:12px">🛡️ Fleet Administrators</span>
     </div>
@@ -34314,6 +34314,15 @@ function saveMyProfileSelfService() {
   toast('Your profile & security settings have been updated ✓', 'var(--ok)');
   audit('Self-Service Profile updated by @' + CU.username + (newPass ? ' [Password Changed]' : ''), 'var(--ok)');
 }
+
+
+
+
+window.openAccountModal = openAccountModal;
+window.openEditAccountModal = openEditAccountModal;
+window.deleteAccountClean = deleteAccountClean;
+window.saveUnifiedAccountModal = saveUnifiedAccountModal;
+window.renderMasterGovernanceCenter = renderMasterGovernanceCenter;
 
 </script>
 
