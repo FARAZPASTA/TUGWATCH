@@ -3693,8 +3693,14 @@ html[data-theme="dark"] #l-pass::placeholder {
 
     <!-- Credentials Row -->
     <div class="fr2" style="margin-top:10px">
-      <div class="fg"><label class="fl">Full Display Name <span class="req">*</span></label><input class="fi" id="acc-name" placeholder="e.g. Capt. Rahim / Avesh Khan" style="font-weight:700"/></div>
-      <div class="fg"><label class="fl">Username (Login ID) <span class="req">*</span></label><input class="fi" id="acc-user" placeholder="USERNAME (NO SPACES)" style="text-transform:uppercase!important;font-weight:700;font-family:var(--fm)" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/></div>
+      <div class="fg">
+        <label class="fl">Full Display Name <span class="req">*</span></label>
+        <input class="fi" id="acc-name" name="tw_user_fullname_field" placeholder="e.g. Capt. Rahim / Avesh Khan" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" data-lpignore="true" data-form-type="other" style="font-weight:700"/>
+      </div>
+      <div class="fg">
+        <label class="fl">Username (Login ID) <span class="req">*</span></label>
+        <input class="fi" id="acc-user" name="tw_user_handle_field" placeholder="USERNAME (NO SPACES)" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-lpignore="true" data-form-type="other" style="text-transform:uppercase!important;font-weight:700;font-family:var(--fm)" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/>
+      </div>
     </div>
 
     <div class="fr3">
@@ -3705,11 +3711,11 @@ html[data-theme="dark"] #l-pass::placeholder {
           <option value="staff">👥 Staff User (Restricted Modules)</option>
         </select>
       </div>
-      <div class="fg"><label class="fl">Maritime Title / Designation</label><input class="fi" id="acc-desig" placeholder="e.g. Operations Coordinator"/></div>
+      <div class="fg"><label class="fl">Maritime Title / Designation</label><input class="fi" id="acc-desig" name="tw_user_title_field" placeholder="e.g. Operations Coordinator" autocomplete="off" data-lpignore="true"/></div>
       <div class="fg">
         <label class="fl">Password <span class="req">*</span></label>
         <div style="position:relative;display:flex;align-items:center">
-          <input class="fi" id="acc-pass" type="text" placeholder="Account password" style="padding-right:32px;font-family:var(--fm);font-weight:700"/>
+          <input class="fi" id="acc-pass" name="tw_user_secret_field" type="text" placeholder="Account password" autocomplete="new-password" data-lpignore="true" data-form-type="other" style="padding-right:32px;font-family:var(--fm);font-weight:700"/>
           <button type="button" class="btn btn-ghost btn-sm" onclick="var p=document.getElementById('acc-pass');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:2px;padding:2px 6px">👁</button>
         </div>
       </div>
@@ -3718,13 +3724,13 @@ html[data-theme="dark"] #l-pass::placeholder {
     <!-- Contact Details -->
     <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px;border-left:3px solid var(--accent);padding-left:6px">📞 Contact &amp; Emergency Details</div>
     <div class="fr3">
-      <div class="fg"><label class="fl">Primary Mobile Phone <span class="req">*</span></label><input class="fi" id="acc-phone" placeholder="+91 XXXXX XXXXX"/></div>
-      <div class="fg"><label class="fl">WhatsApp Number</label><input class="fi" id="acc-whatsapp" placeholder="+91 XXXXX XXXXX"/></div>
-      <div class="fg"><label class="fl">Official / Personal Email</label><input class="fi" id="acc-email" placeholder="user@saarvin.in"/></div>
+      <div class="fg"><label class="fl">Primary Mobile Phone <span class="req">*</span></label><input class="fi" id="acc-phone" name="tw_user_phone_field" placeholder="+91 XXXXX XXXXX" autocomplete="off" data-lpignore="true"/></div>
+      <div class="fg"><label class="fl">WhatsApp Number</label><input class="fi" id="acc-whatsapp" name="tw_user_wa_field" placeholder="+91 XXXXX XXXXX" autocomplete="off" data-lpignore="true"/></div>
+      <div class="fg"><label class="fl">Official / Personal Email</label><input class="fi" id="acc-email" name="tw_user_email_field" placeholder="user@saarvin.in" autocomplete="off" data-lpignore="true"/></div>
     </div>
     <div class="fr2">
-      <div class="fg"><label class="fl">Emergency Contact Person &amp; Phone</label><input class="fi" id="acc-emergency" placeholder="Spouse / Parent Name + Phone"/></div>
-      <div class="fg"><label class="fl">Residential Address</label><input class="fi" id="acc-address" placeholder="City, State, Address"/></div>
+      <div class="fg"><label class="fl">Emergency Contact Person &amp; Phone</label><input class="fi" id="acc-emergency" name="tw_user_emrg_field" placeholder="Spouse / Parent Name + Phone" autocomplete="off" data-lpignore="true"/></div>
+      <div class="fg"><label class="fl">Residential Address</label><input class="fi" id="acc-address" name="tw_user_addr_field" placeholder="City, State, Address" autocomplete="off" data-lpignore="true"/></div>
     </div>
 
     <!-- KYC Documents Section -->
