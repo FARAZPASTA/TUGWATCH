@@ -3677,6 +3677,89 @@ html[data-theme="dark"] #l-pass::placeholder {
     </div>
 
     <!-- EDIT / UPDATE PORT VTMS MODAL -->
+    <!-- ══════════════════════════════════════════════════════════════
+     SINGLE UNIVERSAL ACCOUNT MODAL (OPTION 1)
+══════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="m-unified-account-modal" style="z-index:10999!important">
+  <div class="modal modal-wide" style="max-width:640px;max-height:92vh;overflow-y:auto">
+    <button class="modal-close" data-close="m-unified-account-modal"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="modal-title" id="acc-modal-title" style="color:var(--accent);display:flex;align-items:center;gap:6px">
+      <span>👤 Account &amp; Access Profile</span>
+    </div>
+    <div class="modal-sub" id="acc-modal-sub">Create or edit administrator or staff credentials, contact details, and KYC documents</div>
+
+    <input type="hidden" id="acc-id"/>
+    <input type="hidden" id="acc-mode"/>
+
+    <!-- Credentials Row -->
+    <div class="fr2" style="margin-top:10px">
+      <div class="fg"><label class="fl">Full Display Name <span class="req">*</span></label><input class="fi" id="acc-name" placeholder="e.g. Capt. Rahim / Avesh Khan" style="font-weight:700"/></div>
+      <div class="fg"><label class="fl">Username (Login ID) <span class="req">*</span></label><input class="fi" id="acc-user" placeholder="USERNAME (NO SPACES)" style="text-transform:uppercase!important;font-weight:700;font-family:var(--fm)" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"/></div>
+    </div>
+
+    <div class="fr3">
+      <div class="fg">
+        <label class="fl">Account Role <span class="req">*</span></label>
+        <select class="fi" id="acc-role" onchange="toggleAccountRolePerms(this.value)" style="font-weight:700">
+          <option value="admin">🛡️ Fleet Administrator (Full 27 Modules)</option>
+          <option value="staff">👥 Staff User (Restricted Modules)</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Maritime Title / Designation</label><input class="fi" id="acc-desig" placeholder="e.g. Operations Coordinator"/></div>
+      <div class="fg">
+        <label class="fl">Password <span class="req">*</span></label>
+        <div style="position:relative;display:flex;align-items:center">
+          <input class="fi" id="acc-pass" type="text" placeholder="Account password" style="padding-right:32px;font-family:var(--fm);font-weight:700"/>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="var p=document.getElementById('acc-pass');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:2px;padding:2px 6px">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Details -->
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px;border-left:3px solid var(--accent);padding-left:6px">📞 Contact &amp; Emergency Details</div>
+    <div class="fr3">
+      <div class="fg"><label class="fl">Primary Mobile Phone <span class="req">*</span></label><input class="fi" id="acc-phone" placeholder="+91 XXXXX XXXXX"/></div>
+      <div class="fg"><label class="fl">WhatsApp Number</label><input class="fi" id="acc-whatsapp" placeholder="+91 XXXXX XXXXX"/></div>
+      <div class="fg"><label class="fl">Official / Personal Email</label><input class="fi" id="acc-email" placeholder="user@saarvin.in"/></div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Emergency Contact Person &amp; Phone</label><input class="fi" id="acc-emergency" placeholder="Spouse / Parent Name + Phone"/></div>
+      <div class="fg"><label class="fl">Residential Address</label><input class="fi" id="acc-address" placeholder="City, State, Address"/></div>
+    </div>
+
+    <!-- KYC Documents Section -->
+    <div style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;border-left:3px solid var(--ok);padding-left:6px">📂 KYC Documents &amp; Contract Attachments</div>
+    <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <div class="fg" style="margin:0;flex:1"><input class="fi" id="acc-new-doc-title" placeholder="Document Title (e.g. Aadhaar Card / Employment Agreement)"/></div>
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;margin:0;font-weight:700">
+          📎 Select File
+          <input type="file" id="acc-new-doc-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="handleAccountDocSelected(this)"/>
+        </label>
+        <button type="button" class="btn btn-primary btn-sm" onclick="addDocToAccountList()">➕ Attach</button>
+      </div>
+      <div id="acc-selected-file-label" style="font-size:10px;color:var(--accent);margin-bottom:6px"></div>
+      <div id="acc-docs-list-container" style="display:flex;flex-direction:column;gap:4px"></div>
+    </div>
+
+    <!-- Module Permissions (Only for Staff) -->
+    <div id="acc-permissions-section" style="display:none">
+      <div style="font-size:11px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;border-left:3px solid var(--warn);padding-left:6px">🔑 Staff Module Access Permissions</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button type="button" class="btn btn-outline btn-sm" onclick="toggleAllAccountPerms(true)" style="font-size:9.5px">Select All</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="toggleAllAccountPerms(false)" style="font-size:9.5px;color:var(--err)">Clear All</button>
+      </div>
+      <div id="acc-perms-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;max-height:22vh;overflow-y:auto;padding:8px;background:var(--bg2);border-radius:8px;border:1px solid var(--b2)"></div>
+    </div>
+
+    <div class="modal-footer" style="margin-top:16px;border-top:1px solid var(--b1);padding-top:12px;display:flex;justify-content:flex-end;gap:8px">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('m-unified-account-modal')">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="saveUnifiedAccountModal()" style="font-weight:800;padding:8px 24px">💾 Save Account &amp; Documents</button>
+    </div>
+  </div>
+</div>
+
+
     <div class="overlay" id="m-edit-port-vtms" style="z-index:10600!important">
       <div class="modal modal-wide" style="max-width:680px;max-height:92vh;overflow-y:auto">
         <button class="modal-close" data-close="m-edit-port-vtms"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -9689,6 +9772,10 @@ document.addEventListener('click', function(e) {
   document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('on'); });
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); });
   navItem.classList.add('on');
+  var pg = $('p-'+page);
+  if (page === 'godpanel' || page === 'users') {
+    if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
+  }
   var pg = $('p-'+page);
   if (pg) pg.classList.add('on');
   var titleEl = $('page-title');
