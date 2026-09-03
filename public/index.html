@@ -8391,6 +8391,14 @@ function saveToFirebase() {
     });
 }
 
+/* ── Safe Array Converter (Handles Firebase Object vs Array) ── */
+function safeArrayExtract(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(function(x){ return x && typeof x === 'object'; });
+  if (typeof val === 'object') return Object.values(val).filter(function(x){ return x && typeof x === 'object'; });
+  return [];
+}
+
 /* ── Load DB from Firebase ─────────────────────────────── */
 function loadFromFirebase(callback) {
   if (!FB_READY || !FB_DB) { if (callback) callback(false); return; }
@@ -8399,46 +8407,57 @@ function loadFromFirebase(callback) {
     .then(function(snapshot) {
       var data = snapshot.val();
       if (data && typeof data === 'object') {
-        Object.keys(data).forEach(function(key) {
-          if (key === 'accounts' || key === 'users' || key === 'dynamicAdmins' || key === 'vessels' || key === 'crew' || key === 'companies' || key === 'officeStaff' || key === 'vehicles' || key === 'vendors' || key === 'contactsDir') {
-            var cloudArr = Array.isArray(data[key]) ? data[key] : [];
-            var localArr = Array.isArray(DB[key]) ? DB[key] : [];
-            var itemMap = {};
-            // 1. Add cloud items
-            cloudArr.forEach(function(item) {
-              if (item && typeof item === 'object') {
-                var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-                if (k) itemMap[k] = item;
-              }
-            });
-            // 2. Merge local items without dropping local records
-            localArr.forEach(function(item) {
-              if (item && typeof item === 'object') {
-                var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-                if (k) {
-                  if (!itemMap[k]) {
-                    itemMap[k] = item;
-                  } else {
-                    itemMap[k] = Object.assign({}, itemMap[k], item);
-                  }
+        var arrayCollections = ['accounts', 'users', 'dynamicAdmins', 'vessels', 'crew', 'companies', 'officeStaff', 'vehicles', 'vendors', 'contactsDir', 'spares', 'certs', 'maint', 'defs', 'incidents', 'voyages', 'materials', 'requests', 'salaries', 'invoices', 'expenses', 'portDues', 'bunkerReceipts', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders', 'visits', 'drillRecords', 'changeLog', 'log', 'leaveRecords', 'docSubmissions', 'purchaseOrders'];
+        
+        arrayCollections.forEach(function(key) {
+          var cloudArr = safeArrayExtract(data[key]);
+          var localArr = safeArrayExtract(DB[key]);
+          var itemMap = {};
+
+          // 1. Add cloud items
+          cloudArr.forEach(function(item) {
+            if (item && typeof item === 'object') {
+              var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
+              if (k) itemMap[k] = item;
+            }
+          });
+
+          // 2. Merge local items without dropping local records
+          localArr.forEach(function(item) {
+            if (item && typeof item === 'object') {
+              var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
+              if (k) {
+                if (!itemMap[k]) {
+                  itemMap[k] = item;
+                } else {
+                  itemMap[k] = Object.assign({}, itemMap[k], item);
                 }
               }
-            });
+            }
+          });
+
+          if (cloudArr.length || localArr.length) {
             DB[key] = Object.values(itemMap);
-          } else if (key === 'adminOverrides') {
-            DB.adminOverrides = Object.assign({}, data.adminOverrides || {}, DB.adminOverrides || {});
-          } else if (key === 'masterName' || key === 'masterUsername' || key === 'masterDesig' || key === 'masterPass') {
-            if (!DB[key]) DB[key] = data[key];
-          } else {
-            DB[key] = data[key];
           }
         });
+
+        Object.keys(data).forEach(function(key) {
+          if (!arrayCollections.includes(key)) {
+            if (key === 'adminOverrides') {
+              DB.adminOverrides = Object.assign({}, data.adminOverrides || {}, DB.adminOverrides || {});
+            } else if (key === 'masterName' || key === 'masterUsername' || key === 'masterDesig' || key === 'masterPass') {
+              if (!DB[key]) DB[key] = data[key];
+            } else {
+              DB[key] = data[key];
+            }
+          }
+        });
+
+        if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
         sanitizeDB();
         saveDB();
+        if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
         if (typeof renderUsers === 'function') renderUsers();
-        if (typeof renderAdminList === 'function') renderAdminList();
-        if (typeof renderStaffListModal === 'function') renderStaffListModal();
-        if (typeof renderAdminCredentials === 'function') renderAdminCredentials();
         if (typeof renderDashboard === 'function') renderDashboard();
         console.log('TugWatch: Loaded & Merged from Firebase ✓', Object.keys(data).length, 'collections');
       }
@@ -8574,7 +8593,9 @@ function saveLocalSnapshot() {
 function saveDB() {
   // Always save to localStorage (offline backup)
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(DB));
+    var serialized = JSON.stringify(DB);
+    localStorage.setItem(LS_KEY, serialized);
+    localStorage.setItem('tugwatch_db_v1', serialized);
     saveLocalSnapshot();
     _quotaWarned = false;
   } catch(e) {
