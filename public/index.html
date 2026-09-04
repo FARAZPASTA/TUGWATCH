@@ -8380,27 +8380,16 @@ function saveToFirebase() {
   if (!FB_READY || !FB_DB || FB_SYNCING) return;
   FB_SYNCING = true;
   
-  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
-  
   var snapshot = {};
   Object.keys(DB).forEach(function(key) {
-    // CRITICAL: Never let empty accounts/users arrays wipe cloud accounts!
-    if (key === 'accounts' || key === 'users' || key === 'dynamicAdmins') {
-      if (Array.isArray(DB[key]) && DB[key].length > 0) {
+    // Accounts and Users have their own dedicated authoritative sync function to prevent race conditions
+    if (key !== 'accounts' && key !== 'users' && key !== 'dynamicAdmins') {
+      if (DB[key] !== undefined && DB[key] !== null) {
         snapshot[key] = DB[key];
       }
-    } else if (DB[key] !== undefined && DB[key] !== null) {
-      snapshot[key] = DB[key];
     }
   });
 
-  if (Array.isArray(DB.accounts) && DB.accounts.length > 0) {
-    snapshot.accounts = DB.accounts;
-    snapshot.users = DB.users || DB.accounts.filter(function(a){ return a.role === 'staff'; });
-    snapshot.dynamicAdmins = DB.dynamicAdmins || DB.accounts.filter(function(a){ return a.role === 'admin'; });
-  }
-
-  // Use update instead of set to prevent wiping unpopulated keys across devices
   FB_DB.ref('tugwatch').update(snapshot)
     .then(function(){
       FB_SYNCING = false;
@@ -34401,6 +34390,31 @@ function downloadAccountDocDirect(idx) {
   document.body.removeChild(a);
 }
 
+// ── AUTHORITATIVE ACCOUNTS CLOUD SYNC ENGINE ──────────────────
+async function syncAccountsToCloud() {
+  ensureAccountsMigrated();
+  if (!Array.isArray(DB.accounts) || DB.accounts.length === 0) return true;
+
+  try {
+    var payload = JSON.stringify(DB.accounts);
+    var r1 = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload
+    });
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload
+    });
+    _lastCloudVerifiedAccounts = JSON.parse(payload);
+    return r1.ok;
+  } catch(e) {
+    console.warn('syncAccountsToCloud error:', e);
+    return false;
+  }
+}
+
 // ── SAVE ACCOUNT HANDLER WITH GUARANTEED CLOUD CONFIRMATION ──────
 async function saveUnifiedAccountModal() {
   var mode = val('acc-mode') || 'create';
@@ -34418,7 +34432,6 @@ async function saveUnifiedAccountModal() {
 
   ensureAccountsMigrated();
 
-  // Unique username check across MASTER and accounts
   var isMasterCollision = uname === (DB.masterUsername || 'FARAZ').toUpperCase();
   var isOtherAccountCollision = (DB.accounts || []).some(function(a){
     return String(a.id).trim() !== String(targetId).trim() && (a.username||'').toUpperCase() === uname;
@@ -34458,7 +34471,7 @@ async function saveUnifiedAccountModal() {
   account.username = uname;
   account.role = role;
   account.desig = desig || (role === 'admin' ? 'Fleet Administrator' : 'Staff User');
-  account.password = pass; // Clean transparent password
+  account.password = pass;
   account.phone = phone;
   account.whatsapp = whatsapp;
   account.email = email;
@@ -34467,54 +34480,27 @@ async function saveUnifiedAccountModal() {
   account.documents = _tempAccountDocs;
   account.permissions = perms;
 
-  // Mirror into dynamicAdmins and users for backwards compatibility
   DB.dynamicAdmins = DB.accounts.filter(function(a){ return a.role === 'admin'; });
   DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
 
   saveDB();
 
-  // Show visual save feedback on the modal
   var saveBtn = document.querySelector('#m-unified-account-modal button[onclick*="saveUnifiedAccountModal"]');
   var origText = saveBtn ? saveBtn.textContent : '';
   if (saveBtn) { saveBtn.textContent = 'Saving to Google Cloud...'; saveBtn.disabled = true; }
 
-  // 1. Direct HTTPS REST API write with AWAIT to guarantee cloud delivery
-  try {
-    var r1 = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(DB.accounts)
-    });
-    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(DB.users)
-    });
-    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(DB.dynamicAdmins)
-    });
-    console.log('TugWatch: Account synced to Google Cloud REST API with status:', r1.status);
-  } catch(fetchErr) {
-    console.warn('Direct REST cloud sync warning:', fetchErr);
-  }
-
-  // 2. Secondary SDK Sync if ready
-  if (FB_READY && FB_DB) {
-    saveToFirebase();
-    try {
-      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
-      FB_DB.ref('tugwatch/users').set(DB.users);
-      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) {}
-  }
+  // Authoritative cloud sync
+  var ok = await syncAccountsToCloud();
 
   if (saveBtn) { saveBtn.textContent = origText; saveBtn.disabled = false; }
   closeModal('m-unified-account-modal');
   renderUnifiedAccountsTable();
 
-  toast((role === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "@' + uname + '" saved to Google Cloud ✓', 'var(--ok)');
+  if (ok) {
+    toast((role === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "@' + uname + '" saved to Google Cloud ✓', 'var(--ok)');
+  } else {
+    toast('Account saved locally. Will sync when online.', 'var(--warn)');
+  }
   audit('Team Directory: Saved ' + role + ' "' + name + '" (@' + uname + ')', 'var(--ok)');
 }
 
