@@ -19,7 +19,37 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet"/>
 <title>TugWatch — Marine Fleet Operations OS</title>
-<script>window.__fbLoadError=false;</script>
+<script>
+window.__fbLoadError = false;
+// ── SAFE CLIENT ERROR WATCHDOG & TELEMETRY ─────────────────
+window.TW_ERRORS = [];
+window.addEventListener('error', function(e) {
+  var errObj = {
+    type: 'js_error',
+    message: e.message,
+    filename: (e.filename || '').split('/').pop(),
+    lineno: e.lineno,
+    colno: e.colno,
+    ts: new Date().toISOString()
+  };
+  window.TW_ERRORS.unshift(errObj);
+  if (window.TW_ERRORS.length > 20) window.TW_ERRORS.pop();
+  try { sessionStorage.setItem('tw_recent_errors', JSON.stringify(window.TW_ERRORS)); } catch(x){}
+  console.warn('🛡️ TugWatch Watchdog Captured Error:', errObj);
+});
+window.addEventListener('unhandledrejection', function(e) {
+  var reason = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown rejection';
+  var errObj = {
+    type: 'unhandled_promise',
+    message: reason,
+    ts: new Date().toISOString()
+  };
+  window.TW_ERRORS.unshift(errObj);
+  if (window.TW_ERRORS.length > 20) window.TW_ERRORS.pop();
+  try { sessionStorage.setItem('tw_recent_errors', JSON.stringify(window.TW_ERRORS)); } catch(x){}
+  console.warn('🛡️ TugWatch Watchdog Captured Promise Rejection:', errObj);
+});
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" onerror="window.__fbLoadError=true;console.warn('Firebase app SDK unavailable (offline) — running in local mode')"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" onerror="window.__fbLoadError=true"></script>
