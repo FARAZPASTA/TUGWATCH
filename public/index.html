@@ -8477,6 +8477,19 @@ function loadFromFirebase(callback) {
         if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
         sanitizeDB();
         saveDB();
+
+        // KICK-OUT PROTECTION: If active user was deleted from cloud, sign them out immediately
+        if (CU && CU.role !== 'master' && (CU.username||'').toUpperCase() !== 'FARAZ') {
+          var isCurrentAlive = (DB.accounts || []).some(function(a){
+            return (a.username||'').toUpperCase() === (CU.username||'').toUpperCase();
+          });
+          if (!isCurrentAlive) {
+            console.warn('TugWatch: Active account @' + CU.username + ' was deleted by admin. Force signing out.');
+            doLogout();
+            toast('This account has been deleted or deactivated by the Fleet Administrator.', 'var(--err)');
+            return;
+          }
+        }
         if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
         if (typeof renderUsers === 'function') renderUsers();
         if (typeof renderDashboard === 'function') renderDashboard();
@@ -9751,6 +9764,21 @@ function restoreUserSession() {
     if (raw) {
       var saved = JSON.parse(raw);
       if (saved && (saved.username || saved.name)) {
+        var isMaster = saved.role === 'master' || (saved.username || '').toUpperCase() === 'FARAZ';
+        
+        // If not master, verify account is still active in DB.accounts
+        if (!isMaster && Array.isArray(DB.accounts) && DB.accounts.length > 0) {
+          var stillValid = DB.accounts.some(function(a){
+            return (a.username || '').toUpperCase() === (saved.username || '').toUpperCase();
+          });
+          if (!stillValid) {
+            console.warn('TugWatch: Session expired. Account @' + saved.username + ' was deleted.');
+            sessionStorage.removeItem('tw_session_user');
+            CU = null;
+            return;
+          }
+        }
+
         CU = saved;
         var _ls = $('login-screen'); if (_ls) _ls.style.display = 'none';
         var _app = $('app');
