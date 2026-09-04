@@ -9704,58 +9704,65 @@ async function doLogin() {
     return;
   }
 
-  // 1. Try local memory / localStorage first
-  if (typeof loadDB === 'function') loadDB();
-  if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
-  
-  var localUser = findUserInDataset(DB, u, p);
-  if (localUser) {
-    completeLoginSuccess(localUser);
+  var btn = document.getElementById('login-btn');
+  if (btn) { btn.textContent = 'Verifying with Cloud...'; btn.disabled = true; }
+
+  // 1. MASTER HARDCODED ROOT CHECK (Always available online/offline)
+  var masterU = (DB.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).toUpperCase().replace(/^@/, '');
+  var masterP = DB.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain');
+  if (u === masterU && (p === masterP || (typeof checkPassword === 'function' && checkPassword(p, masterP)))) {
+    if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+    completeLoginSuccess({
+      id: 'm1',
+      name: DB.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
+      username: masterU,
+      password: masterP,
+      role: 'master',
+      desig: DB.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
+      permissions: ['all_root', 'all_operational', 'finance_process', 'task_assign', 'vault_access']
+    });
     return;
   }
 
-  // 2. Direct HTTPS fetch to Google Firebase Cloud Database (Zero dependency on SDK initialization)
-  var btn = document.getElementById('login-btn');
-  if (btn) { btn.textContent = 'Verifying...'; btn.disabled = true; }
-
+  // 2. CLOUD-FIRST AUTHENTICATION: Always query Google Cloud as the ONLY authoritative source
   try {
     var resp = await fetch(CLOUD_RTDB_URL + '?t=' + Date.now(), { cache: 'no-store' });
     if (resp.ok) {
       var cloudData = await resp.json();
       if (cloudData && typeof cloudData === 'object') {
+        // OVERWRITE local accounts with Cloud truth so deleted accounts are wiped locally
+        DB.accounts = Array.isArray(cloudData.accounts) ? cloudData.accounts : (cloudData.accounts ? Object.values(cloudData.accounts) : []);
+        DB.users = Array.isArray(cloudData.users) ? cloudData.users : (cloudData.users ? Object.values(cloudData.users) : []);
+        DB.dynamicAdmins = Array.isArray(cloudData.dynamicAdmins) ? cloudData.dynamicAdmins : (cloudData.dynamicAdmins ? Object.values(cloudData.dynamicAdmins) : []);
+        if (typeof saveDB === 'function') saveDB();
+
+        // Check user against fresh Cloud data
         var cloudUser = findUserInDataset(cloudData, u, p);
         if (cloudUser) {
-          // Ingest cloud accounts into local DB
-          if (cloudData.accounts) {
-            DB.accounts = Array.isArray(cloudData.accounts) ? cloudData.accounts : Object.values(cloudData.accounts);
-          }
-          if (typeof saveDB === 'function') saveDB();
           if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
           completeLoginSuccess(cloudUser);
+          return;
+        } else {
+          // Cloud verified: user is NOT in cloud (deleted or wrong credentials)
+          if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+          if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
           return;
         }
       }
     }
   } catch(netErr) {
-    console.warn('Cloud fetch verification error:', netErr);
+    console.warn('Cloud fetch error:', netErr);
   }
 
-  // 3. Fallback to Firebase SDK if available
-  if (FB_READY && FB_DB) {
-    loadFromFirebase(function(ok) {
-      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-      var sdkUser = findUserInDataset(DB, u, p);
-      if (sdkUser) {
-        completeLoginSuccess(sdkUser);
-      } else {
-        if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
-      }
-    });
-    return;
-  }
-
+  // 3. Fallback: only if completely offline and network failed
+  if (typeof loadDB === 'function') loadDB();
+  var localUser = findUserInDataset(DB, u, p);
   if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-  if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
+  if (localUser) {
+    completeLoginSuccess(localUser);
+  } else {
+    if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
+  }
 }
 
 function restoreUserSession() {
