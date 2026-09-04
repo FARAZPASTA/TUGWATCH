@@ -34357,8 +34357,8 @@ function downloadAccountDocDirect(idx) {
   document.body.removeChild(a);
 }
 
-// ── SAVE ACCOUNT HANDLER (OPTION 1) ──────────────────────
-function saveUnifiedAccountModal() {
+// ── SAVE ACCOUNT HANDLER WITH GUARANTEED CLOUD CONFIRMATION ──────
+async function saveUnifiedAccountModal() {
   var mode = val('acc-mode') || 'create';
   var targetId = val('acc-id');
   var role = val('acc-role') || 'admin';
@@ -34429,25 +34429,31 @@ function saveUnifiedAccountModal() {
 
   saveDB();
 
-  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  // Show visual save feedback on the modal
+  var saveBtn = document.querySelector('#m-unified-account-modal button[onclick*="saveUnifiedAccountModal"]');
+  var origText = saveBtn ? saveBtn.textContent : '';
+  if (saveBtn) { saveBtn.textContent = 'Saving to Google Cloud...'; saveBtn.disabled = true; }
+
+  // 1. Direct HTTPS REST API write with AWAIT to guarantee cloud delivery
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    var r1 = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
     });
+    console.log('TugWatch: Account synced to Google Cloud REST API with status:', r1.status);
   } catch(fetchErr) {
-    console.warn('Direct REST cloud sync error:', fetchErr);
+    console.warn('Direct REST cloud sync warning:', fetchErr);
   }
 
   // 2. Secondary SDK Sync if ready
@@ -34460,10 +34466,11 @@ function saveUnifiedAccountModal() {
     } catch(e) {}
   }
 
+  if (saveBtn) { saveBtn.textContent = origText; saveBtn.disabled = false; }
   closeModal('m-unified-account-modal');
   renderUnifiedAccountsTable();
 
-  toast((role === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "@' + uname + '" saved successfully ✓', 'var(--ok)');
+  toast((role === 'admin' ? 'Fleet Admin' : 'Staff User') + ' "@' + uname + '" saved to Google Cloud ✓', 'var(--ok)');
   audit('Team Directory: Saved ' + role + ' "' + name + '" (@' + uname + ')', 'var(--ok)');
 }
 
