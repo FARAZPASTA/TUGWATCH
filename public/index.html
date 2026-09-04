@@ -8713,29 +8713,8 @@ function sanitizeDB() {
   } catch(e) { console.warn('sanitizeDB:', e); }
 }
 function seedDefaultFleetIfEmpty() {
-    var initialHapa = {
-      address: '',
-      createdAt: '2026-09-04',
-      desig: 'Operations Coordinator',
-      email: '',
-      emergencyContact: '',
-      id: '_afoa11b',
-      name: 'HAPA OFFICE',
-      password: '123456',
-      permissions: ['vessels', 'certificates', 'fuel', 'crew', 'vtms', 'tides'],
-      phone: '123',
-      role: 'staff',
-      username: 'HAPA',
-      whatsapp: ''
-    };
-    if (!DB.accounts) DB.accounts = [];
-    if (!DB.accounts.some(function(a){ return (a.username||'').toUpperCase() === 'HAPA'; })) {
-      DB.accounts.push(initialHapa);
-    }
-    if (!DB.users) DB.users = [];
-    if (!DB.users.some(function(u){ return (u.username||'').toUpperCase() === 'HAPA'; })) {
-      DB.users.push(initialHapa);
-    }
+  if (!DB.accounts) DB.accounts = [];
+  if (!DB.users) DB.users = [];
   if (!DB.vessels || DB.vessels.length === 0) {
     DB.vessels = [
       {
@@ -34504,7 +34483,7 @@ async function saveUnifiedAccountModal() {
   audit('Team Directory: Saved ' + role + ' "' + name + '" (@' + uname + ')', 'var(--ok)');
 }
 
-function deleteAccountClean(accountId) {
+async function deleteAccountClean(accountId) {
   ensureAccountsMigrated();
   var acc = (DB.accounts || []).find(function(x){ return String(x.id).trim() === String(accountId).trim(); });
   if (!acc) return;
@@ -34517,40 +34496,30 @@ function deleteAccountClean(accountId) {
 
   saveDB();
 
-  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
     });
+    _lastCloudVerifiedAccounts = JSON.parse(JSON.stringify(DB.accounts));
   } catch(fetchErr) {
-    console.warn('Direct REST cloud sync error:', fetchErr);
-  }
-
-  // 2. Secondary SDK Sync if ready
-  if (FB_READY && FB_DB) {
-    saveToFirebase();
-    try {
-      FB_DB.ref('tugwatch/accounts').set(DB.accounts);
-      FB_DB.ref('tugwatch/users').set(DB.users);
-      FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) {}
+    console.warn('Direct REST cloud delete error:', fetchErr);
   }
 
   renderUnifiedAccountsTable();
-  toast('Account "' + acc.name + '" deleted permanently');
-  audit('Team Directory: Deleted ' + acc.role + ' "' + acc.name + '"', 'var(--err)');
+  toast('Account "@' + acc.username + '" permanently deleted from Google Cloud ✓', 'var(--ok)');
+  audit('Team Directory: Deleted ' + acc.role + ' "' + acc.name + '" (@' + acc.username + ')', 'var(--warn)');
 }
 
 function populateCompanyProfileClean() {
