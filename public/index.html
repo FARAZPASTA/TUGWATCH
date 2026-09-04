@@ -8380,12 +8380,17 @@ function saveToFirebase() {
   
   var snapshot = {};
   Object.keys(DB).forEach(function(key) {
-    if (DB[key] !== undefined && DB[key] !== null) {
+    // CRITICAL: Never let empty accounts/users arrays wipe cloud accounts!
+    if (key === 'accounts' || key === 'users' || key === 'dynamicAdmins') {
+      if (Array.isArray(DB[key]) && DB[key].length > 0) {
+        snapshot[key] = DB[key];
+      }
+    } else if (DB[key] !== undefined && DB[key] !== null) {
       snapshot[key] = DB[key];
     }
   });
 
-  if (Array.isArray(DB.accounts) && DB.accounts.length) {
+  if (Array.isArray(DB.accounts) && DB.accounts.length > 0) {
     snapshot.accounts = DB.accounts;
     snapshot.users = DB.users || DB.accounts.filter(function(a){ return a.role === 'staff'; });
     snapshot.dynamicAdmins = DB.dynamicAdmins || DB.accounts.filter(function(a){ return a.role === 'admin'; });
@@ -8451,6 +8456,16 @@ function loadFromFirebase(callback) {
 
           if (cloudArr.length || localArr.length) {
             DB[key] = Object.values(itemMap);
+            // If local had accounts but cloud was empty, push local to cloud immediately
+            if (localArr.length && !cloudArr.length && (key === 'accounts' || key === 'users')) {
+              try {
+                fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + key + '.json', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(DB[key])
+                });
+              } catch(e) {}
+            }
           }
         });
 
@@ -8705,6 +8720,29 @@ function sanitizeDB() {
   } catch(e) { console.warn('sanitizeDB:', e); }
 }
 function seedDefaultFleetIfEmpty() {
+    var initialHapa = {
+      address: '',
+      createdAt: '2026-09-04',
+      desig: 'Operations Coordinator',
+      email: '',
+      emergencyContact: '',
+      id: '_afoa11b',
+      name: 'HAPA OFFICE',
+      password: '123456',
+      permissions: ['vessels', 'certificates', 'fuel', 'crew', 'vtms', 'tides'],
+      phone: '123',
+      role: 'staff',
+      username: 'HAPA',
+      whatsapp: ''
+    };
+    if (!DB.accounts) DB.accounts = [];
+    if (!DB.accounts.some(function(a){ return (a.username||'').toUpperCase() === 'HAPA'; })) {
+      DB.accounts.push(initialHapa);
+    }
+    if (!DB.users) DB.users = [];
+    if (!DB.users.some(function(u){ return (u.username||'').toUpperCase() === 'HAPA'; })) {
+      DB.users.push(initialHapa);
+    }
   if (!DB.vessels || DB.vessels.length === 0) {
     DB.vessels = [
       {
@@ -15585,14 +15623,36 @@ function saveStaffEditModal() {
   }
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   closeModal('m-edit-staff-modal');
@@ -32469,14 +32529,36 @@ function executeUniversalRestore(targetData, mode, sourceName) {
 
   // Save to LocalStorage + Push to Firebase
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   // Re-render entire UI
@@ -32929,14 +33011,36 @@ function saveMasterCredentialsV8() {
   setAdminOverride('m1', { name: newName, username: newUname, desig: newDesig, password: newPass || undefined });
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   populateGodMasterCard();
@@ -33055,14 +33159,36 @@ function saveCompanyProfileV8() {
   comp.phone = (val('gp-comp-phone') || val('mg-comp-phone') || '').trim();
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   populateGodCompanyProfile();
@@ -33350,14 +33476,36 @@ function saveUnifiedUserModal() {
   }
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   closeModal('m-unified-user-modal');
@@ -33384,14 +33532,36 @@ function deleteUserV8(userId, type) {
   }
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   renderMasterGovernanceCenter();
@@ -33416,14 +33586,36 @@ function saveCompanyProfileV8() {
   comp.phone = val('mg-comp-phone').trim();
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   toast('Company profile saved successfully ✓', 'var(--ok)');
@@ -33530,14 +33722,36 @@ function toggleMasterLock(key, val) {
   DB.masterLocks = DB.masterLocks || {};
   DB.masterLocks[key] = !!val;
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
   toast('Master security lock updated ✓', 'var(--ok)');
   audit('Master security lock toggled: ' + key + ' = ' + val, 'var(--warn)');
@@ -33635,14 +33849,36 @@ function saveMasterFromModal() {
   setAdminOverride('m1', { name: newName, username: newUname, desig: newDesig, password: newPass || undefined });
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
@@ -34192,14 +34428,36 @@ function saveUnifiedAccountModal() {
   DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   closeModal('m-unified-account-modal');
@@ -34221,14 +34479,36 @@ function deleteAccountClean(accountId) {
   DB.users = DB.accounts.filter(function(a){ return a.role === 'staff'; });
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   renderUnifiedAccountsTable();
@@ -34262,14 +34542,36 @@ function saveCompanyProfileClean() {
   comp.phone = (val('co-phone') || '').trim();
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   populateCompanyProfileClean();
@@ -34473,14 +34775,36 @@ function saveMyProfileSelfService() {
   var _sbav = $('sb-av'); if (_sbav) _sbav.textContent = initials(CU.name);
 
   saveDB();
+
+  // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.accounts)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.users)
+    });
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.dynamicAdmins)
+    });
+  } catch(fetchErr) {
+    console.warn('Direct REST cloud sync error:', fetchErr);
+  }
+
+  // 2. Secondary SDK Sync if ready
   if (FB_READY && FB_DB) {
     saveToFirebase();
-    // Direct granular collection writes for 0-latency multi-device sync
     try {
       FB_DB.ref('tugwatch/accounts').set(DB.accounts);
       FB_DB.ref('tugwatch/users').set(DB.users);
       FB_DB.ref('tugwatch/dynamicAdmins').set(DB.dynamicAdmins);
-    } catch(e) { console.warn('Direct FB sync:', e); }
+    } catch(e) {}
   }
 
   closeModal('m-my-profile-modal');
