@@ -2709,7 +2709,10 @@ html[data-theme="dark"] #l-pass::placeholder {
             <div style="font-size:13px;font-weight:800;color:var(--t1)">👥 Team &amp; User Access Directory (<span id="acc-total-count">0</span> Accounts)</div>
             <div style="font-size:10.5px;color:var(--t3)">Complete list of Fleet Administrators and Shore Staff with instant 1-click editing and KYC document dossiers</div>
           </div>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn btn-outline btn-sm" onclick="checkCloudAccountSyncStatus()" style="font-weight:700;display:flex;align-items:center;gap:5px;border-color:#0284c7;color:#0284c7">
+              <span>☁️</span> <span id="cloud-check-btn-text">Verify Cloud Sync</span>
+            </button>
             <button class="btn btn-primary btn-sm" onclick="openAccountModal('admin')">➕ Add Fleet Admin</button>
             <button class="btn btn-ok btn-sm" onclick="openAccountModal('staff')">➕ Add Staff User</button>
           </div>
@@ -2721,6 +2724,7 @@ html[data-theme="dark"] #l-pass::placeholder {
               <th style="padding:8px 6px">Full Name &amp; Title</th>
               <th style="padding:8px 6px">Login Username</th>
               <th style="padding:8px 6px">Account Role</th>
+              <th style="padding:8px 6px">Cloud Sync Status</th>
               <th style="padding:8px 6px">Phone &amp; KYC Docs</th>
               <th style="padding:8px 6px">Password</th>
               <th style="padding:8px 6px;text-align:right">Actions</th>
@@ -34158,6 +34162,33 @@ function renderGodPanel() { renderMasterGovernanceCenter(); }
 function renderGodpanel() { renderMasterGovernanceCenter(); }
 function renderUsers() { renderMasterGovernanceCenter(); }
 
+var _lastCloudVerifiedAccounts = null;
+
+async function checkCloudAccountSyncStatus() {
+  var btnText = document.getElementById('cloud-check-btn-text');
+  if (btnText) btnText.textContent = 'Checking Cloud...';
+
+  var startTime = Date.now();
+  try {
+    var resp = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json?t=' + Date.now(), { cache: 'no-store' });
+    var latency = Date.now() - startTime;
+    if (resp.ok) {
+      var cloudArr = await resp.json();
+      _lastCloudVerifiedAccounts = Array.isArray(cloudArr) ? cloudArr : (cloudArr && typeof cloudArr === 'object' ? Object.values(cloudArr) : []);
+      renderUnifiedAccountsTable();
+      if (btnText) btnText.textContent = 'Verified ✓ (' + latency + 'ms)';
+      setTimeout(function(){ if (btnText) btnText.textContent = 'Verify Cloud Sync'; }, 3000);
+      toast('☁️ Google Cloud Sync Verified: ' + _lastCloudVerifiedAccounts.length + ' accounts active in cloud (' + latency + 'ms)', 'var(--ok)');
+    } else {
+      if (btnText) btnText.textContent = 'Check Failed ⚠️';
+      toast('Cloud check returned status: ' + resp.status, 'var(--warn)');
+    }
+  } catch(e) {
+    if (btnText) btnText.textContent = 'Offline ⚠️';
+    toast('Cloud check error: ' + e.message, 'var(--err)');
+  }
+}
+
 function renderUnifiedAccountsTable() {
   ensureAccountsMigrated();
   var tbody = document.getElementById('acc-unified-tbody');
@@ -34167,7 +34198,7 @@ function renderUnifiedAccountsTable() {
   if (!tbody) return;
 
   if (!DB.accounts.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--t3);font-size:12px">No team accounts created yet. Click "➕ Add Fleet Admin" or "➕ Add Staff User" above to add a team member.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--t3);font-size:12px">No team accounts created yet. Click "➕ Add Fleet Admin" or "➕ Add Staff User" above to add a team member.</td></tr>';
     return;
   }
 
@@ -34184,10 +34215,23 @@ function renderUnifiedAccountsTable() {
 
     var contactStr = (acc.phone ? '📞 ' + esc(acc.phone) : '') + (acc.email ? ' · ✉️ ' + esc(acc.email) : '');
 
+    // Cloud Verification Badge
+    var isCloudSynced = true;
+    if (_lastCloudVerifiedAccounts) {
+      isCloudSynced = _lastCloudVerifiedAccounts.some(function(ca){
+        return (ca.username||'').toUpperCase() === (acc.username||'').toUpperCase() && ca.password === acc.password;
+      });
+    }
+
+    var cloudBadge = isCloudSynced
+      ? '<span class="chip chip-ok" style="font-size:9px;font-weight:800;background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.3)">🟢 Cloud Synced</span>'
+      : '<span class="chip chip-warn" style="font-size:9px;font-weight:800;background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.3)">⏳ Sync Pending</span>';
+
     return '<tr style="border-bottom:1px solid var(--b1);font-size:11.5px">'
       + '<td style="padding:12px 6px"><strong>' + esc(acc.name) + '</strong><div style="font-size:9.5px;color:var(--t3)">' + esc(acc.desig || (isAdm ? 'Fleet Administrator' : 'Staff User')) + '</div></td>'
       + '<td style="padding:12px 6px;font-family:var(--fm);font-weight:800;color:var(--accent)">@' + esc((acc.username||'').toUpperCase()) + '</td>'
       + '<td style="padding:12px 6px">' + roleBadge + '</td>'
+      + '<td style="padding:12px 6px">' + cloudBadge + '</td>'
       + '<td style="padding:12px 6px"><div style="font-size:10px">' + (contactStr || '—') + '</div><div style="margin-top:2px">' + docBadge + '</div></td>'
       + '<td style="padding:12px 6px;font-family:var(--fm);font-weight:700;color:var(--ok);font-size:11px">' + esc(acc.password || '••••••••') + '</td>'
       + '<td style="padding:12px 6px;text-align:right">'
