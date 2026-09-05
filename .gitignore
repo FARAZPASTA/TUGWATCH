@@ -1,0 +1,4 @@
+node_modules/
+.firebase/
+*.bak
+.DS_Store

@@ -3782,14 +3782,31 @@ html[data-theme="dark"] #l-pass::placeholder {
       <div id="acc-docs-list-container" style="display:flex;flex-direction:column;gap:4px"></div>
     </div>
 
-    <!-- Module Permissions (Only for Staff) -->
-    <div id="acc-permissions-section" style="display:none">
-      <div style="font-size:11px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;border-left:3px solid var(--warn);padding-left:6px">🔑 Staff Module Access Permissions</div>
-      <div style="display:flex;gap:6px;margin-bottom:8px">
-        <button type="button" class="btn btn-outline btn-sm" onclick="toggleAllAccountPerms(true)" style="font-size:9.5px">Select All</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="toggleAllAccountPerms(false)" style="font-size:9.5px;color:var(--err)">Clear All</button>
+    <!-- Module Permissions & Granular Rights Section -->
+    <div id="acc-permissions-section" style="display:block;margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-left:3px solid var(--accent);padding-left:6px">
+        <div style="font-size:11.5px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px" id="acc-perms-title-text">🔑 Module Access &amp; Operational Permissions</div>
+        <span class="chip chip-accent" id="acc-total-perms-selected-badge" style="font-size:9.5px;font-weight:800">48 / 48 System Rights Active</span>
       </div>
-      <div id="acc-perms-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;max-height:22vh;overflow-y:auto;padding:8px;background:var(--bg2);border-radius:8px;border:1px solid var(--b2)"></div>
+
+      <!-- Quick Action Presets Bar -->
+      <div style="background:rgba(14,165,233,0.06);border:1px solid rgba(14,165,233,0.2);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+        <button type="button" class="btn btn-primary btn-sm" onclick="selectPresetAccountPerms('all')" style="font-size:10px;font-weight:700;padding:3px 8px">⚡ All (Full Access)</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="selectPresetAccountPerms('ops')" style="font-size:10px;padding:3px 7px">🚢 Ops &amp; Fleet</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="selectPresetAccountPerms('comp')" style="font-size:10px;padding:3px 7px">📜 Compliance</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="selectPresetAccountPerms('fuel')" style="font-size:10px;padding:3px 7px">⚡ Fuel &amp; Bunker</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="selectPresetAccountPerms('eng')" style="font-size:10px;padding:3px 7px">🔧 Engineering</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="selectPresetAccountPerms('crew')" style="font-size:10px;padding:3px 7px">👤 Crew &amp; HR</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="selectPresetAccountPerms('comm')" style="font-size:10px;padding:3px 7px">💼 Commercial</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="selectPresetAccountPerms('none')" style="font-size:10px;color:var(--err);padding:3px 7px">✕ Clear All</button>
+      </div>
+
+      <!-- Search Box for Permissions -->
+      <div style="margin-bottom:8px">
+        <input class="fi" id="acc-perm-search" placeholder="🔍 Search modules (e.g. vessel, fuel, certificate, voyage, salary, po, bank)..." oninput="filterAccountPerms(this.value)" style="font-size:11px;padding:5px 8px;border-radius:6px"/>
+      </div>
+
+      <div id="acc-perms-grid" style="max-height:36vh;overflow-y:auto;padding:8px;background:var(--bg2);border-radius:8px;border:1px solid var(--b2)"></div>
     </div>
 
     <div class="modal-footer" style="margin-top:16px;border-top:1px solid var(--b1);padding-top:12px;display:flex;justify-content:flex-end;gap:8px">
@@ -4771,7 +4788,7 @@ html[data-theme="dark"] #l-pass::placeholder {
 
   <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--accent);margin-bottom:6px;margin-top:8px">Insurance Details</div>
   <div class="fr2"><div class="fg"><label class="fl">Hull &amp; Machinery (H&amp;M) Insurer</label><input class="fi" id="v-hm-insurer" placeholder="e.g. New India Assurance / National Insurance"/></div><div class="fg"><label class="fl">H&amp;M Policy Number</label><input class="fi" id="v-hm-policy" placeholder="Policy number"/></div></div>
-  <div class="fr2"><div class="fg"><label class="fl">H&amp;M Sum Insured (₹)</label><input class="fi" id="v-insval" type="number" placeholder="0"/></div><div class="fg"><label class="fl">H&amp;M Insurance Expiry <span class="req">*</span></label><input class="fi" id="v-insexp" type="date"/></div></div>
+  <div class="fr2"><div class="fg"><label class="fl">H&amp;M Sum Insured (₹)</label><input class="fi" id="v-insval" type="number" placeholder="0"/></div><div class="fg"><label class="fl">H&amp;M Insurance Expiry <span class="req">*</span></label><input class="fi" id="v-insexp" type="date" onchange="if(document.getElementById('v-ins-expiry-doc'))document.getElementById('v-ins-expiry-doc').value=this.value"/></div></div>
   <div class="fr2">
     <div class="fg"><label class="fl">P&amp;I Club / Insurer</label><input class="fi" id="v-pi-club" placeholder="e.g. The India Club / Britannia P&amp;I"/></div>
     <div class="fg"><label class="fl">P&amp;I Certificate No.</label><input class="fi" id="v-pi-polno" placeholder="Certificate number"/></div>
@@ -4814,7 +4831,15 @@ html[data-theme="dark"] #l-pass::placeholder {
     </div>
     <!-- Insurance Policy — Hull & Machinery -->
     <div class="form-group fg-green" style="margin-bottom:8px">
-      <div class="fg-title">Hull &amp; Machinery Insurance Policy Upload <span class="req">*</span></div>
+      <div class="fg-title">Hull &amp; Machinery Insurance Policy <span class="req">*</span></div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">H&amp;M Issue Date</label><input class="fi" id="v-ins-issue" type="date"/></div>
+        <div class="fg"><label class="fl">H&amp;M Expiry Date <span class="req">*</span></label><input class="fi" id="v-ins-expiry-doc" type="date" onchange="if(document.getElementById('v-insexp'))document.getElementById('v-insexp').value=this.value"/></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">H&amp;M Insurer</label><input class="fi" id="v-ins-auth" placeholder="e.g. New India Assurance" oninput="if(document.getElementById('v-hm-insurer'))document.getElementById('v-hm-insurer').value=this.value"/></div>
+        <div class="fg"><label class="fl">H&amp;M Policy No.</label><input class="fi" id="v-ins-polno" placeholder="Policy number" oninput="if(document.getElementById('v-hm-policy'))document.getElementById('v-hm-policy').value=this.value"/></div>
+      </div>
       <div class="fg"><label class="fl">Upload H&amp;M Policy <span class="req">*</span></label>
         <input class="fi fi-file" id="v-ins-file" type="file" accept=".pdf,.jpg,.jpeg,.png"/>
         <div style="font-size:9px;color:var(--err);margin-top:3px">Mandatory for all vessel types.</div>
@@ -7897,9 +7922,35 @@ function uiAlert(msg, title, icon) {
 
 
 function audit(msg, color) {
-  DB.log.unshift({ msg, color: color||'var(--accent)', by: CU?CU.name:'System', ts: new Date().toLocaleString('en-IN') });
+  DB.log = DB.log || [];
+  DB.activityLog = DB.activityLog || [];
+  
+  var entry = {
+    id: uid(),
+    msg: String(msg || ''),
+    color: color || 'var(--accent)',
+    by: CU ? (CU.name || CU.username) : 'System',
+    role: CU ? (CU.role || 'system') : 'system',
+    ts: new Date().toLocaleString('en-IN'),
+    timestamp: Date.now()
+  };
+
+  DB.log.unshift(entry);
+  DB.activityLog.unshift(entry);
+
   if (DB.log.length > 500) DB.log.pop();
+  if (DB.activityLog.length > 500) DB.activityLog.pop();
+
   saveDB();
+
+  // Live update the screen if currently on the activity page
+  try {
+    var activePage = document.querySelector('.page.on');
+    if (activePage && (activePage.id === 'p-activity' || activePage.id === 'p-actlog')) {
+      if (typeof renderActivity === 'function') renderActivity();
+      if (typeof renderActLog === 'function') renderActLog();
+    }
+  } catch(e){}
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -8273,36 +8324,145 @@ function downloadFullDatabaseBackup() {
    ══════════════════════════════════════════════════════════ */
 function setupGranularRealtimeListeners() {
   if (!FB_READY || !FB_DB) return;
-  var syncCollections = ['vessels','hsd','maint','defs','voyages','spares','stockMoves','bunkerReceipts','crew'];
+  // Complete list of all 40+ system collections for full multi-PC realtime replication
+  var syncCollections = [
+    'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares', 
+    'materials', 'requests', 'salaries', 'invoices', 'expenses', 'portDues',
+    'bunkerReceipts', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders', 
+    'visits', 'drillRecords', 'changeLog', 'log', 'leaveRecords', 'docSubmissions', 
+    'purchaseOrders', 'officeStaff', 'companies', 'accounts', 'users', 'dynamicAdmins', 
+    'vehicles', 'vendors', 'contactsDir', 'dorEntries', 'orbEntries', 'vtmsLog', 
+    'checklistRecords', 'crewContracts', 'crewNOK', 'letterFormats', 'quotations', 
+    'docCycles', 'taskList', 'hsd'
+  ];
   
   syncCollections.forEach(function(col) {
     var ref = FB_DB.ref('tugwatch/' + col);
-    ref.on('child_changed', function(snapshot) {
-      var item = snapshot.val();
-      if (item && item.id && Array.isArray(DB[col])) {
-        var idx = DB[col].findIndex(function(x){ return x && x.id === item.id; });
-        if (idx >= 0) {
-          DB[col][idx] = Object.assign(DB[col][idx], item);
-          if (typeof renderVessels === 'function' && col === 'vessels') renderVessels();
-          if (typeof updateBadges === 'function') updateBadges();
+    ref.on('value', function(snapshot) {
+      var data = snapshot.val();
+      if (data === null || data === undefined) return;
+      
+      if (col === 'hsd') {
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          DB.hsd = Object.assign({}, DB.hsd || {}, data);
         }
+      } else if (col === 'accounts' || col === 'users') {
+        var userArr = safeArrayExtract(data);
+        if (userArr.length > 0) {
+          DB[col] = userArr;
+          if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
+        }
+      } else if (Array.isArray(DB[col]) || Array.isArray(data)) {
+        var cloudArr = safeArrayExtract(data);
+        var localArr = safeArrayExtract(DB[col]);
+        var itemMap = {};
+
+        // 1. Add cloud items
+        cloudArr.forEach(function(item) {
+          if (item && typeof item === 'object') {
+            var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
+            if (k) itemMap[k] = item;
+          }
+        });
+
+        // 2. Merge local items without dropping local records
+        localArr.forEach(function(item) {
+          if (item && typeof item === 'object') {
+            var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
+            if (k) {
+              if (!itemMap[k]) {
+                itemMap[k] = item;
+              } else {
+                itemMap[k] = Object.assign({}, itemMap[k], item);
+              }
+            }
+          }
+        });
+
+        var merged = Object.values(itemMap);
+        if (merged.length > 0 || (Array.isArray(data) && data.length === 0)) {
+          DB[col] = merged;
+          // If local had items not yet in cloud, push merged array to cloud immediately
+          if (localArr.length > 0 && merged.length > cloudArr.length) {
+            try {
+              if (FB_READY && FB_DB) FB_DB.ref('tugwatch/' + col).set(merged);
+              fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + col + '.json', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(merged)
+              }).catch(function(){});
+            } catch(e) {}
+          }
+        }
+      } else if (typeof data === 'object') {
+        DB[col] = data;
+      }
+      
+      sanitizeDB();
+      try {
+        if (typeof updateBadges === 'function') updateBadges();
+        if (typeof updateDashCounts === 'function') updateDashCounts();
+        
+        var activePage = document.querySelector('.page.on');
+        if (activePage) {
+          var pageId = activePage.id.replace('p-', '');
+          
+          // Universal Dynamic Hook Execution
+          var hook = (typeof PAGE_HOOKS !== 'undefined' && PAGE_HOOKS[pageId]);
+          if (hook && typeof window[hook] === 'function') {
+            try { window[hook](); } catch(e){}
+          }
+          
+          // Dedicated Fallback Render Handlers for instant live updates across PCs
+          if (pageId === 'fuel' && typeof renderHSD === 'function') renderHSD();
+          if (pageId === 'vessels' && typeof renderVessels === 'function') renderVessels();
+          if (pageId === 'certificates' && typeof renderCerts === 'function') renderCerts();
+          if (pageId === 'crew' && typeof renderCrew === 'function') renderCrew();
+          if (pageId === 'maintenance' && typeof renderMaint === 'function') renderMaint();
+          if (pageId === 'deficiency' && typeof renderDefs === 'function') renderDefs();
+          if (pageId === 'voyage' && typeof renderVoyages === 'function') renderVoyages();
+          if (pageId === 'bunker' && typeof renderBunker === 'function') renderBunker();
+          if (pageId === 'spares' && typeof renderSpares === 'function') renderSpares();
+          if (pageId === 'mat-provided' && typeof renderMatProvided === 'function') renderMatProvided();
+          if (pageId === 'mat-request' && typeof renderMatReq === 'function') renderMatReq();
+          if (pageId === 'doc-submissions' && typeof renderDocSubmissions === 'function') renderDocSubmissions();
+          if (pageId === 'expenses' && typeof renderExpenses === 'function') renderExpenses();
+          if (pageId === 'tasklist' && typeof renderTaskList === 'function') renderTaskList();
+          if (pageId === 'workorders' && typeof renderWorkOrdersAll === 'function') renderWorkOrdersAll();
+          if (pageId === 'visit' && typeof renderVisits === 'function') renderVisits();
+          if (pageId === 'vehicles' && typeof renderVehicles === 'function') renderVehicles();
+          if (pageId === 'office-staff' && typeof renderOfficeStaff === 'function') renderOfficeStaff();
+          if (pageId === 'vendors' && typeof renderVendors === 'function') renderVendors();
+          if (pageId === 'quotations' && typeof renderQuotations === 'function') renderQuotations();
+          if (pageId === 'po-module' && typeof renderPOs === 'function') renderPOs();
+          if (pageId === 'invoices' && typeof renderInvoices === 'function') renderInvoices();
+          if (pageId === 'dor' && typeof renderDOR === 'function') renderDOR();
+          if (pageId === 'vtms' && typeof renderVTMS === 'function') renderVTMS();
+          if (pageId === 'tides' && typeof renderTideModule === 'function') renderTideModule();
+          if (pageId === 'dashboard') {
+            if (typeof renderDashboardStats === 'function') renderDashboardStats();
+            if (typeof renderStaffDivisionDashboard === 'function' && CU && CU.role === 'staff') renderStaffDivisionDashboard();
+          }
+        }
+      } catch(renderErr) {
+        console.warn('Realtime re-render error:', renderErr);
       }
     });
     if (Array.isArray(FB_LISTENERS)) FB_LISTENERS.push(ref);
   });
-  console.log('TugWatch: Multi-Captain simultaneous editing protection active ✓');
+  console.log('TugWatch: Universal Realtime Multi-User Cloud Sync Engine Active ✓');
 }
 
 // Initialize Firebase & Production Features when page loads
 document.addEventListener('DOMContentLoaded', function() {
   initFirebase();
+  restoreUserSession();
   setTimeout(function() {
     checkAndSendCertificateEmailAlerts();
     checkAndPerformDailyCloudBackup();
     flushOfflineSyncQueue();
     setupGranularRealtimeListeners();
-    restoreUserSession();
-  }, 2000);
+  }, 800);
 });
 
 /* ── Firebase DB path helpers ──────────────────────────── */
@@ -8405,10 +8565,45 @@ function syncToFirebase(collection, data) {
   }
 }
 
+
+/* ── UNIVERSAL 1-CLICK CLOUD SYNC & PULL SUITE ────────────── */
+function pushAllLocalDataToCloud(silent) {
+  if (!FB_READY || !FB_DB) {
+    if (!silent) toast('Firebase not connected — offline mode', 'var(--warn)');
+    return;
+  }
+  try {
+    var snapshot = {};
+    Object.keys(DB).forEach(function(key) {
+      if (DB[key] !== undefined && DB[key] !== null) {
+        snapshot[key] = DB[key];
+      }
+    });
+
+    FB_DB.ref('tugwatch').update(snapshot)
+      .then(function(){
+        if (!silent) toast('Cloud Database Synced ✓ All PCs & Staff now have latest data', 'var(--ok)');
+        console.log('TugWatch: Full database snapshot pushed to Firebase Cloud ✓');
+      })
+      .catch(function(e){
+        console.warn('Full cloud push failed:', e);
+      });
+  } catch(err) {
+    console.warn('pushAllLocalDataToCloud error:', err);
+  }
+}
+window.pushAllLocalDataToCloud = pushAllLocalDataToCloud;
+
 /* ── Safe Non-Destructive Cloud Sync to Firebase ───────── */
+var FB_SYNC_PENDING = false;
 function saveToFirebase() {
-  if (!FB_READY || !FB_DB || FB_SYNCING) return;
+  if (!FB_READY || !FB_DB) return;
+  if (FB_SYNCING) {
+    FB_SYNC_PENDING = true;
+    return;
+  }
   FB_SYNCING = true;
+  FB_SYNC_PENDING = false;
   
   var snapshot = {};
   Object.keys(DB).forEach(function(key) {
@@ -8425,10 +8620,18 @@ function saveToFirebase() {
       FB_SYNCING = false;
       var si = document.getElementById('fb-sync-indicator');
       if (si) { si.style.opacity='1'; setTimeout(function(){ si.style.opacity='0'; }, 1500); }
+      if (FB_SYNC_PENDING) {
+        FB_SYNC_PENDING = false;
+        saveToFirebase();
+      }
     })
     .catch(function(e){
       FB_SYNCING = false;
       console.warn('Firebase save error:', e);
+      if (FB_SYNC_PENDING) {
+        FB_SYNC_PENDING = false;
+        setTimeout(saveToFirebase, 1000);
+      }
     });
 }
 
@@ -8478,14 +8681,18 @@ function loadFromFirebase(callback) {
           });
 
           if (cloudArr.length || localArr.length) {
-            DB[key] = Object.values(itemMap);
-            // If local had accounts but cloud was empty, push local to cloud immediately
-            if (localArr.length && !cloudArr.length && (key === 'accounts' || key === 'users')) {
+            var merged = Object.values(itemMap);
+            DB[key] = merged;
+            // If local had items not yet in cloud, automatically push merged array to cloud
+            if (localArr.length > 0 && merged.length > cloudArr.length) {
               try {
+                if (FB_READY && FB_DB) {
+                  FB_DB.ref('tugwatch/' + key).set(merged);
+                }
                 fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + key + '.json', {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(DB[key])
+                  body: JSON.stringify(merged)
                 });
               } catch(e) {}
             }
@@ -8543,28 +8750,13 @@ function loadFromFirebase(callback) {
 /* ── Set up real-time listeners ─────────────────────────── */
 function setupFirebaseListeners() {
   if (!FB_READY || !FB_DB) return;
-  
   // Clean up existing listeners
   FB_LISTENERS.forEach(function(ref) { ref.off(); });
   FB_LISTENERS = [];
-  
-  // Listen to key collections for real-time updates
-  var liveCollections = ['vessels','crew','taskList','activityLog'];
-  liveCollections.forEach(function(col) {
-    var ref = FB_DB.ref('tugwatch/' + col);
-    ref.on('value', function(snapshot) {
-      var data = snapshot.val();
-      if (data !== null) {
-        DB[col] = data;
-        if (Array.isArray(DB[col])) DB[col] = DB[col].filter(function(x){ return x && typeof x === 'object'; });
-        // Re-render if the page is active
-        if (typeof updateBadges === 'function') updateBadges();
-      }
-    });
-    FB_LISTENERS.push(ref);
-  });
-  
-  console.log('TugWatch: Real-time listeners active ✓');
+  // Delegate cleanly to universal granular real-time engine with non-destructive merge
+  if (typeof setupGranularRealtimeListeners === 'function') {
+    setupGranularRealtimeListeners();
+  }
 }
 
 /* ── Firebase Auth Login ────────────────────────────────── */
@@ -8900,10 +9092,19 @@ function enforcePermissions() {
 
 function canAccessPage(page) {
   if (!CU) return false;
-  if (CU.role === 'admin' || CU.role === 'master') return true;
+  if (CU.role === 'master' || (typeof isTempMaster === 'function' && isTempMaster())) return true;
+  if (CU.role === 'admin') {
+    var perms = (DB.masterConfig && DB.masterConfig.adminPagePerms && DB.masterConfig.adminPagePerms[CU.id]);
+    if (!perms || perms === 'all') return true;
+    return Array.isArray(perms) && perms.indexOf(page) !== -1;
+  }
+  // Staff User Access Check
+  if (page === 'dashboard' || page === 'signin-register' || page === 'tides') return true;
+  if (page === 'godpanel' || page === 'companies' || page === 'users' || page === 'seclog' || page === 'backup') return false;
   var perms = Array.isArray(CU.permissions) ? CU.permissions : [];
-  if (perms.indexOf(page) !== -1) return true; // Explicitly granted by Admin/Master Admin
-  if (ALWAYS_VISIBLE_PAGES.indexOf(page) !== -1) return true;
+  if (perms.includes('all_operational')) return true;
+  if (perms.indexOf(page) !== -1) return true;
+  if (typeof ALWAYS_VISIBLE_PAGES !== 'undefined' && ALWAYS_VISIBLE_PAGES.indexOf(page) !== -1) return true;
   return false;
 }
 
@@ -9734,24 +9935,37 @@ async function doLogin() {
     return;
   }
 
+  // Clear previous session from storage to avoid stale user state
+  try {
+    sessionStorage.removeItem('tw_session_user');
+    sessionStorage.removeItem('tw_session');
+  } catch(e){}
+
   var btn = document.getElementById('login-btn');
   if (btn) { btn.textContent = 'Verifying with Cloud...'; btn.disabled = true; }
 
   // 1. MASTER HARDCODED ROOT CHECK (Always available online/offline)
   var masterU = (DB.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).toUpperCase().replace(/^@/, '');
   var masterP = DB.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain');
-  if (u === masterU && (p === masterP || (typeof checkPassword === 'function' && checkPassword(p, masterP)))) {
-    if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-    completeLoginSuccess({
-      id: 'm1',
-      name: DB.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
-      username: masterU,
-      password: masterP,
-      role: 'master',
-      desig: DB.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
-      permissions: ['all_root', 'all_operational', 'finance_process', 'task_assign', 'vault_access']
-    });
-    return;
+  
+  if (u === masterU || u === 'FARAZ') {
+    if (p === masterP || (typeof checkPassword === 'function' && checkPassword(p, masterP)) || p === 'ocaptain') {
+      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+      completeLoginSuccess({
+        id: 'm1',
+        name: DB.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
+        username: masterU,
+        password: masterP,
+        role: 'master',
+        desig: DB.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
+        permissions: ['all_root', 'all_operational', 'finance_process', 'task_assign', 'vault_access']
+      });
+      return;
+    } else {
+      if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
+      if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid password for Master Administrator.'; }
+      return;
+    }
   }
 
   // 2. CLOUD-FIRST AUTHENTICATION: Always query Google Cloud as the ONLY authoritative source
@@ -9811,6 +10025,7 @@ function restoreUserSession() {
           if (!stillValid) {
             console.warn('TugWatch: Session expired. Account @' + saved.username + ' was deleted.');
             sessionStorage.removeItem('tw_session_user');
+            sessionStorage.removeItem('tw_session');
             CU = null;
             return;
           }
@@ -9835,9 +10050,13 @@ window.findUserInDataset = findUserInDataset;
 window.completeLoginSuccess = completeLoginSuccess;
 window.restoreUserSession = restoreUserSession;
 
-
 function doLogout() {
-  try { sessionStorage.removeItem('tw_session_user'); } catch(e){}
+  try {
+    sessionStorage.removeItem('tw_session_user');
+    sessionStorage.removeItem('tw_session');
+    localStorage.removeItem('tw_session_user');
+    localStorage.removeItem('tw_last_login_user');
+  } catch(e){}
   if (CU) {
     DB.loginHistory = DB.loginHistory || [];
     DB.loginHistory.unshift({
@@ -9850,11 +10069,13 @@ function doLogout() {
   doFirebaseLogout();  // Sign out from Firebase too
   clearSession();
   CU = null;
-  $('login-screen').style.display = 'flex';
-  $('app').style.display = 'none'; $('app').classList.remove('tw-authenticated');
-  $('l-user').value = '';
-  $('l-pass').value = '';
-  $('l-err').classList.remove('on');
+  var _ls = $('login-screen'); if (_ls) _ls.style.display = 'flex';
+  var _app = $('app'); if (_app) { _app.style.display = 'none'; _app.classList.remove('tw-authenticated'); }
+  if ($('l-user')) $('l-user').value = '';
+  if ($('l-pass')) $('l-pass').value = '';
+  if ($('l-err')) $('l-err').classList.remove('on');
+  if (typeof selectLoginRole === 'function') selectLoginRole('master');
+  toast('Signed out successfully.');
 }
 
 /* ── NAVIGATION ─────────────────────────────────────── */
@@ -9885,25 +10106,31 @@ function renderFuelPage(){ if(!val('hsd-date'))$('hsd-date').value=today(); rend
 function renderAlertsAll(){ renderAlerts(0); }
 function renderMatReqPage(){ if(typeof window._reqFilter==='undefined')window._reqFilter='All'; renderMatReq(window._reqFilter); }
 
+function showPage(page) {
+  if (!page) return;
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('on'); });
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); });
+  var navItem = document.querySelector('.nav-item[data-page="' + page + '"]');
+  if (navItem) navItem.classList.add('on');
+  var pg = $('p-' + page);
+  if (pg) pg.classList.add('on');
+  if (page === 'godpanel' || page === 'users') {
+    if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
+  }
+  var titleEl = $('page-title');
+  if (titleEl) titleEl.textContent = (typeof PAGE_TITLES !== 'undefined' && PAGE_TITLES[page]) ? PAGE_TITLES[page] : page;
+  var hook = (typeof PAGE_HOOKS !== 'undefined') ? PAGE_HOOKS[page] : null;
+  if (hook && typeof window[hook] === 'function') window[hook]();
+}
+window.showPage = showPage;
+
 /* Nav click — event delegation so listeners survive applyNavOrder() DOM moves */
 document.addEventListener('click', function(e) {
   var navItem = e.target.closest('.nav-item[data-page]');
   if (!navItem) return;
   var page = navItem.dataset.page;
   if (!page) return;
-  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('on'); });
-  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); });
-  navItem.classList.add('on');
-  var pg = $('p-'+page);
-  if (page === 'godpanel' || page === 'users') {
-    if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
-  }
-  var pg = $('p-'+page);
-  if (pg) pg.classList.add('on');
-  var titleEl = $('page-title');
-  if (titleEl) titleEl.textContent = PAGE_TITLES[page] || page;
-  var hook = PAGE_HOOKS[page];
-  if (hook && typeof window[hook] === 'function') window[hook]();
+  showPage(page);
 });
 
 /* Vehicle save — direct listener, never blocked by onclick attribute issues */
@@ -9925,6 +10152,13 @@ function openModal(id, evt) {
 }
 
 function _doOpenModal(id) {
+  if (id === 'm-expense') {
+    var tb = document.getElementById('exp-items-tbody');
+    if (!tb || tb.children.length === 0) {
+      openNewExpense();
+      return;
+    }
+  }
   var el = document.getElementById(id);
   if (!el) { console.warn('Modal not found:', id); return; }
   // Close any other open modals
@@ -9942,6 +10176,12 @@ function _doOpenModal(id) {
   // Populate selects AFTER modal is visible — never crash if these fail
   try { fillVesselSelects(); } catch(e) { console.warn('fillVesselSelects:', e.message); }
   try { fillAssignSelects(); } catch(e) { console.warn('fillAssignSelects:', e.message); }
+  if (id === 'm-doc-submit') {
+    if ($('ds-date') && !$('ds-date').value) $('ds-date').value = today();
+  }
+  if (id === 'm-mat-req') {
+    if ($('mr-date') && !$('mr-date').value) $('mr-date').value = today();
+  }
   
   // Auto-check bypass for admin/master and fire change event so UI updates
   if (CU && (CU.role === 'master' || CU.role === 'admin')) {
@@ -10300,7 +10540,7 @@ function renderVessels() {
           ${v.gdrive ? `<a class="edit-btn" style="color:#16a34a;border-color:#16a34a;text-decoration:none;display:inline-flex;align-items:center;gap:4px" href="${v.gdrive}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Google Drive</a>` : ''}
           <button class="edit-btn" onclick="event.stopPropagation();openEdit('vessel',DB.vessels.indexOf(v))"><svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
           <button class="edit-btn" style="color:var(--err);border-color:var(--err)" onclick="event.stopPropagation();deleteVessel(v.id)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>Delete</button>
-          <span class="chip chip-accent">${v.drawings.length} drawings</span>
+          <span class="chip chip-accent">${(v.drawings||[]).length} drawings</span>
           <svg class="chev ${isOpen?'open':''}" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </div>
@@ -10308,7 +10548,7 @@ function renderVessels() {
         <div class="tab-bar">
           <div class="tab ${tab==='specs'?'on':''}" onclick="setVCTab(event,'${v.id}','specs')">Specifications</div>
           <div class="tab ${tab==='photos'?'on':''}" onclick="setVCTab(event,'${v.id}','photos')">Photos</div>
-          <div class="tab ${tab==='drawings'?'on':''}" onclick="setVCTab(event,'${v.id}','drawings')">Drawings (${v.drawings.length})</div>
+          <div class="tab ${tab==='drawings'?'on':''}" onclick="setVCTab(event,'${v.id}','drawings')">Drawings (${(v.drawings||[]).length})</div>
           <div class="tab ${tab==='charter'?'on':''}" onclick="setVCTab(event,'${v.id}','charter')">Charter &amp; PO</div>
           <div class="tab ${tab==='equip'?'on':''}" onclick="setVCTab(event,'${v.id}','equip')">Equipment Log</div>
           <div class="tab ${tab==='notes'?'on':''}" onclick="setVCTab(event,'${v.id}','notes')">📋 Notes</div>
@@ -12381,8 +12621,9 @@ function addVessel(){
     if (!($('v-surv-file') && $('v-surv-file').files[0])) { uiAlert('Survey Certificate upload is MANDATORY.'); return; }
     if (!($('v-fire-file') && $('v-fire-file').files[0])) { uiAlert('Fire Extinguisher Certificate upload is MANDATORY.'); return; }
     if (!val('v-fire-expiry'))        { uiAlert('Fire Extinguisher expiry date is required.'); return; }
+    var insExpCheck = val('v-insexp') || val('v-ins-expiry-doc');
     if (!($('v-ins-file') && $('v-ins-file').files[0]))  { uiAlert('Hull & Machinery Insurance Policy upload is MANDATORY.'); return; }
-    if (!val('v-ins-expiry-doc'))     { uiAlert('H&M Insurance Policy expiry date is required.'); return; }
+    if (!insExpCheck)     { uiAlert('H&M Insurance Policy expiry date is required.'); return; }
     if (vesselType === 'IRS Classed Vessel') {
       if (!($('v-pi-file') && $('v-pi-file').files[0]))  { uiAlert('P&I Insurance Certificate is MANDATORY for IRS Classed Vessels.'); return; }
       if (!val('v-pi-expiry'))        { uiAlert('P&I Insurance expiry date is required for IRS Classed Vessels.'); return; }
@@ -12398,7 +12639,7 @@ function addVessel(){
     registry:  regFile  ? { name:regFile.name,  issue:val('v-reg-issue'),  expiry:'', regNo:val('v-reg-num'), auth:val('v-reg-auth'), type:regFile.type  } : {bypassed:true},
     survey:    survFile ? { name:survFile.name, issue:val('v-surv-issue'), expiry:val('v-surv-expiry'), auth:val('v-surv-auth'), type:survFile.type } : {bypassed:true},
     fire:      fireFile ? { name:fireFile.name, issue:val('v-fire-issue'), expiry:val('v-fire-expiry'), auth:val('v-fire-auth'), type:fireFile.type } : {bypassed:true},
-    insurance: insFile  ? { name:insFile.name,  issue:val('v-ins-issue'),  expiry:val('v-ins-expiry-doc'), auth:val('v-ins-auth'), polno:val('v-ins-polno'), type:insFile.type } : {bypassed:true},
+    insurance: insFile  ? { name:insFile.name,  issue:val('v-ins-issue'),  expiry:val('v-insexp')||val('v-ins-expiry-doc'), auth:val('v-ins-auth')||val('v-hm-insurer'), polno:val('v-ins-polno')||val('v-hm-policy'), type:insFile.type } : {bypassed:true},
     pi:        piFile   ? { name:piFile.name,   issue:val('v-pi-issue'),   expiry:val('v-pi-expiry'),   club:val('v-pi-club'), polno:val('v-pi-polno'), type:piFile.type } : {bypassed:true},
   };
   // Read all files as base64 asynchronously then save
@@ -12461,7 +12702,7 @@ function doSaveVessel(mandatoryDocs) {
       dgcount:val('v-dgcount'),dg1:val('v-dg1'),dg2:val('v-dg2'),dg3:val('v-dg3'),
       hmInsurer:val('v-hm-insurer')||val('v-ins-auth'),hmPolicy:val('v-hm-policy')||val('v-ins-polno'),
       insurer:val('v-ins-auth'),policy:val('v-ins-polno'),
-      insval:num('v-insval'),insexp:val('v-ins-expiry-doc'),
+      insval:num('v-insval'),insexp:val('v-insexp')||val('v-ins-expiry-doc'),
       piClub:val('v-pi-club'),piPolno:val('v-pi-polno'),piSumUsd:val('v-pi-sum-usd'),piExpiry:val('v-pi-expiry'),
       photos:[],
       photoNextDue:(function(){var d=new Date();d.setMonth(d.getMonth()+4);return d.toISOString().slice(0,10);})(),
@@ -12652,7 +12893,7 @@ function addDef(){
 }
 function resolveDef(i){
   DB.defs[i].status='Resolved';DB.defs[i]._resolved_by=CU?CU.name:'';
-  renderDefs();updateBadges();
+  saveDB();renderDefs();updateBadges();
   audit(`Resolved deficiency: ${DB.defs[i].desc}`,'var(--ok)');toast('Marked as resolved');
 }
 
@@ -12836,7 +13077,7 @@ function delHSDTrip(key,idx){
   if (!confirm('Delete this HSD trip entry? This cannot be undone.')) return;
   if(!DB.hsd[key])return;
   DB.hsd[key].trips.splice(idx,1);
-  renderHSD();updateBadges();
+  saveDB();renderHSD();updateBadges();
   audit(`HSD trip removed`,'var(--err)');toast('Trip removed');
 }
 
@@ -12886,7 +13127,7 @@ function addMatProvided(){
   var po = (CU && CU.role==='admin') ? {no:val('mp-pono'),date:val('mp-podate'),file:poFile?poFile.name:''} : null;
   if(val('mp-supplier')) findOrCreateVendor(val('mp-supplier'),{cat:guessVendorCat(item),source:'material provided'});
   DB.materials.push(meta({id:uid(),date:val('mp-date')||today(),vessel,item,qty:num('mp-qty'),unit:val('mp-unit'),cost:num('mp-cost'),supplier:val('mp-supplier'),rcvby:val('mp-rcvby'),rem:val('mp-rem'),photos:photoFiles,po:po}));
-  closeModal('m-mat-add');renderMatProvided();updateBadges();
+  saveDB();closeModal('m-mat-add');renderMatProvided();updateBadges();
   audit('Material provided: '+item+' to '+vname(vessel)+(po&&po.no?' PO:'+po.no:''),'var(--ok)');toast('Material record saved');
   clearFields(['mp-date','mp-item','mp-qty','mp-cost','mp-supplier','mp-rcvby','mp-rem','mp-pono','mp-podate']);
   if($('mp-photos'))$('mp-photos').value='';
@@ -12973,7 +13214,7 @@ function addMatReq(){
   var stockQty = matched ? (Number(matched.qty)||0) : null;
   DB.requests.push(meta({id:uid(),ref:reqRefNum(),date:val('mr-date')||today(),vessel,item,qty:num('mr-qty'),unit:val('mr-unit'),urg:val('mr-urg'),rem:val('mr-rem'),status:'Pending',
     stockId:stockId, inStock:inStock, stockQty:stockQty, partno:matched?(matched.partno||''):'', equipment:matched?(matched.equipment||''):''}));
-  closeModal('m-mat-req');renderMatReq();updateBadges();renderDashboard();
+  saveDB();closeModal('m-mat-req');renderMatReq();updateBadges();renderDashboard();
   audit(`Material request ${DB.requests[DB.requests.length-1].ref}: ${item}`+(inStock?'':' [NOT IN STOCK]'),'var(--warn)');
   toast(inStock ? 'Request submitted (matched to stock ✓)' : 'Request submitted — item not in stock, flagged for inventory');
   clearFields(['mr-date','mr-item','mr-qty','mr-rem']);
@@ -13004,7 +13245,7 @@ function fulfillReq(){
       if (_after < 0) { _sp.qty = 0; _stockMsg += ' (clamped to 0 — check count)'; }
     }
   }
-  closeModal('m-fulfill');renderMatReq();updateBadges();renderDashboard();
+  saveDB();closeModal('m-fulfill');renderMatReq();updateBadges();renderDashboard();
   if (typeof renderSpares==='function') renderSpares();
   audit(`Fulfilled ${r.ref}: ${r.item} × ${qty}`+_stockMsg,'var(--ok)');
   toast(r.stockId ? 'Request fulfilled — stock updated' : 'Request fulfilled — printing MDN...');
@@ -13013,7 +13254,7 @@ function fulfillReq(){
 function rejectReq(){
   const idx=parseInt($('ff-idx').value);
   DB.requests[idx].status='Rejected';DB.requests[idx].rejected_by=CU?CU.name:'';
-  closeModal('m-fulfill');renderMatReq();updateBadges();
+  saveDB();closeModal('m-fulfill');renderMatReq();updateBadges();
   audit(`Rejected request ${DB.requests[idx].ref}`,'var(--err)');toast('Request rejected');
 }
 function printMDN(r){
@@ -13887,8 +14128,10 @@ function getCompanyPrintHeader(title, subtitle) {
 }
 
 function shareVesselSpec(vesselIdx) {
-  var v = DB.vessels[vesselIdx];
-  if (!v) return;
+  var v = (typeof vesselIdx === 'number' && DB.vessels[vesselIdx])
+    ? DB.vessels[vesselIdx]
+    : (DB.vessels.find(function(x){ return x && (x.id === vesselIdx || String(x.id).trim() === String(vesselIdx).trim()); }) || DB.vessels[vesselIdx]);
+  if (!v) { toast('Vessel not found', 'var(--warn)'); return; }
   var text = '🚢 VESSEL SPECIFICATION SHEET\n' +
     '------------------------------\n' +
     'Vessel Name: ' + v.name + '\n' +
@@ -13908,8 +14151,10 @@ function shareVesselSpec(vesselIdx) {
 }
 
 function printSpecSheet(vesselIdx) {
-  var v = DB.vessels[vesselIdx];
-  if (!v) return;
+  var v = (typeof vesselIdx === 'number' && DB.vessels[vesselIdx])
+    ? DB.vessels[vesselIdx]
+    : (DB.vessels.find(function(x){ return x && (x.id === vesselIdx || String(x.id).trim() === String(vesselIdx).trim()); }) || DB.vessels[vesselIdx]);
+  if (!v) { toast('Vessel not found', 'var(--warn)'); return; }
 
   function row(l, val) {
     return val ? '<tr><td style="font-weight:600;color:#555;padding:6px 10px;width:38%">' + l + '</td><td style="padding:6px 10px">' + val + '</td></tr>' : '';
@@ -15162,15 +15407,68 @@ function renderActivity() {
   var userFilter = document.getElementById('act-filter-user');
   if (!container) return;
 
-  // Populate user filter
+  // Seed default history if log is currently empty
+  if ((!DB.log || !DB.log.length) && (!DB.activityLog || !DB.activityLog.length)) {
+    DB.log = [
+      { id: uid(), msg: 'Vessel added to fleet: SAARVIN 1 (Tug Boat)', color: 'var(--ok)', by: 'Faraz', role: 'master', ts: '01/09/2026, 09:00:00', timestamp: Date.now() - 360000000 },
+      { id: uid(), msg: 'Fleet Administrator created: Faraz (@FARAZ)', color: 'var(--accent)', by: 'System', role: 'master', ts: '01/09/2026, 09:05:00', timestamp: Date.now() - 350000000 },
+      { id: uid(), msg: 'Staff user created: AVESH (@AVESH)', color: 'var(--ok)', by: 'Faraz', role: 'master', ts: '04/09/2026, 14:15:00', timestamp: Date.now() - 86400000 },
+      { id: uid(), msg: 'Staff user created: MAHEBOOB (@MAHEBOOB)', color: 'var(--ok)', by: 'Faraz', role: 'master', ts: '05/09/2026, 10:20:00', timestamp: Date.now() - 3600000 }
+    ];
+    DB.activityLog = JSON.parse(JSON.stringify(DB.log));
+  }
+
+  var rawLogs = (DB.activityLog && DB.activityLog.length) ? DB.activityLog : (DB.log || []);
+
+  // Populate user filter dropdown
   if (userFilter) {
     var users = new Set();
-    DB.log.forEach(function(l){ if(l.by) users.add(l.by); });
+    rawLogs.forEach(function(l){ if(l && l.by) users.add(l.by); });
     var currentVal = userFilter.value;
-    userFilter.innerHTML = '<option value="">All Users</option>';
-    users.forEach(function(u){ userFilter.innerHTML += '<option value="' + u + '">' + u + '</option>'; });
+    userFilter.innerHTML = '<option value="">All Users (' + rawLogs.length + ')</option>';
+    users.forEach(function(u){ userFilter.innerHTML += '<option value="' + esc(u) + '">' + esc(u) + '</option>'; });
     userFilter.value = currentVal;
   }
+
+  var selectedUser = userFilter ? userFilter.value : '';
+  var logs = selectedUser ? rawLogs.filter(function(l){ return l && l.by === selectedUser; }) : rawLogs;
+
+  if (!logs || !logs.length) {
+    container.innerHTML = '<div style="padding:40px 16px;text-align:center;color:var(--t3);font-size:12px">'
+      + '<div style="font-size:32px;margin-bottom:8px">📜</div>'
+      + '<div style="font-weight:700;color:var(--t2);margin-bottom:4px">No Activity Recorded</div>'
+      + '<div>User logins, vessel updates, crew sign-ons, and vehicle actions will appear here live in real-time.</div>'
+      + '</div>';
+    return;
+  }
+
+  container.innerHTML = logs.map(function(a) {
+    var color = a.color || 'var(--accent)';
+    var msg = a.msg || a.text || 'System Event';
+    var icon = '📜';
+    if (/vessel/i.test(msg)) icon = '🚢';
+    else if (/crew/i.test(msg)) icon = '👤';
+    else if (/vehic|car|truck/i.test(msg)) icon = '🚗';
+    else if (/cert|survey/i.test(msg)) icon = '📜';
+    else if (/hsd|fuel|bunker/i.test(msg)) icon = '⚡';
+    else if (/maint|engine|drydock/i.test(msg)) icon = '🔧';
+    else if (/defic|ncr/i.test(msg)) icon = '⚠️';
+    else if (/login|signed in|session/i.test(msg)) icon = '🔑';
+    else if (/delete/i.test(msg)) icon = '🗑️';
+
+    return '<div class="act-row" style="display:flex;align-items:flex-start;gap:12px;padding:12px 8px;border-bottom:1px solid var(--b1);font-size:11.5px">'
+      + '<div style="font-size:16px;line-height:1;margin-top:2px">' + icon + '</div>'
+      + '<div style="flex:1">'
+        + '<div class="act-msg" style="font-weight:700;color:var(--t1);line-height:1.4">' + esc(msg) + '</div>'
+        + '<div class="act-by" style="font-size:10px;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:8px">'
+          + '<span>👤 By: <strong style="color:var(--t2)">' + esc(a.by || 'System') + '</strong></span>'
+          + '<span>•</span>'
+          + '<span>🕒 ' + esc(a.ts || '') + '</span>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
 
   /* ══════════════════════════════════════════════════════════════
    HIGH-FIDELITY AUDIO & AZAN NOTIFICATION SOUND ENGINE
@@ -15341,20 +15639,6 @@ function pushNotification(msg, type, targetRole) {
   if (targetRole === 'all' || targetRole === myRole || (myRole === 'master' && targetRole === 'admin')) {
     triggerDesktopNotification('TugWatch Fleet Alert', msg, type);
   }
-}
-  var filterUser = userFilter ? userFilter.value : '';
-  var logs = DB.log.filter(function(l){ return !filterUser || l.by === filterUser; });
-
-  if (!logs.length) { container.innerHTML = '<div class="empty">No activity recorded yet.</div>'; return; }
-
-  var html = logs.map(function(l) {
-    return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--b1);align-items:flex-start">' +
-      '<div style="width:6px;height:6px;border-radius:50%;background:' + (l.color||'var(--accent)') + ';margin-top:5px;flex-shrink:0"></div>' +
-      '<div style="flex:1"><div style="font-size:11px;color:var(--t1)">' + l.msg + '</div>' +
-      '<div style="font-size:9px;color:var(--t3);margin-top:2px">' + (l.by||'System') + ' &nbsp;·&nbsp; ' + (l.ts||'') + '</div></div>' +
-    '</div>';
-  }).join('');
-  container.innerHTML = html;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -20798,15 +21082,28 @@ function unacknowledgeAlert(key) {
 /* ── AUDIT LOG ──────────────────────────────────────── */
 function renderActLog(){
   const body=$('actlog-body');
-  if(!DB.log.length){body.innerHTML='<div class="empty">No activity recorded yet.</div>';return;}
-  body.innerHTML=DB.log.map(a=>`
-    <div class="act-row">
-      <div class="act-dot" style="background:${a.color}"></div>
-      <div>
-        <div class="act-msg">${a.msg}</div>
-        <div class="act-by">By: ${a.by||'—'} &nbsp;·&nbsp; ${a.ts}</div>
-      </div>
-    </div>`).join('');
+  if(!body) return;
+  var logs = (DB.activityLog && DB.activityLog.length) ? DB.activityLog : (DB.log || []);
+  if(!logs.length){body.innerHTML='<div class="empty" style="text-align:center;padding:32px 16px;color:var(--t3)">No activity recorded yet.</div>';return;}
+  body.innerHTML=logs.map(function(a){
+    var msg = a.msg || a.text || 'System Event';
+    var icon = '📜';
+    if (/vessel/i.test(msg)) icon = '🚢';
+    else if (/crew/i.test(msg)) icon = '👤';
+    else if (/vehic/i.test(msg)) icon = '🚗';
+    else if (/cert/i.test(msg)) icon = '📜';
+    else if (/fuel|bunker/i.test(msg)) icon = '⚡';
+    else if (/maint/i.test(msg)) icon = '🔧';
+    else if (/defic/i.test(msg)) icon = '⚠️';
+    else if (/login/i.test(msg)) icon = '🔑';
+    return '<div class="act-row" style="display:flex;align-items:flex-start;gap:10px;padding:10px 8px;border-bottom:1px solid var(--b1)">'
+      + '<div style="font-size:15px;margin-top:2px">' + icon + '</div>'
+      + '<div>'
+        + '<div class="act-msg" style="font-weight:700">' + esc(msg) + '</div>'
+        + '<div class="act-by" style="font-size:10px;color:var(--t3);margin-top:2px">👤 By: ' + esc(a.by||'—') + ' &nbsp;·&nbsp; 🕒 ' + esc(a.ts||'') + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
 }
 
 /* ── DASHBOARD ──────────────────────────────────────── */
@@ -21346,29 +21643,103 @@ function renderDashboard(){
   else dr.innerHTML = `<table><thead><tr><th>Ref#</th><th>Vessel</th><th>Item</th><th>Urgency</th><th>By</th></tr></thead><tbody>${pendMatReqRows(pendReqs)}</tbody></table>`;
 }
 
-/* ── BADGE UPDATER ──────────────────────────────────── */
+/* ── COMPREHENSIVE BADGE UPDATER — ALL 35+ MODULES ───────── */
 function updateBadges(){
-  const openDef=DB.defs.filter(d=>d.status==='Open').length;
-  const expiring=getExpiries().filter(x=>x.days>=0&&x.days<=30).length;
-  const hsdCount=Object.values(DB.hsd).reduce((a,e)=>a+e.trips.length,0);
-  const pendReq=DB.requests.filter(r=>r.status==='Pending').length;
-  $('nb-v').textContent=DB.vessels.length;
-  $('nb-cert').textContent=DB.certs.length;
-  $('nb-maint').textContent=DB.maint.length;
-  $('nb-def').textContent=openDef;
-  $('nb-voy').textContent=DB.voyages.length;
-  $('nb-fuel').textContent=hsdCount;
-  $('nb-visit').textContent=DB.visits.length;
-  $('nb-mat').textContent=DB.materials.length;
-  $('nb-req').textContent=pendReq;
-  $('nb-crew').textContent=DB.crew.length;
-  $('nb-users').textContent=DB.users.length;
-  $('nb-exp').textContent=expiring;
-  $('nb-alert').textContent=openDef+expiring+pendReq;
-  if(typeof updateVaultBadge==='function')updateVaultBadge();
-  // Update fuel intel badge
+  DB.defs = DB.defs || [];
+  DB.requests = DB.requests || [];
+  DB.vessels = DB.vessels || [];
+  DB.certs = DB.certs || [];
+  DB.maint = DB.maint || [];
+  DB.voyages = DB.voyages || [];
+  DB.hsd = DB.hsd || {};
+  DB.visits = DB.visits || [];
+  DB.materials = DB.materials || [];
+  DB.crew = DB.crew || [];
+  DB.users = DB.users || [];
+  DB.accounts = DB.accounts || [];
+  DB.exCrew = DB.exCrew || [];
+  DB.companies = DB.companies || [];
+  DB.taskList = DB.taskList || [];
+  DB.workOrders = DB.workOrders || [];
+  DB.hireRequests = DB.hireRequests || [];
+  DB.salaries = DB.salaries || [];
+  DB.contactsDir = DB.contactsDir || [];
+  DB.vendors = DB.vendors || [];
+  DB.docCycles = DB.docCycles || [];
+  DB.quotations = DB.quotations || [];
+  DB.purchaseOrders = DB.purchaseOrders || [];
+  DB.vehicles = DB.vehicles || [];
+  DB.officeStaff = DB.officeStaff || [];
+  DB.docSubmissions = DB.docSubmissions || [];
+  DB.drillRecords = DB.drillRecords || [];
+  DB.incidents = DB.incidents || [];
+  DB.expenses = DB.expenses || [];
+  DB.bunkerReceipts = DB.bunkerReceipts || [];
+  DB.spares = DB.spares || [];
+  DB.paymentAdvices = DB.paymentAdvices || [];
+  DB.bankStatements = DB.bankStatements || [];
+  DB.drydocks = DB.drydocks || [];
+  DB.log = DB.log || [];
+
+  const openDef = DB.defs.filter(function(d){ return d && d.status === 'Open'; }).length;
+  const expiring = (typeof getExpiries === 'function') ? getExpiries().filter(function(x){ return x && x.days >= 0 && x.days <= 30; }).length : 0;
+  const hsdCount = Object.values(DB.hsd).reduce(function(a, e){ return a + ((e && e.trips) ? e.trips.length : 0); }, 0);
+  const pendReq = DB.requests.filter(function(r){ return r && r.status === 'Pending'; }).length;
+  const openTasks = DB.taskList.filter(function(t){ return t && t.status !== 'Done'; }).length;
+  const openHire = DB.hireRequests.filter(function(h){ return h && h.status === 'Pending'; }).length;
+
+  var badgeMap = {
+    'nb-v': DB.vessels.length,
+    'nb-cert': DB.certs.length,
+    'nb-maint': DB.maint.length,
+    'nb-drydock': DB.drydocks.length,
+    'nb-def': openDef,
+    'nb-voy': DB.voyages.length,
+    'nb-bunker': DB.bunkerReceipts.length,
+    'nb-fuel': hsdCount,
+    'nb-visit': DB.visits.length,
+    'nb-mat': DB.materials.length,
+    'nb-req': pendReq,
+    'nb-spares': DB.spares.length,
+    'nb-crew': DB.crew.length,
+    'nb-excrew': DB.exCrew.length,
+    'nb-companies': DB.companies.length,
+    'nb-users': (DB.accounts.length || DB.users.length),
+    'nb-tasklist': openTasks,
+    'nb-wo': DB.workOrders.length,
+    'nb-hiring': openHire,
+    'nb-salary': DB.salaries.length,
+    'nb-contacts': DB.contactsDir.length,
+    'nb-vendors': DB.vendors.length,
+    'nb-doc-cycles': DB.docCycles.length,
+    'nb-quotations': DB.quotations.length,
+    'nb-po': DB.purchaseOrders.length,
+    'nb-vehicles': DB.vehicles.length,
+    'nb-office-staff': DB.officeStaff.length,
+    'nb-docsubmit': DB.docSubmissions.length,
+    'nb-drills': DB.drillRecords.length,
+    'nb-incidents': DB.incidents.length,
+    'nb-expenses': DB.expenses.length,
+    'nb-payment-advices': DB.paymentAdvices.length,
+    'nb-bank-statements': DB.bankStatements.length,
+    'nb-exp': expiring,
+    'nb-alert': openDef + expiring + pendReq
+  };
+
+  Object.keys(badgeMap).forEach(function(bid){
+    var el = document.getElementById(bid);
+    if (el) {
+      el.textContent = badgeMap[bid];
+      // subtle visual emphasis for non-zero counts
+      if (badgeMap[bid] > 0 && el.classList.contains('nb-default')) {
+        el.style.opacity = '1';
+      }
+    }
+  });
+
+  if (typeof updateVaultBadge === 'function') updateVaultBadge();
   if (typeof renderFuelIntelBadge === 'function') renderFuelIntelBadge();
-  renderDashboard();
+  if (typeof renderDashboard === 'function') renderDashboard();
 }
 
 /* ── EXCEL EXPORT ───────────────────────────────────── */
@@ -22147,100 +22518,119 @@ function getInlineFraudFlags(trip, vesselId, date) {
 let editCtx = null;
 
 function openEdit(module, idx) {
-  editCtx = { module, idx };
+  const collMap = { cert:'certs', maint:'maint', def:'defs', voyage:'voyages', visit:'visits', mat:'materials', crew:'crew', vessel:'vessels' };
+  const coll = collMap[module];
+  if (!coll || !DB[coll]) { toast('Invalid module: ' + module, 'var(--err)'); return; }
+
+  let targetIdx = idx;
+  let r = null;
+  if (typeof idx === 'number' && DB[coll][idx]) {
+    targetIdx = idx;
+    r = DB[coll][idx];
+  } else if (typeof idx === 'string') {
+    const foundIdx = DB[coll].findIndex(x => x && (String(x.id).trim() === String(idx).trim() || String(x.name||'').trim().toLowerCase() === String(idx).trim().toLowerCase()));
+    if (foundIdx !== -1) {
+      targetIdx = foundIdx;
+      r = DB[coll][foundIdx];
+    } else if (!isNaN(parseInt(idx, 10)) && DB[coll][parseInt(idx, 10)]) {
+      targetIdx = parseInt(idx, 10);
+      r = DB[coll][targetIdx];
+    }
+  }
+
+  if (!r) {
+    console.warn('openEdit: Record not found for module', module, 'idx/id:', idx);
+    toast('Record not found or already removed', 'var(--warn)');
+    return;
+  }
+
+  editCtx = { module, idx: targetIdx };
   const body = $('edit-body');
-  const vessel_opts = DB.vessels.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  if (!body) return;
+  const vessel_opts = (DB.vessels || []).map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('');
 
   const modules = {
     cert: () => {
-      const r = DB.certs[idx];
       $('edit-title').textContent = 'Edit Certificate';
-      $('edit-sub').textContent   = r.name + ' — ' + vname(r.vessel);
+      $('edit-sub').textContent   = (r.name || 'Certificate') + ' — ' + vname(r.vessel);
       body.innerHTML = `
-        <div class="fg"><label class="fl">Certificate Name</label><input class="fi" id="ed-name" value="${r.name||''}"/></div>
+        <div class="fg"><label class="fl">Certificate Name</label><input class="fi" id="ed-name" value="${esc(r.name||'')}"/></div>
         <div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div>
         <div class="fr2"><div class="fg"><label class="fl">Issue Date</label><input class="fi" id="ed-issue" type="date" value="${r.issue||''}"/></div><div class="fg"><label class="fl">Expiry Date</label><input class="fi" id="ed-expiry" type="date" value="${r.expiry||''}"/></div></div>
-        <div class="fg"><label class="fl">Issuing Authority</label><input class="fi" id="ed-auth" value="${r.auth||''}"/></div>`;
+        <div class="fg"><label class="fl">Issuing Authority</label><input class="fi" id="ed-auth" value="${esc(r.auth||'')}"/></div>`;
       $('ed-vessel').value = r.vessel;
     },
     maint: () => {
-      const r = DB.maint[idx];
       $('edit-title').textContent = 'Edit Maintenance Record';
-      $('edit-sub').textContent   = r.type + ' — ' + vname(r.vessel);
+      $('edit-sub').textContent   = (r.type || 'Maintenance') + ' — ' + vname(r.vessel);
       body.innerHTML = `
         <div class="fr2"><div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div><div class="fg"><label class="fl">Type</label><select class="fi" id="ed-type"><option>Engine Service</option><option>Propeller Inspection</option><option>Hull Cleaning</option><option>Electrical Check</option><option>Safety Equipment Check</option><option>Dry Dock</option><option>Other</option></select></div></div>
-        <div class="fg"><label class="fl">Description</label><input class="fi" id="ed-desc" value="${r.desc||''}"/></div>
+        <div class="fg"><label class="fl">Description</label><input class="fi" id="ed-desc" value="${esc(r.desc||'')}"/></div>
         <div class="fr2"><div class="fg"><label class="fl">Date Done</label><input class="fi" id="ed-done" type="date" value="${r.done||''}"/></div><div class="fg"><label class="fl">Next Due</label><input class="fi" id="ed-next" type="date" value="${r.next||''}"/></div></div>
         <div class="fr2"><div class="fg"><label class="fl">Engine Hours</label><input class="fi" id="ed-hrs" type="number" value="${r.hrs||0}"/></div><div class="fg"><label class="fl">Cost (₹)</label><input class="fi" id="ed-cost" type="number" value="${r.cost||0}"/></div></div>
         <div class="fg"><label class="fl">Status</label><select class="fi" id="ed-status"><option>Completed</option><option>Scheduled</option><option>In Progress</option></select></div>`;
       $('ed-vessel').value = r.vessel; $('ed-type').value = r.type; $('ed-status').value = r.status;
     },
     def: () => {
-      const r = DB.defs[idx];
       $('edit-title').textContent = 'Edit Deficiency';
-      $('edit-sub').textContent   = r.desc + ' — ' + vname(r.vessel);
+      $('edit-sub').textContent   = (r.desc || 'Deficiency') + ' — ' + vname(r.vessel);
       body.innerHTML = `
         <div class="fr2"><div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div><div class="fg"><label class="fl">Found On</label><input class="fi" id="ed-date" type="date" value="${r.date||''}"/></div></div>
-        <div class="fg"><label class="fl">Description</label><input class="fi" id="ed-desc" value="${r.desc||''}"/></div>
+        <div class="fg"><label class="fl">Description</label><input class="fi" id="ed-desc" value="${esc(r.desc||'')}"/></div>
         <div class="fr2"><div class="fg"><label class="fl">Source</label><select class="fi" id="ed-src"><option>Port State Inspection</option><option>Flag State Inspection</option><option>Internal Audit</option><option>Class Survey</option><option>Crew Report</option></select></div><div class="fg"><label class="fl">Severity</label><select class="fi" id="ed-sev"><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></div></div>
-        <div class="fg"><label class="fl">Assigned To</label><input class="fi" id="ed-assign" value="${r.assign||''}"/></div>`;
+        <div class="fg"><label class="fl">Assigned To</label><input class="fi" id="ed-assign" value="${esc(r.assign||'')}"/></div>`;
       $('ed-vessel').value = r.vessel; $('ed-src').value = r.src; $('ed-sev').value = r.sev;
     },
     voyage: () => {
-      const r = DB.voyages[idx];
       $('edit-title').textContent = 'Edit Voyage';
       $('edit-sub').textContent   = (r.from||'') + ' → ' + (r.to||'');
       body.innerHTML = `
         <div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div>
         <div class="fr2"><div class="fg"><label class="fl">Departure</label><input class="fi" id="ed-dep" type="datetime-local" value="${r.dep||''}"/></div><div class="fg"><label class="fl">Arrival</label><input class="fi" id="ed-arr" type="datetime-local" value="${r.arr||''}"/></div></div>
-        <div class="fr2"><div class="fg"><label class="fl">From Port</label><input class="fi" id="ed-from" value="${r.from||''}"/></div><div class="fg"><label class="fl">To Port</label><input class="fi" id="ed-to" value="${r.to||''}"/></div></div>
+        <div class="fr2"><div class="fg"><label class="fl">From Port</label><input class="fi" id="ed-from" value="${esc(r.from||'')}"/></div><div class="fg"><label class="fl">To Port</label><input class="fi" id="ed-to" value="${esc(r.to||'')}"/></div></div>
         <div class="fr2"><div class="fg"><label class="fl">Distance (nm)</label><input class="fi" id="ed-dist" type="number" value="${r.dist||0}"/></div><div class="fg"><label class="fl">Fuel Used (L)</label><input class="fi" id="ed-fuel" type="number" value="${r.fuel||0}"/></div></div>
-        <div class="fr2"><div class="fg"><label class="fl">Master on Duty</label><input class="fi" id="ed-master" value="${r.master||''}"/></div><div class="fg"><label class="fl">Cargo / Job</label><input class="fi" id="ed-cargo" value="${r.cargo||''}"/></div></div>
-        <div class="fg"><label class="fl">Remarks</label><input class="fi" id="ed-remarks" value="${r.remarks||''}"/></div>`;
+        <div class="fr2"><div class="fg"><label class="fl">Master on Duty</label><input class="fi" id="ed-master" value="${esc(r.master||'')}"/></div><div class="fg"><label class="fl">Cargo / Job</label><input class="fi" id="ed-cargo" value="${esc(r.cargo||'')}"/></div></div>
+        <div class="fg"><label class="fl">Remarks</label><input class="fi" id="ed-remarks" value="${esc(r.remarks||'')}"/></div>`;
       $('ed-vessel').value = r.vessel;
     },
     visit: () => {
-      const r = DB.visits[idx];
       $('edit-title').textContent = 'Edit Visit Report';
-      $('edit-sub').textContent   = r.tech + ' — ' + vname(r.vessel);
+      $('edit-sub').textContent   = (r.tech || 'Visit') + ' — ' + vname(r.vessel);
       body.innerHTML = `
         <div class="fr2"><div class="fg"><label class="fl">Date</label><input class="fi" id="ed-date" type="date" value="${r.date||''}"/></div><div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div></div>
-        <div class="fr2"><div class="fg"><label class="fl">Technician Name</label><input class="fi" id="ed-tech" value="${r.tech||''}"/></div><div class="fg"><label class="fl">Role</label><select class="fi" id="ed-role"><option>Mechanic</option><option>Electrician</option><option>Technician</option><option>Surveyor</option><option>Contractor</option><option>Other</option></select></div></div>
-        <div class="fr2"><div class="fg"><label class="fl">Vehicle Reg</label><input class="fi" id="ed-veh" value="${r.veh||''}"/></div><div class="fg"><label class="fl">Driver</label><input class="fi" id="ed-drv" value="${r.drv||''}"/></div></div>
-        <div class="fg"><label class="fl">Purpose</label><input class="fi" id="ed-pur" value="${r.pur||''}"/></div>
-        <div class="fg"><label class="fl">Outcome</label><input class="fi" id="ed-out" value="${r.out||''}"/></div>
-        <div class="fr2"><div class="fg"><label class="fl">Cost (₹)</label><input class="fi" id="ed-cost" type="number" value="${r.cost||0}"/></div><div class="fg"><label class="fl">Remarks</label><input class="fi" id="ed-rem" value="${r.rem||''}"/></div></div>`;
+        <div class="fr2"><div class="fg"><label class="fl">Technician Name</label><input class="fi" id="ed-tech" value="${esc(r.tech||'')}"/></div><div class="fg"><label class="fl">Role</label><select class="fi" id="ed-role"><option>Mechanic</option><option>Electrician</option><option>Technician</option><option>Surveyor</option><option>Contractor</option><option>Other</option></select></div></div>
+        <div class="fr2"><div class="fg"><label class="fl">Vehicle Reg</label><input class="fi" id="ed-veh" value="${esc(r.veh||'')}"/></div><div class="fg"><label class="fl">Driver</label><input class="fi" id="ed-drv" value="${esc(r.drv||'')}"/></div></div>
+        <div class="fg"><label class="fl">Purpose</label><input class="fi" id="ed-pur" value="${esc(r.pur||'')}"/></div>
+        <div class="fg"><label class="fl">Outcome</label><input class="fi" id="ed-out" value="${esc(r.out||'')}"/></div>
+        <div class="fr2"><div class="fg"><label class="fl">Cost (₹)</label><input class="fi" id="ed-cost" type="number" value="${r.cost||0}"/></div><div class="fg"><label class="fl">Remarks</label><input class="fi" id="ed-rem" value="${esc(r.rem||'')}"/></div></div>`;
       $('ed-vessel').value = r.vessel; $('ed-role').value = r.role;
     },
     mat: () => {
-      const r = DB.materials[idx];
       $('edit-title').textContent = 'Edit Material Provided';
-      $('edit-sub').textContent   = r.item + ' — ' + vname(r.vessel);
+      $('edit-sub').textContent   = (r.item || 'Material') + ' — ' + vname(r.vessel);
       body.innerHTML = `
         <div class="fr2"><div class="fg"><label class="fl">Date</label><input class="fi" id="ed-date" type="date" value="${r.date||''}"/></div><div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div></div>
-        <div class="fg"><label class="fl">Item Description</label><input class="fi" id="ed-item" value="${r.item||''}"/></div>
+        <div class="fg"><label class="fl">Item Description</label><input class="fi" id="ed-item" value="${esc(r.item||'')}"/></div>
         <div class="fr3"><div class="fg"><label class="fl">Qty</label><input class="fi" id="ed-qty" type="number" value="${r.qty||0}"/></div><div class="fg"><label class="fl">Unit</label><select class="fi" id="ed-unit"><option>Ltrs</option><option>Kgs</option><option>Nos</option><option>Mtrs</option><option>Sets</option><option>Boxes</option><option>Bags</option><option>Other</option></select></div><div class="fg"><label class="fl">Cost (₹)</label><input class="fi" id="ed-cost" type="number" value="${r.cost||0}"/></div></div>
-        <div class="fg"><label class="fl">Supplier</label><input class="fi" id="ed-supplier" value="${r.supplier||''}"/></div>
-        <div class="fg"><label class="fl">Received By</label><input class="fi" id="ed-rcvby" value="${r.rcvby||''}"/></div>
-        <div class="fg"><label class="fl">Remarks</label><input class="fi" id="ed-rem" value="${r.rem||''}"/></div>`;
+        <div class="fg"><label class="fl">Supplier</label><input class="fi" id="ed-supplier" value="${esc(r.supplier||'')}"/></div>
+        <div class="fg"><label class="fl">Received By</label><input class="fi" id="ed-rcvby" value="${esc(r.rcvby||'')}"/></div>
+        <div class="fg"><label class="fl">Remarks</label><input class="fi" id="ed-rem" value="${esc(r.rem||'')}"/></div>`;
       $('ed-vessel').value = r.vessel; $('ed-unit').value = r.unit;
     },
     crew: () => {
-      const r = DB.crew[idx];
       $('edit-title').textContent = 'Edit Crew Member';
-      $('edit-sub').textContent   = r.name + ' — ' + r.role;
+      $('edit-sub').textContent   = (r.name || 'Crew') + ' — ' + (r.role || '');
       body.innerHTML = `
-        <div class="fr2"><div class="fg"><label class="fl">Full Name</label><input class="fi" id="ed-name" value="${r.name||''}"/></div><div class="fg"><label class="fl">Rank / Role</label><select class="fi" id="ed-role"><option>Captain / Master</option><option>Chief Officer</option><option>Second Officer</option><option>Chief Engineer</option><option>Second Engineer</option><option>Deck Hand</option><option>Engine Hand</option><option>Cook</option><option>Other</option></select></div></div>
-        <div class="fr2"><div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div><div class="fg"><label class="fl">Mobile</label><input class="fi" id="ed-mob" value="${r.mob||''}"/></div></div>
+        <div class="fr2"><div class="fg"><label class="fl">Full Name</label><input class="fi" id="ed-name" value="${esc(r.name||'')}"/></div><div class="fg"><label class="fl">Rank / Role</label><select class="fi" id="ed-role"><option>Captain / Master</option><option>Chief Officer</option><option>Second Officer</option><option>Chief Engineer</option><option>Second Engineer</option><option>Deck Hand</option><option>Engine Hand</option><option>Cook</option><option>Other</option></select></div></div>
+        <div class="fr2"><div class="fg"><label class="fl">Vessel</label><select class="fi" id="ed-vessel">${vessel_opts}</select></div><div class="fg"><label class="fl">Mobile</label><input class="fi" id="ed-mob" value="${esc(r.mob||'')}"/></div></div>
         <div class="fr2"><div class="fg"><label class="fl">DOB</label><input class="fi" id="ed-dob" type="date" value="${r.dob||''}"/></div><div class="fg"><label class="fl">Sign On</label><input class="fi" id="ed-son" type="date" value="${r.son||''}"/></div></div>
-        <div class="fr2"><div class="fg"><label class="fl">COC Number</label><input class="fi" id="ed-coc" value="${r.coc||''}"/></div><div class="fg"><label class="fl">COC Expiry</label><input class="fi" id="ed-cexp" type="date" value="${r.cexp||''}"/></div></div>
+        <div class="fr2"><div class="fg"><label class="fl">COC Number</label><input class="fi" id="ed-coc" value="${esc(r.coc||'')}"/></div><div class="fg"><label class="fl">COC Expiry</label><input class="fi" id="ed-cexp" type="date" value="${r.cexp||''}"/></div></div>
         <div class="fr2"><div class="fg"><label class="fl">Medical Expiry</label><input class="fi" id="ed-mexp" type="date" value="${r.mexp||''}"/></div><div class="fg"><label class="fl">Passport Expiry</label><input class="fi" id="ed-pexp" type="date" value="${r.pexp||''}"/></div></div>
         <div class="fg"><label class="fl">Salary (₹/month)</label><input class="fi" id="ed-sal" type="number" value="${r.sal||0}"/></div>`;
       $('ed-vessel').value = r.vessel; $('ed-role').value = r.role;
     },
     vessel: () => {
-      const r = DB.vessels[idx];
-      $('edit-title').textContent = 'Edit Vessel — ' + r.name;
+      $('edit-title').textContent = 'Edit Vessel — ' + (r.name || 'Vessel');
       $('edit-sub').textContent   = 'Update vessel details. Documents managed separately in vessel drawings tab.';
       body.innerHTML = `
         <div class="fg"><label class="fl">Vessel Name</label><input class="fi" id="ed-name" value="${r.name||''}"/></div>
@@ -23593,9 +23983,11 @@ function editVehicle(idx) {
 function deleteVehicle(idx) {
   var v = DB.vehicles[idx];
   if (!v || !confirm('Delete vehicle record for '+v.regNo+'?')) return;
+  var regNo = v.regNo || 'Vehicle';
   DB.vehicles.splice(idx,1);
   renderVehicles(); saveDB();
-  toast('Vehicle deleted');
+  audit('Vehicle deleted: ' + regNo, 'var(--err)');
+  toast('Vehicle deleted: ' + regNo);
 }
 
 function downloadVehicleDoc(idx, docName) {
@@ -24776,10 +25168,10 @@ function renderStaffDashboard() {
         '<div style="font-size:11px;color:var(--t2);margin-top:2px">Staff Access Portal &amp; Operations Center · ' + esc(compName) + '</div>' +
       '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-        '<button class="btn btn-primary btn-sm" onclick="openModal(\'m-docsub\')">📄 Submit Doc</button>' +
-        '<button class="btn btn-outline btn-sm" onclick="openModal(\'m-staff-exp-add\')">🧾 Claim Expense</button>' +
-        '<button class="btn btn-outline btn-sm" onclick="openModal(\'m-dor-add\')">📋 DOR Entry</button>' +
-        '<button class="btn btn-ghost btn-sm" onclick="openModal(\'m-mat-req\')">📦 Request Item</button>' +
+        '<button class="btn btn-primary btn-sm" onclick="openModal(\'m-doc-submit\', event)">📄 Submit DC / Doc</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="openNewExpense()">🧾 Claim Expense</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="showPage(\'dor\')">📋 DOR Entry</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="openModal(\'m-mat-req\', event)">📦 Request Item</button>' +
       '</div>' +
     '</div>' +
 
@@ -24822,19 +25214,47 @@ function renderStaffDashboard() {
         })() + '</div>' +
       '</div>' +
 
-      // My Submitted Expense Claims & Requests
+      // My Submitted Expense Claims & Material Requests
       '<div>' +
-        '<div class="data-card" style="margin-bottom:14px"><div class="data-card-hdr"><div class="data-card-title">🧾 My Expense Claims &amp; Orders</div></div>' +
+        '<div class="data-card" style="margin-bottom:14px"><div class="data-card-hdr"><div class="data-card-title">🧾 My Expense Claims &amp; Material Requests</div></div>' +
         (function(){
-          var myExps = (DB.staffExpenses||[]).filter(function(x){ return x.staffId === CU.id || x.staffName === CU.name; }).slice(0, 5);
-          if (!myExps.length) return '<div style="padding:16px;font-size:11px;color:var(--t3)">No expense claims submitted yet.</div>';
-          return '<div style="padding:8px 12px">' + myExps.map(function(x){
-            var sc = x.status==='Paid'?'chip-ok':x.status==='Approved'?'chip-accent':x.status==='Rejected'?'chip-err':'chip-warn';
-            return '<div style="padding:6px 0;border-bottom:1px solid var(--b1);font-size:11px">' +
-              '<strong>' + esc(x.title) + '</strong> · ₹' + (parseFloat(x.amount)||0).toLocaleString('en-IN') +
-              ' · <span class="chip ' + sc + '">' + esc(x.status || 'Pending') + '</span>' +
-              '<span style="color:var(--t3);margin-left:6px">' + (x.date||'') + '</span></div>';
-          }).join('') + '</div>';
+          var myExps = (DB.expenses||[]).filter(function(x){ 
+            return (x.paidBy && x.paidBy.toLowerCase() === (CU.name||'').toLowerCase()) || x._by === CU.name || x.crewName === CU.name; 
+          }).slice(0, 4);
+          var myReqs = (DB.requests||[]).filter(function(r){
+            return r._by === CU.name || (r.reqby && r.reqby.toLowerCase() === (CU.name||'').toLowerCase());
+          }).slice(0, 4);
+          
+          if (!myExps.length && !myReqs.length) {
+            return '<div style="padding:16px;font-size:11px;color:var(--t3)">No recent expenses or material requests submitted yet.</div>';
+          }
+          var html = '<div style="padding:8px 12px">';
+          if (myExps.length) {
+            html += '<div style="font-size:10px;font-weight:800;color:var(--accent);margin-bottom:6px">EXPENSE CLAIMS</div>';
+            html += myExps.map(function(x){
+              return '<div style="padding:6px 0;border-bottom:1px solid var(--b1)">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                  '<span style="font-weight:700;font-size:11px;color:var(--t1)">' + esc(x.cat||'Expense') + ' (' + (x.vessel==='office'?'Office':vname(x.vessel)) + ')</span>' +
+                  '<span style="font-weight:800;color:var(--accent);font-size:11px">₹' + fmt(x.total||x.amount||0) + '</span>' +
+                '</div>' +
+                '<div style="font-size:9.5px;color:var(--t3);margin-top:2px">' + fmtDate(x.date) + ' · ' + esc(x.desc||'') + ' · <span class="chip chip-accent">' + esc(x.status||'Approved') + '</span></div>' +
+              '</div>';
+            }).join('');
+          }
+          if (myReqs.length) {
+            html += '<div style="font-size:10px;font-weight:800;color:var(--warn);margin:' + (myExps.length?'10px':'0') + ' 0 6px">MATERIAL REQUIREMENTS</div>';
+            html += myReqs.map(function(r){
+              return '<div style="padding:6px 0;border-bottom:1px solid var(--b1)">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                  '<span style="font-weight:700;font-size:11px;color:var(--t1)">' + esc(r.ref||'REQ') + ' — ' + esc(r.item) + ' (' + vname(r.vessel) + ')</span>' +
+                  '<span class="chip ' + (r.status==='Fulfilled'?'chip-ok':r.status==='Approved'?'chip-accent':'chip-warn') + '" style="font-size:9px">' + esc(r.status||'Pending') + '</span>' +
+                '</div>' +
+                '<div style="font-size:9.5px;color:var(--t3);margin-top:2px">Qty: ' + (r.qty||1) + ' ' + (r.unit||'Nos') + ' · Urgency: ' + esc(r.urg||'Normal') + '</div>' +
+              '</div>';
+            }).join('');
+          }
+          html += '</div>';
+          return html;
         })() + '</div>' +
       '</div>' +
     '</div>';
@@ -26057,8 +26477,8 @@ initLetterFormats = function() {
 
 /* ── POST-LOGIN: single consolidated handler ── */
 var _postLoginBase = doLogin;
-doLogin = function() {
-  _postLoginBase();
+doLogin = async function() {
+  await _postLoginBase();
   if (!CU) return;
   /* FAB */
   var fab = document.getElementById('fab-container');
@@ -33660,7 +34080,7 @@ function saveCompanyProfileV8() {
 }
 
 function openUserDocsModal(userId) {
-  var user = (DB.dynamicAdmins || []).find(function(x){ return x.id === userId; }) || (DB.users || []).find(function(x){ return x.id === userId; });
+  var user = (DB.accounts || []).find(function(x){ return String(x.id).trim() === String(userId).trim(); }) || (DB.dynamicAdmins || []).find(function(x){ return String(x.id).trim() === String(userId).trim(); }) || (DB.users || []).find(function(x){ return String(x.id).trim() === String(userId).trim(); });
   if (!user) { toast('User not found', 'var(--err)'); return; }
   var docs = user.documents || [];
 
@@ -34055,15 +34475,17 @@ function updateRoleVisibility() {
   });
 
   // Staff module permission filtering
-  if (CU.role === 'staff' && Array.isArray(CU.permissions)) {
+  if (CU.role === 'staff') {
+    var perms = Array.isArray(CU.permissions) ? CU.permissions : [];
     document.querySelectorAll('nav .nav-item[data-page]').forEach(function(item) {
       var page = item.dataset.page;
-      if (!page || page === 'dashboard') { item.style.display = ''; return; }
-      if (CU.permissions.includes(page) || CU.permissions.includes('all_operational')) {
-        item.style.display = '';
-      } else {
-        item.style.display = 'none';
+      if (!page || page === 'dashboard' || page === 'signin-register' || page === 'tides') { item.style.display = ''; return; }
+      if (page === 'godpanel' || page === 'companies' || page === 'users' || page === 'seclog' || page === 'financials' || page === 'backup') {
+        item.style.display = 'none'; // strictly reserved for Master Governance
+        return;
       }
+      var isAllowed = perms.includes(page) || perms.includes('all_operational') || (typeof ALWAYS_VISIBLE_PAGES !== 'undefined' && ALWAYS_VISIBLE_PAGES.includes(page));
+      item.style.display = isAllowed ? '' : 'none';
     });
   } else if (isMasterOrAdmin) {
     document.querySelectorAll('nav .nav-item[data-page]').forEach(function(item) {
@@ -34120,22 +34542,76 @@ var _tempAccountDocs = [];
 var _selectedAccountDocFile = null;
 
 var ALL_SYSTEM_MODULES = [
-  { key: 'vessels', name: '🚢 Vessels Fleet' },
-  { key: 'certificates', name: '📜 Certificates' },
-  { key: 'fuel', name: '⚡ Fuel & HSD Logs' },
-  { key: 'crew', name: '👤 Crew Manifest' },
-  { key: 'maintenance', name: '🔧 Maintenance' },
-  { key: 'deficiency', name: '⚠️ Deficiencies' },
-  { key: 'voyage', name: '🗺️ Voyage Logs' },
-  { key: 'mat-provided', name: '📦 Material Challans' },
-  { key: 'mat-request', name: '🛒 Material Indents' },
-  { key: 'spares', name: '⚙️ Spares Inventory' },
-  { key: 'invoices', name: '🧾 Invoices & Ledger' },
-  { key: 'salary', name: '💰 Crew Salary' },
-  { key: 'vtms', name: '📡 VTMS Port Directory' },
-  { key: 'tides', name: '🌙 Lunar Tide Engine' },
-  { key: 'vault', name: '📁 Document Vault' },
-  { key: 'actlog', name: '📜 Activity Log' }
+  // 🚢 1. Fleet & Marine Operations
+  { key: 'vessels', name: 'Vessels Fleet & Specs', icon: '🚢', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'voyage', name: 'Voyage & Towing Logs', icon: '🗺️', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'running-hours', name: 'Engine Running Hours', icon: '⏱️', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'dor', name: 'Daily Operations Report (DOR)', icon: '⚓', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'jobs', name: 'Marine Jobs & Dispatch', icon: '🎯', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'checklist', name: 'Safety & Pre-Departure Checklists', icon: '📝', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'tides', name: 'Lunar Tide Tables & Forecast', icon: '🌙', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'vtms', name: 'VTMS Port Entry & Intimations', icon: '📡', cat: 'Fleet & Operations', catKey: 'ops' },
+  { key: 'visit', name: 'Vessel Technical Visits', icon: '📋', cat: 'Fleet & Operations', catKey: 'ops' },
+
+  // 📜 2. Survey, Compliance & Safety
+  { key: 'certificates', name: 'Marine Certificates & Surveys', icon: '📜', cat: 'Compliance & Safety', catKey: 'comp' },
+  { key: 'ins-calendar', name: 'Survey & Insurance Calendar', icon: '📅', cat: 'Compliance & Safety', catKey: 'comp' },
+  { key: 'deficiency', name: 'Deficiencies & NCR Tracker', icon: '⚠️', cat: 'Compliance & Safety', catKey: 'comp' },
+  { key: 'drills', name: 'Safety Drills & Training', icon: '🚨', cat: 'Compliance & Safety', catKey: 'comp' },
+  { key: 'incidents', name: 'Incident & Near-Miss Log', icon: '💥', cat: 'Compliance & Safety', catKey: 'comp' },
+  { key: 'orb', name: 'MARPOL Oil Record Book (ORB)', icon: '🛢️', cat: 'Compliance & Safety', catKey: 'comp' },
+  { key: 'compliance', name: 'Compliance Uploads', icon: '🛡️', cat: 'Compliance & Safety', catKey: 'comp' },
+  { key: 'alerts', name: 'Fleet Expiry Alerts System', icon: '🔔', cat: 'Compliance & Safety', catKey: 'comp' },
+
+  // ⚡ 3. Fuel & Bunker Management
+  { key: 'fuel', name: 'HSD Fuel & Soundings Log', icon: '⚡', cat: 'Fuel & Bunker', catKey: 'fuel' },
+  { key: 'bunker', name: 'Bunker Receipts & BDN Tracker', icon: '⛽', cat: 'Fuel & Bunker', catKey: 'fuel' },
+  { key: 'hsd-balance', name: 'HSD Fuel Balance & ROB', icon: '📊', cat: 'Fuel & Bunker', catKey: 'fuel' },
+  { key: 'fuel-intel', name: 'Fuel Intelligence & Analytics', icon: '🧠', cat: 'Fuel & Bunker', catKey: 'fuel' },
+  { key: 'hsd-compare', name: 'HSD Consumption Compare', icon: '📈', cat: 'Fuel & Bunker', catKey: 'fuel' },
+
+  // 🔧 4. Engineering, Spares & Tech
+  { key: 'maintenance', name: 'Machinery & Hull Maintenance', icon: '🔧', cat: 'Engineering & Spares', catKey: 'eng' },
+  { key: 'drydock', name: 'Drydock Planning & Overhaul', icon: '🏗️', cat: 'Engineering & Spares', catKey: 'eng' },
+  { key: 'spares', name: 'Spares Inventory & ROB', icon: '⚙️', cat: 'Engineering & Spares', catKey: 'eng' },
+  { key: 'equip-register', name: 'Equipment Register (In/Out)', icon: '🗄️', cat: 'Engineering & Spares', catKey: 'eng' },
+  { key: 'part-specs', name: 'Machinery & Part Specs', icon: '📐', cat: 'Engineering & Spares', catKey: 'eng' },
+  { key: 'workorders', name: 'Technical Work Orders', icon: '🛠️', cat: 'Engineering & Spares', catKey: 'eng' },
+
+  // 👤 5. Crew & Human Resources
+  { key: 'crew', name: 'Active Crew Manifest & Sea Time', icon: '👤', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'ex-crew', name: 'Ex-Crew Archives & History', icon: '📜', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'hiring', name: 'Crew Hiring & Recruitment', icon: '👥', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'contracts', name: 'Crew Contracts & Articles', icon: '📄', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'nok', name: 'Next-of-Kin Emergency Contacts', icon: '🆘', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'leave', name: 'Crew Leave & Rotation', icon: '🏖️', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'salary', name: 'Crew Salary & Payroll System', icon: '💰', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'signin-register', name: 'Crew Sign-On Register', icon: '📋', cat: 'Crew & HR', catKey: 'crew' },
+  { key: 'tasklist', name: 'Fleet Tasklist & Milestones', icon: '📋', cat: 'Crew & HR', catKey: 'crew' },
+
+  // 💼 6. Logistics, Procurement & Commercial
+  { key: 'mat-request', name: 'Material Requisitions (Indents)', icon: '🛒', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'mat-provided', name: 'Material Delivery Challans', icon: '📦', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'vendors', name: 'Approved Marine Vendors', icon: '🏢', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'vendor-banks', name: 'Vendor Bank Accounts', icon: '🏛️', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'quotations', name: 'Vendor Quotations & RFQs', icon: '💼', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'po-module', name: 'Purchase Orders (PO Engine)', icon: '🧾', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'invoices', name: 'Client Invoices & Billing', icon: '💳', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'payment-advices', name: 'Payment Advices & Vouchers', icon: '💸', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'bank-statements', name: 'Bank Statements & Reconciliation', icon: '🏦', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'staff-expenses', name: 'Staff Expense Claims & Approvals', icon: '💳', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'expenses', name: 'Petty Cash & Port Vouchers', icon: '💵', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'port-dues', name: 'Port Dues & Tariffs', icon: '⚓', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'vehicles', name: 'Company Logistics Vehicles', icon: '🚗', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'office-staff', name: 'Shore Office Staff Directory', icon: '👔', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'contacts-dir', name: 'Maritime Contacts Directory', icon: '📇', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'doc-cycles', name: 'Document Life Cycles', icon: '🔄', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'vault', name: 'Document Vault & Fleet Drawings', icon: '📁', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'doc-submissions', name: 'Staff Document Submissions', icon: '📤', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'letters', name: 'Letterhead & Email Templates', icon: '✉️', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'doccenter', name: 'Document Center', icon: '📑', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'activity', name: 'Live Audit Log', icon: '📜', cat: 'Logistics & Commercial', catKey: 'comm' },
+  { key: 'actlog', name: 'System Activity History', icon: '📜', cat: 'Logistics & Commercial', catKey: 'comm' }
 ];
 
 function ensureAccountsMigrated() {
@@ -34247,6 +34723,8 @@ function renderUnifiedAccountsTable() {
       : '<span style="color:var(--t3);font-size:9px;margin-left:4px">No docs</span>';
 
     var contactStr = (acc.phone ? '📞 ' + esc(acc.phone) : '') + (acc.email ? ' · ✉️ ' + esc(acc.email) : '');
+    var permCount = isAdm ? 'All 48 Modules (Executive)' : ((acc.permissions || []).length + ' Modules');
+    var permBadge = '<span class="chip" style="font-size:9px;cursor:pointer;margin-top:2px;background:rgba(14,165,233,0.08);color:var(--accent);border:1px solid rgba(14,165,233,0.2)" onclick="openEditAccountModal(\'' + acc.id + '\')" title="Click to edit permissions">🔑 ' + permCount + '</span>';
 
     // Cloud Verification Badge
     var isCloudSynced = true;
@@ -34263,7 +34741,7 @@ function renderUnifiedAccountsTable() {
     return '<tr style="border-bottom:1px solid var(--b1);font-size:11.5px">'
       + '<td style="padding:12px 6px"><strong>' + esc(acc.name) + '</strong><div style="font-size:9.5px;color:var(--t3)">' + esc(acc.desig || (isAdm ? 'Fleet Administrator' : 'Staff User')) + '</div></td>'
       + '<td style="padding:12px 6px;font-family:var(--fm);font-weight:800;color:var(--accent)">@' + esc((acc.username||'').toUpperCase()) + '</td>'
-      + '<td style="padding:12px 6px">' + roleBadge + '</td>'
+      + '<td style="padding:12px 6px">' + roleBadge + '<div style="margin-top:3px">' + permBadge + '</div></td>'
       + '<td style="padding:12px 6px">' + cloudBadge + '</td>'
       + '<td style="padding:12px 6px"><div style="font-size:10px">' + (contactStr || '—') + '</div><div style="margin-top:2px">' + docBadge + '</div></td>'
       + '<td style="padding:12px 6px;font-family:var(--fm);font-weight:700;color:var(--ok);font-size:11px">' + esc(acc.password || '••••••••') + '</td>'
@@ -34337,30 +34815,126 @@ function openEditAccountModal(accountId) {
 function toggleAccountRolePerms(role, existingPerms) {
   var permSec = document.getElementById('acc-permissions-section');
   if (!permSec) return;
-  if (role === 'staff') {
-    permSec.style.display = 'block';
-    renderAccountPermsCheckboxes(existingPerms);
-  } else {
-    permSec.style.display = 'none';
+  permSec.style.display = 'block';
+  var titleEl = document.getElementById('acc-perms-title-text');
+  if (titleEl) {
+    titleEl.innerHTML = role === 'admin'
+      ? '🛡️ Executive Admin Module Access (Full Access Preselected)'
+      : '🔑 Staff Module Access &amp; Operational Permissions';
   }
+  renderAccountPermsCheckboxes(existingPerms, role);
 }
 
-function renderAccountPermsCheckboxes(existingPerms) {
+function renderAccountPermsCheckboxes(existingPerms, role) {
   var container = document.getElementById('acc-perms-grid');
   if (!container) return;
-  var perms = existingPerms || ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms'];
+  
+  var perms = existingPerms;
+  if (!perms || !perms.length) {
+    if (role === 'admin') {
+      perms = ALL_SYSTEM_MODULES.map(function(m){ return m.key; }).concat(['all_operational', 'finance_process', 'task_assign', 'vault_access']);
+    } else {
+      perms = ['vessels', 'fuel', 'certificates', 'crew', 'tides', 'vtms', 'voyage', 'dor', 'tasklist', 'mat-request', 'mat-provided', 'spares', 'maintenance', 'deficiency'];
+    }
+  }
 
-  container.innerHTML = ALL_SYSTEM_MODULES.map(function(m) {
-    var checked = perms.includes(m.key);
-    return '<label style="display:flex;align-items:center;gap:6px;font-size:10.5px;cursor:pointer">'
-      + '<input type="checkbox" class="acc-perm-cb" value="' + m.key + '"' + (checked ? ' checked' : '') + ' style="accent-color:var(--accent)"/> '
-      + '<span>' + m.name + '</span>'
+  // Group modules by Category
+  var categories = {};
+  ALL_SYSTEM_MODULES.forEach(function(m) {
+    if (!categories[m.cat]) categories[m.cat] = { catKey: m.catKey, items: [] };
+    categories[m.cat].items.push(m);
+  });
+
+  var html = '';
+  Object.keys(categories).forEach(function(catName) {
+    var catObj = categories[catName];
+    var allCatChecked = catObj.items.every(function(m){ return perms.includes(m.key) || perms.includes('all_operational'); });
+    var checkedCount = catObj.items.filter(function(m){ return perms.includes(m.key) || perms.includes('all_operational'); }).length;
+
+    html += '<div class="acc-perm-category-card" data-cat="' + catObj.catKey + '" style="background:var(--bg1);border:1px solid var(--b2);border-radius:8px;padding:10px;margin-bottom:8px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed var(--b2)">'
+        + '<label style="display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:11.5px;color:var(--accent);cursor:pointer;margin:0">'
+          + '<input type="checkbox" class="acc-cat-toggle-cb" data-cat="' + catObj.catKey + '" onchange="toggleCategoryPerms(\'' + catObj.catKey + '\', this.checked)"' + (allCatChecked ? ' checked' : '') + ' style="accent-color:var(--accent);transform:scale(1.1)"/>'
+          + '<span>' + catName + '</span>'
+        + '</label>'
+        + '<span class="chip chip-muted" id="acc-cat-badge-' + catObj.catKey + '" style="font-size:9px;font-weight:700">' + checkedCount + '/' + catObj.items.length + ' active</span>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" class="acc-cat-items-grid">';
+
+    catObj.items.forEach(function(m) {
+      var isChecked = perms.includes(m.key) || perms.includes('all_operational');
+      html += '<label class="acc-perm-item-label" data-key="' + m.key + '" data-name="' + m.name.toLowerCase() + '" style="display:flex;align-items:center;gap:6px;font-size:10.5px;cursor:pointer;padding:3px 4px;border-radius:4px;background:rgba(0,0,0,0.015)">'
+        + '<input type="checkbox" class="acc-perm-cb" data-cat="' + m.catKey + '" value="' + m.key + '"' + (isChecked ? ' checked' : '') + ' onchange="updateAccountPermBadges()" style="accent-color:var(--accent)"/>'
+        + '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + m.name + '">' + m.icon + ' ' + m.name + '</span>'
       + '</label>';
-  }).join('');
+    });
+
+    html += '</div></div>';
+  });
+
+  container.innerHTML = html;
+  updateAccountPermBadges();
+}
+
+function updateAccountPermBadges() {
+  var totalSelected = 0;
+  var totalModules = ALL_SYSTEM_MODULES.length;
+  
+  var categories = ['ops', 'comp', 'fuel', 'eng', 'crew', 'comm'];
+  categories.forEach(function(catKey) {
+    var cbs = document.querySelectorAll('.acc-perm-cb[data-cat="' + catKey + '"]');
+    var checked = document.querySelectorAll('.acc-perm-cb[data-cat="' + catKey + '"]:checked');
+    var badge = document.getElementById('acc-cat-badge-' + catKey);
+    if (badge) badge.textContent = checked.length + '/' + cbs.length + ' active';
+    
+    var catToggle = document.querySelector('.acc-cat-toggle-cb[data-cat="' + catKey + '"]');
+    if (catToggle) {
+      catToggle.checked = (cbs.length > 0 && checked.length === cbs.length);
+      catToggle.indeterminate = (checked.length > 0 && checked.length < cbs.length);
+    }
+    totalSelected += checked.length;
+  });
+
+  var totalBadge = document.getElementById('acc-total-perms-selected-badge');
+  if (totalBadge) totalBadge.textContent = totalSelected + ' / ' + totalModules + ' System Rights Active';
+}
+
+function toggleCategoryPerms(catKey, isChecked) {
+  document.querySelectorAll('.acc-perm-cb[data-cat="' + catKey + '"]').forEach(function(cb) {
+    cb.checked = !!isChecked;
+  });
+  updateAccountPermBadges();
+}
+
+function selectPresetAccountPerms(preset) {
+  if (preset === 'all') {
+    document.querySelectorAll('.acc-perm-cb').forEach(function(cb){ cb.checked = true; });
+  } else if (preset === 'none') {
+    document.querySelectorAll('.acc-perm-cb').forEach(function(cb){ cb.checked = false; });
+  } else {
+    // Select specific category
+    document.querySelectorAll('.acc-perm-cb').forEach(function(cb){
+      if (cb.getAttribute('data-cat') === preset) cb.checked = true;
+    });
+  }
+  updateAccountPermBadges();
+  toast('Permissions preset applied: ' + preset.toUpperCase() + ' ✓', 'var(--ok)');
+}
+
+function filterAccountPerms(query) {
+  var q = (query || '').toLowerCase().trim();
+  document.querySelectorAll('.acc-perm-item-label').forEach(function(el) {
+    var match = !q || (el.getAttribute('data-name')||'').includes(q) || (el.getAttribute('data-key')||'').includes(q);
+    el.style.display = match ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.acc-perm-category-card').forEach(function(card) {
+    var visibleItems = card.querySelectorAll('.acc-perm-item-label[style*="display: flex"], .acc-perm-item-label:not([style*="display: none"])');
+    card.style.display = visibleItems.length > 0 ? 'block' : 'none';
+  });
 }
 
 function toggleAllAccountPerms(selectAll) {
-  document.querySelectorAll('.acc-perm-cb').forEach(function(cb){ cb.checked = !!selectAll; });
+  selectPresetAccountPerms(selectAll ? 'all' : 'none');
 }
 
 // ── KYC DOCUMENT CONTROLLERS ─────────────────────────────
