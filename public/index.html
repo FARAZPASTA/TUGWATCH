@@ -2608,6 +2608,14 @@ html[data-theme="dark"] #l-pass::placeholder {
         <kbd style="font-family:var(--fm);font-size:9.5px;background:var(--s4);padding:1px 5px;border-radius:4px;color:var(--t3);border:1px solid var(--b1)">⌘K</kbd>
       </button>
 
+            <!-- 1-CLICK WHATSAPP BRIEFING & BACKUP TOPBAR BUTTONS -->
+      <button class="btn btn-ghost btn-sm" onclick="openWhatsAppFleetBriefingModal()" title="1-Click WhatsApp Fleet Morning Briefing" style="font-size:11px;font-weight:700;color:#25D366;border:1px solid rgba(37,211,102,0.3);background:rgba(37,211,102,0.06);display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px">
+        <span style="font-size:13px">📲</span> <span class="hide-mobile">Briefing</span>
+      </button>
+      <button class="btn btn-ghost btn-sm admin-only" onclick="openDisasterRecoveryModal()" title="Fleet Data Backup & Cloud Disaster Recovery" style="font-size:11px;font-weight:700;color:#0284c7;border:1px solid rgba(2,132,199,0.3);background:rgba(2,132,199,0.06);display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px">
+        <span style="font-size:13px">☁️</span> <span class="hide-mobile">Backup</span>
+      </button>
+
       <!-- BIGGER LIVE TIME CLOCK -->
       <div id="live-clock" style="font-family:var(--fm);padding:4px 10px;border:1px solid var(--b2);border-radius:8px;background:var(--bg2);display:flex;align-items:center;gap:8px;line-height:1.2;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
         <span style="font-size:16px;color:var(--accent)">⏱️</span>
@@ -2689,6 +2697,27 @@ html[data-theme="dark"] #l-pass::placeholder {
 
     <!-- DASHBOARD -->
     <div class="page" id="p-dashboard">
+      <!-- EXECUTIVE FLEET OPS QUICK ACTION BAR -->
+      <div style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--b1);border-radius:var(--r-lg);padding:10px 16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(37,211,102,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#25D366">📲</div>
+          <div>
+            <div style="font-weight:800;font-size:13px;color:var(--t1)">Fleet Operations Dispatch &amp; Morning Briefing</div>
+            <div style="font-size:10.5px;color:var(--t3)">1-Click compiled WhatsApp dispatch of all active vessels, fuel ROB, crew on duty &amp; certificate warnings</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-ok btn-sm" onclick="openWhatsAppFleetBriefingModal()" style="font-weight:800;background:#25D366;border-color:#25D366;color:#fff;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(37,211,102,0.25)">
+            <span>📲</span> 1-Click WhatsApp Fleet Briefing
+          </button>
+          <button class="btn btn-primary btn-sm admin-only" onclick="sendWhatsAppExpiryBroadcast()" style="font-weight:700;display:flex;align-items:center;gap:5px;background:#ea580c;border-color:#ea580c;color:#fff">
+            <span>🚨</span> Cert Expiry Broadcast
+          </button>
+          <button class="btn btn-outline btn-sm admin-only" onclick="openDisasterRecoveryModal()" title="Download full JSON backup and push snapshot to Cloud" style="font-weight:700;display:flex;align-items:center;gap:5px;border-color:#0284c7;color:#0284c7">
+            <span>☁️</span> 1-Click Cloud &amp; Local Backup
+          </button>
+        </div>
+      </div>
       <div class="kpi-grid">
         <div class="kpi kpi-accent"><div class="kpi-lbl">Total Vessels</div><div class="kpi-val" id="d-v">0</div><div class="kpi-sub">Active in fleet</div></div>
         <div class="kpi kpi-warn"><div class="kpi-lbl">Expiring ≤ 30 Days</div><div class="kpi-val" id="d-exp">0</div><div class="kpi-sub">Documents due</div></div>
@@ -2785,14 +2814,22 @@ html[data-theme="dark"] #l-pass::placeholder {
         </div>
       </div>
 
-      <!-- SECTION 3: BACKUP & RECOVERY -->
+      <!-- SECTION 3: BACKUP & DISASTER RECOVERY -->
       <div class="data-card" style="padding:18px;border-top:3px solid var(--ok)">
-        <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">💾 Master Database Backup &amp; Universal Recovery</div>
-        <div style="font-size:10.5px;color:var(--t3);margin-bottom:14px">Export lossless JSON or ZIP snapshots and restore system state instantly</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--t1)">☁️ Master Database Backup &amp; Disaster Recovery</div>
+            <div style="font-size:10.5px;color:var(--t3)" class="tw-last-backup-display">Instant offline JSON backup, Firebase Cloud Snapshots, and lossless system recovery</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="openDisasterRecoveryModal()" style="font-weight:700;color:#0284c7;border-color:#0284c7">
+            ⚙️ Disaster Recovery Console
+          </button>
+        </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="exportFullDatabaseBackup()">📥 Download Master Backup (.json)</button>
+          <button class="btn btn-primary" onclick="downloadCompleteDatabaseBackup()">💾 1-Click Backup &amp; Cloud Snapshot</button>
+          <button class="btn btn-ok" onclick="pushCloudBackupSnapshot()">☁️ Push Cloud Snapshot</button>
           <button class="btn btn-success" onclick="exportVesselAndFolderZipBackup()">🗂️ Download Vessel-wise ZIP Archive (.zip)</button>
-          <button class="btn btn-outline" onclick="openModal('m-backup-manager')">📂 Open Restore Center</button>
+          <button class="btn btn-accent" onclick="openDisasterRecoveryModal()">📂 Restore Database</button>
         </div>
       </div>
     </div>
@@ -2832,6 +2869,7 @@ html[data-theme="dark"] #l-pass::placeholder {
       <div class="page-hdr">
         <div class="page-hdr-title">Vessel Certificates</div>
         <button class="btn btn-primary" onclick="return openModal('m-cert',event)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Certificate</button>
+        <button class="btn btn-ok btn-sm" onclick="sendWhatsAppExpiryBroadcast()" style="font-weight:700;display:flex;align-items:center;gap:5px;background:#25D366;border-color:#25D366;color:#fff"><span style="font-size:13px">📲</span> Broadcast WhatsApp Expiry Alert</button>
         <button class="btn btn-ghost btn-sm admin-only" onclick="exportExcel('certs')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
       </div>
       <div class="data-card"><table><thead><tr><th>Certificate</th><th>Vessel</th><th>Issued</th><th>Expires</th><th>Authority</th><th>Status</th><th>By</th><th></th></tr></thead><tbody id="cert-tbody"></tbody></table></div>
@@ -3289,6 +3327,7 @@ html[data-theme="dark"] #l-pass::placeholder {
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <select class="fi" id="dor-vessel" style="width:160px" onchange="renderDOR()"></select>
           <input type="date" id="dor-date" class="fi" style="width:148px" onchange="renderDOR()"/>
+          <button class="btn btn-ok btn-sm" onclick="openWhatsAppFleetBriefingModal()" style="font-weight:700;display:flex;align-items:center;gap:5px;background:#25D366;border-color:#25D366;color:#fff"><span style="font-size:12px">📲</span> Share Daily Briefing on WhatsApp</button>
           <button class="btn btn-outline btn-sm" onclick="exportDORExcel()" title="Export Daily Operations Report to Excel"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Export Excel</button>
           <button class="btn btn-primary btn-sm" onclick="printDOR()"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Export / Print PDF</button>
         </div>
@@ -3543,6 +3582,7 @@ html[data-theme="dark"] #l-pass::placeholder {
             <option value="Maintenance">Maintenance</option>
             <option value="Vehicle">Vehicles</option>
           </select>
+          <button class="btn btn-ok btn-sm" onclick="sendWhatsAppExpiryBroadcast()" style="font-weight:700;display:flex;align-items:center;gap:5px;background:#25D366;border-color:#25D366;color:#fff"><span style="font-size:13px">📲</span> Broadcast WhatsApp Notice</button>
           <button class="btn btn-ghost btn-sm admin-only" onclick="exportExcel('alerts')">
             <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export
@@ -12745,8 +12785,8 @@ function renderCerts(){
     var isVaultDoc = !c.fileData && c.file;
     var sourceNote = isVaultDoc ? '<div style="font-size:8px;color:var(--accent);margin-top:2px">📁 From Vessel Docs — see Document Vault</div>' : '';
     var actionBtns = isVaultDoc
-      ? '<span style="font-size:9px;color:var(--t3);padding:4px">See Vault</span>'
-      : '<button class="edit-btn" data-cert-edit="'+i+'"><svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button><button class="btn btn-ghost btn-sm" onclick="showChangeHistory(\'cert\',\''+c.id+'\',\''+(c.name||'').replace(/\x27/g,'')+'\')" title="Change history">📜</button><button class="btn btn-danger btn-sm" data-cert-del="'+i+'"><svg viewBox="0 0 24 24" fill="none" style="width:10px;height:10px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>';
+      ? '<button class="btn btn-ghost btn-sm" onclick="sendSingleCertWhatsAppAlert(\''+c.id+'\')" title="Send WhatsApp alert for this certificate" style="color:#25D366;font-size:12px;padding:2px 5px">📲</button><span style="font-size:9px;color:var(--t3);padding:4px">See Vault</span>'
+      : '<button class="btn btn-ghost btn-sm" onclick="sendSingleCertWhatsAppAlert(\''+c.id+'\')" title="Send WhatsApp alert for this certificate" style="color:#25D366;font-size:12px;padding:2px 5px">📲</button><button class="edit-btn" data-cert-edit="'+i+'"><svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button><button class="btn btn-ghost btn-sm" onclick="showChangeHistory(\'cert\',\''+c.id+'\',\''+(c.name||'').replace(/\x27/g,'')+'\')" title="Change history">📜</button><button class="btn btn-danger btn-sm" data-cert-del="'+i+'"><svg viewBox="0 0 24 24" fill="none" style="width:10px;height:10px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>';
     return '<tr>' +
       '<td><strong>'+c.name+'</strong>'+sourceNote+'</td>' +
       '<td>'+vname(c.vessel)+'</td>' +
@@ -22001,6 +22041,9 @@ function exportBunkerMonthlyXLSX() {
 }
 
 function exportFullDatabaseBackup() {
+  if (typeof downloadCompleteDatabaseBackup === 'function') {
+    return downloadCompleteDatabaseBackup();
+  }
   var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(DB, null, 2));
   var downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute('href', dataStr);
@@ -32709,6 +32752,9 @@ function arrayToCSV(arr, headers) {
 
 // 1. 1-Click Master Database JSON Export (Lossless System Snapshot)
 function exportFullDatabaseBackup() {
+  if (typeof downloadCompleteDatabaseBackup === 'function') {
+    return downloadCompleteDatabaseBackup();
+  }
   var timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   var dateStr = new Date().toISOString().split('T')[0];
   var payload = {
@@ -35473,6 +35519,756 @@ window.renderMasterGovernanceCenter = renderMasterGovernanceCenter;
 
 /* ── BULLETPROOF ACCOUNTS PERSISTENCE & CLOUD SYNC ──────────── */
 
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 1: 1-CLICK WHATSAPP FLEET MORNING BRIEFING
+   ══════════════════════════════════════════════════════════════════════ */
+
+function generateWhatsAppFleetBriefingText() {
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+
+  var vessels = (DB && DB.vessels) || [];
+  var voyages = (DB && DB.voyages) || [];
+  var bunkers = (DB && DB.bunker) || [];
+  var certs = (DB && DB.certs) || [];
+  var defs = (DB && DB.defs) || [];
+  var crew = (DB && DB.crew) || [];
+
+  var text = "🚢 *TUGWATCH — DAILY FLEET MORNING BRIEFING*\n";
+  text += "📅 *Date:* " + dateStr + " | ⏰ *Time:* " + timeStr + " IST\n";
+  text += "🏢 *Fleet:* SAARVIN MARINE FLEET OPERATIONS\n";
+  text += "══════════════════════════════════════\n\n";
+
+  // 1. ACTIVE VESSELS SUMMARY
+  text += "⚓ *ACTIVE VESSELS STATUS (" + vessels.length + " Total)*:\n";
+  if (!vessels.length) {
+    text += "• No vessels registered in fleet database.\n";
+  } else {
+    vessels.forEach(function(v, idx) {
+      var vName = (v.name || 'Vessel #' + (idx + 1)).toUpperCase();
+      var vType = v.type || 'Tug Boat';
+      var vBHP = v.bhp ? (v.bhp + ' BHP') : '';
+      var vBP = v.bp ? (' (' + v.bp + 'T BP)') : '';
+      var powerInfo = (vBHP || vBP) ? ' | ' + vBHP + vBP : '';
+
+      // Get latest location from voyages or vessel profile
+      var lastVoyage = voyages.filter(function(vy){ return vy.vessel === v.id || vy.vessel === v.name; }).sort(function(a,b){ return (b.arr || b.dep || '').localeCompare(a.arr || a.dep || ''); })[0];
+      var portLoc = (lastVoyage && (lastVoyage.to || lastVoyage.arrPort || lastVoyage.port)) || v.port || v.location || 'Sikka Port / Bedi Anchorage';
+
+      // Status
+      var status = v.status || 'Operational';
+      var statusEmoji = status.toLowerCase().includes('maint') ? '🔧' : (status.toLowerCase().includes('standby') ? '⚓' : '⚡');
+
+      // Fuel ROB (Remains On Board)
+      var vesselBunkers = bunkers.filter(function(b){ return b.vessel === v.id || b.vessel === v.name; }).sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+      var latestBunker = vesselBunkers[vesselBunkers.length - 1];
+      var fuelROB = (latestBunker && (latestBunker.rob || latestBunker.balROB || latestBunker.qty)) || v.fuelROB || v.rob || '—';
+      if (fuelROB !== '—' && !isNaN(fuelROB)) fuelROB = Number(fuelROB).toLocaleString('en-IN') + ' L';
+
+      // Master & Crew on duty
+      var vesselCrew = crew.filter(function(cr){ return (cr.vessel === v.id || cr.vessel === v.name) && cr.status !== 'Signed Off'; });
+      var masterCrew = vesselCrew.find(function(cr){ return (cr.rank || cr.role || '').toLowerCase().includes('master') || (cr.rank || cr.role || '').toLowerCase().includes('captain'); });
+      var masterName = (masterCrew && masterCrew.name) || v.master || 'Capt. on duty';
+
+      text += (idx + 1) + ". *" + vName + "* (" + vType + powerInfo + ")\n";
+      text += "   📍 *Port/Location:* " + portLoc + "\n";
+      text += "   " + statusEmoji + " *Status:* " + status + "\n";
+      if (fuelROB !== '—') text += "   🛢️ *Fuel ROB:* " + fuelROB + "\n";
+      text += "   👤 *Master:* " + masterName + " | 👥 *Crew on board:* " + vesselCrew.length + "\n\n";
+    });
+  }
+
+  // 2. CERTIFICATE EXPIRY ALERT (<= 30 DAYS OR EXPIRED)
+  var todayIso = now.toISOString().split('T')[0];
+  var todayMs = new Date(todayIso).getTime();
+  var expiringCerts = [];
+  var expiredCerts = [];
+
+  certs.forEach(function(c) {
+    if (!c.expiry) return;
+    var expMs = new Date(c.expiry).getTime();
+    var diffDays = Math.ceil((expMs - todayMs) / (1000 * 60 * 60 * 24));
+    var vItem = vessels.find(function(v){ return v.id === c.vessel || v.name === c.vessel; });
+    var vLabel = vItem ? vItem.name : (c.vessel || 'Fleet Vessel');
+
+    if (diffDays < 0) {
+      expiredCerts.push({ cert: c.name, vessel: vLabel, date: c.expiry, days: Math.abs(diffDays), auth: c.auth || 'IRS/MMD' });
+    } else if (diffDays <= 30) {
+      expiringCerts.push({ cert: c.name, vessel: vLabel, date: c.expiry, days: diffDays, auth: c.auth || 'IRS/MMD' });
+    }
+  });
+
+  text += "📜 *STATUTORY CERTIFICATE EXPIRIES (Next 30 Days)*:\n";
+  if (!expiredCerts.length && !expiringCerts.length) {
+    text += "• ✅ All statutory & class certificates are up to date (none due in ≤30 days).\n\n";
+  } else {
+    if (expiredCerts.length) {
+      text += "  🔴 *EXPIRED (" + expiredCerts.length + "):*\n";
+      expiredCerts.forEach(function(ec) {
+        text += "  • " + ec.vessel + " — *" + ec.cert + "* (Expired on " + ec.date + " - " + ec.days + "d overdue)\n";
+      });
+    }
+    if (expiringCerts.length) {
+      text += "  🟡 *EXPIRING SOON (" + expiringCerts.length + "):*\n";
+      expiringCerts.forEach(function(ec) {
+        text += "  • " + ec.vessel + " — *" + ec.cert + "* (Expires in " + ec.days + "d on " + ec.date + ")\n";
+      });
+    }
+    text += "\n";
+  }
+
+  // 3. DEFICIENCIES & PENDING WORK
+  var openDefs = defs.filter(function(d){ return d.status !== 'Rectified' && d.status !== 'Closed'; });
+  text += "⚠️ *OPEN DEFICIENCIES & MAINTENANCE*:\n";
+  if (!openDefs.length) {
+    text += "• ✅ Nil open deficiencies. Full fleet operational compliance.\n\n";
+  } else {
+    text += "• Open Deficiencies (" + openDefs.length + "):\n";
+    openDefs.slice(0, 5).forEach(function(d) {
+      var vItem = vessels.find(function(v){ return v.id === d.vessel || v.name === d.vessel; });
+      var vLabel = vItem ? vItem.name : (d.vessel || 'Vessel');
+      text += "  • " + vLabel + ": " + (d.desc || d.description || d.title || 'Deficiency item') + " [" + (d.severity || 'Medium') + "]\n";
+    });
+    if (openDefs.length > 5) {
+      text += "  • ... and " + (openDefs.length - 5) + " more items (view on TugWatch OS)\n";
+    }
+    text += "\n";
+  }
+
+  // 4. CREW OVERVIEW
+  var totalActiveCrew = crew.filter(function(cr){ return cr.status !== 'Signed Off'; }).length;
+  text += "👥 *CREW COMPLEMENT:* " + totalActiveCrew + " Active Crew Registered in Fleet\n";
+  text += "══════════════════════════════════════\n";
+  text += "📲 *Dispatched via:* TugWatch Fleet OS (https://tugwatch.saarvin.in)";
+
+  return text;
+}
+
+function openWhatsAppFleetBriefingModal() {
+  var briefingText = generateWhatsAppFleetBriefingText();
+
+  var existing = document.getElementById('m-wa-briefing-modal');
+  if (existing) existing.remove();
+
+  var m = document.createElement('div');
+  m.className = 'overlay';
+  m.id = 'm-wa-briefing-modal';
+  m.style.display = 'flex';
+  m.style.zIndex = '9999';
+
+  var contacts = (DB && DB.contacts) || [];
+  var contactOptions = '<option value="">-- General WhatsApp Share (Group / Any Chat) --</option>';
+  contacts.forEach(function(ct) {
+    if (ct.phone) {
+      contactOptions += '<option value="' + ct.phone.replace(/[^0-9]/g, '') + '">' + (ct.name || 'Contact') + ' (' + (ct.role || ct.cat || 'Marine') + ' - ' + ct.phone + ')</option>';
+    }
+  });
+
+  m.innerHTML = 
+    '<div class="modal" style="max-width:680px;width:95%;max-height:92vh;display:flex;flex-direction:column;padding:20px;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,0.3)">' +
+      '<div class="modal-hdr" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--b1);padding-bottom:10px">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="width:36px;height:36px;border-radius:10px;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px">📲</div>' +
+          '<div>' +
+            '<div class="modal-title" style="font-size:15px;font-weight:800">1-Click WhatsApp Fleet Morning Briefing</div>' +
+            '<div style="font-size:11px;color:var(--t3)">Daily operational status, fuel ROB, certificate health &amp; crew positions</div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="modal-close" onclick="this.closest(\'.overlay\').remove()" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--t2)">✕</button>' +
+      '</div>' +
+
+      '<div style="margin-bottom:12px">' +
+        '<label style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px;display:block">Target Recipient / Contact (Optional):</label>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+          '<select class="fi" id="wa-briefing-contact-select" onchange="if(this.value)document.getElementById(\'wa-briefing-phone\').value=this.value">' +
+            contactOptions +
+          '</select>' +
+          '<input type="tel" class="fi" id="wa-briefing-phone" placeholder="Enter Phone No (e.g. 919876543210)" />' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="flex:1;min-height:220px;margin-bottom:14px;display:flex;flex-direction:column">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+          '<label style="font-size:11px;font-weight:700;color:var(--t2)">Briefing Content (Editable):</label>' +
+          '<span style="font-size:10px;color:var(--t3)">You can add custom notes, weather, or port updates</span>' +
+        '</div>' +
+        '<textarea id="wa-briefing-textarea" class="fi" style="width:100%;height:260px;font-family:monospace;font-size:11.5px;line-height:1.45;padding:12px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;resize:vertical;color:var(--t1)">' +
+          briefingText.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+        '</textarea>' +
+      '</div>' +
+
+      '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;border-top:1px solid var(--b1);padding-top:12px">' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn btn-ghost btn-sm" onclick="copyWhatsAppBriefing()" style="font-weight:700;display:flex;align-items:center;gap:5px">' +
+            '<span>📋</span> <span id="wa-copy-btn-text">Copy to Clipboard</span>' +
+          '</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="downloadWhatsAppBriefingTxt()" style="font-weight:700;display:flex;align-items:center;gap:5px">' +
+            '<span>📥</span> Download .TXT' +
+          '</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn btn-ghost btn-sm" onclick="this.closest(\'.overlay\').remove()">Cancel</button>' +
+          '<button class="btn btn-ok btn-sm" onclick="dispatchWhatsAppBriefing()" style="font-weight:800;background:#25D366;border-color:#25D366;color:#fff;padding:8px 16px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(37,211,102,0.35)">' +
+            '<span style="font-size:15px">📲</span> Open WhatsApp &amp; Send' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(m);
+}
+
+function dispatchWhatsAppBriefing() {
+  var ta = document.getElementById('wa-briefing-textarea');
+  var phoneInput = document.getElementById('wa-briefing-phone');
+  var text = (ta && ta.value) || generateWhatsAppFleetBriefingText();
+  var phone = (phoneInput && phoneInput.value.replace(/[^0-9]/g, '')) || '';
+
+  var encoded = encodeURIComponent(text);
+  var waUrl = phone ? ('https://api.whatsapp.com/send?phone=' + phone + '&text=' + encoded) : ('https://api.whatsapp.com/send?text=' + encoded);
+
+  window.open(waUrl, '_blank');
+  toast('Opening WhatsApp for Fleet Briefing dispatch ✓', 'var(--ok)');
+  audit('WhatsApp Fleet Morning Briefing dispatched' + (phone ? ' to +' + phone : ' (Group Broadcast)'), 'var(--ok)');
+}
+
+function copyWhatsAppBriefing() {
+  var ta = document.getElementById('wa-briefing-textarea');
+  var text = (ta && ta.value) || generateWhatsAppFleetBriefingText();
+  navigator.clipboard.writeText(text).then(function() {
+    var btnText = document.getElementById('wa-copy-btn-text');
+    if (btnText) {
+      btnText.textContent = 'Copied to Clipboard! ✓';
+      setTimeout(function(){ btnText.textContent = 'Copy to Clipboard'; }, 2000);
+    }
+    toast('Briefing copied to clipboard ✓', 'var(--ok)');
+  }).catch(function() {
+    if (ta) { ta.select(); document.execCommand('copy'); }
+    toast('Briefing copied ✓');
+  });
+}
+
+function downloadWhatsAppBriefingTxt() {
+  var ta = document.getElementById('wa-briefing-textarea');
+  var text = (ta && ta.value) || generateWhatsAppFleetBriefingText();
+  var blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var dStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = 'TugWatch_Fleet_Briefing_' + dStr + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Briefing downloaded as text file ✓');
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 5: AUTOMATIC CERTIFICATE EXPIRY ALERTS VIA WHATSAPP
+   ══════════════════════════════════════════════════════════════════════ */
+
+function generateWhatsAppExpiryAlertText(targetCertId) {
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  var vessels = (DB && DB.vessels) || [];
+  var certs = (DB && DB.certs) || [];
+
+  if (targetCertId) {
+    var c = certs.find(function(item){ return String(item.id) === String(targetCertId); });
+    if (!c) return 'Certificate record not found.';
+    var vItem = vessels.find(function(v){ return v.id === c.vessel || v.name === c.vessel; });
+    var vName = (vItem ? vItem.name : (c.vessel || 'Fleet Vessel')).toUpperCase();
+    var todayIso = now.toISOString().split('T')[0];
+    var todayMs = new Date(todayIso).getTime();
+    var expMs = c.expiry ? new Date(c.expiry).getTime() : 0;
+    var diffDays = expMs ? Math.ceil((expMs - todayMs) / (1000 * 60 * 60 * 24)) : null;
+
+    var statusDesc = 'NO EXPIRY DATE';
+    if (diffDays !== null) {
+      if (diffDays < 0) statusDesc = '🔴 EXPIRED (' + Math.abs(diffDays) + ' days overdue)';
+      else if (diffDays === 0) statusDesc = '🔴 EXPIRES TODAY';
+      else if (diffDays <= 7) statusDesc = '🟠 CRITICAL EXPIRY (' + diffDays + ' days remaining)';
+      else if (diffDays <= 30) statusDesc = '🟡 UPCOMING EXPIRY (' + diffDays + ' days remaining)';
+      else statusDesc = '🟢 VALID (' + diffDays + ' days remaining)';
+    }
+
+    var singleText = "📋 *TUGWATCH — STATUTORY CERTIFICATE RENEWAL NOTICE*\n";
+    singleText += "📅 *Date:* " + dateStr + "\n";
+    singleText += "🚢 *Vessel:* *" + vName + "*\n";
+    singleText += "📜 *Certificate:* *" + (c.name || 'Statutory Certificate') + "*\n";
+    singleText += "🏢 *Issuing Authority / Class:* " + (c.auth || 'IRS / MMD / Class') + "\n";
+    singleText += "📅 *Issue Date:* " + (c.issue || '—') + "\n";
+    singleText += "⏳ *Expiry Date:* " + (c.expiry || '—') + "\n";
+    singleText += "⚠️ *Status:* " + statusDesc + "\n";
+    if (c.file || c.fileData) singleText += "📁 *Document Attachment:* Available in TugWatch Vault\n";
+    singleText += "──────────────────────────────────────\n";
+    singleText += "⚓ *Action Required:* Kindly schedule surveyor attendance / endorsement / renewal inspection with IRS / MMD / Class surveyor.\n\n";
+    singleText += "📲 Sent via TugWatch Marine Fleet OS (https://tugwatch.saarvin.in)";
+    return singleText;
+  }
+
+  // Multi-cert broadcast
+  var todayIso2 = now.toISOString().split('T')[0];
+  var todayMs2 = new Date(todayIso2).getTime();
+  var expired = [];
+  var critical7 = [];
+  var upcoming30 = [];
+
+  certs.forEach(function(c) {
+    if (!c.expiry) return;
+    var expMs = new Date(c.expiry).getTime();
+    var diffDays = Math.ceil((expMs - todayMs2) / (1000 * 60 * 60 * 24));
+    var vItem = vessels.find(function(v){ return v.id === c.vessel || v.name === c.vessel; });
+    var vLabel = (vItem ? vItem.name : (c.vessel || 'Fleet Vessel')).toUpperCase();
+
+    var item = { name: c.name, vessel: vLabel, expiry: c.expiry, days: diffDays, auth: c.auth || 'IRS/MMD' };
+    if (diffDays < 0) expired.push(item);
+    else if (diffDays <= 7) critical7.push(item);
+    else if (diffDays <= 30) upcoming30.push(item);
+  });
+
+  var totalDue = expired.length + critical7.length + upcoming30.length;
+
+  var bText = "🚨 *TUGWATCH — STATUTORY CERTIFICATE EXPIRY NOTICE* 🚨\n";
+  bText += "📅 *Date:* " + dateStr + "\n";
+  bText += "🏢 *Fleet:* SAARVIN MARINE FLEET OPERATIONS\n";
+  bText += "⚠️ *Total Documents Requiring Attention:* " + totalDue + "\n";
+  bText += "══════════════════════════════════════\n\n";
+
+  if (!totalDue) {
+    bText += "✅ *ALL CERTIFICATES IN ORDER*\n";
+    bText += "All statutory and class certificates across the fleet have over 30 days validity remaining.\n\n";
+  } else {
+    if (expired.length) {
+      bText += "🔴 *EXPIRED / OVERDUE (" + expired.length + "):*\n";
+      expired.forEach(function(c, i) {
+        bText += (i + 1) + ". *" + c.vessel + "* — " + c.name + "\n";
+        bText += "   • Expired on: " + c.expiry + " (" + Math.abs(c.days) + " days overdue)\n";
+        bText += "   • Authority: " + c.auth + "\n";
+      });
+      bText += "\n";
+    }
+
+    if (critical7.length) {
+      bText += "🟠 *CRITICAL EXPIRY (≤ 7 DAYS) (" + critical7.length + "):*\n";
+      critical7.forEach(function(c, i) {
+        bText += (i + 1) + ". *" + c.vessel + "* — " + c.name + "\n";
+        bText += "   • Expires on: " + c.expiry + " (*" + c.days + " days remaining*)\n";
+        bText += "   • Authority: " + c.auth + "\n";
+      });
+      bText += "\n";
+    }
+
+    if (upcoming30.length) {
+      bText += "🟡 *UPCOMING EXPIRIES (8 TO 30 DAYS) (" + upcoming30.length + "):*\n";
+      upcoming30.forEach(function(c, i) {
+        bText += (i + 1) + ". *" + c.vessel + "* — " + c.name + "\n";
+        bText += "   • Expires on: " + c.expiry + " (" + c.days + " days remaining)\n";
+        bText += "   • Authority: " + c.auth + "\n";
+      });
+      bText += "\n";
+    }
+
+    bText += "⚓ *ACTION REQUIRED:* Please coordinate immediately with Class Surveyors (IRS/ClassNK/BV) and MMD surveyors to arrange survey inspections before expiration.\n";
+  }
+
+  bText += "══════════════════════════════════════\n";
+  bText += "📲 *Dispatched via:* TugWatch Fleet OS (https://tugwatch.saarvin.in)";
+  return bText;
+}
+
+function sendWhatsAppExpiryBroadcast() {
+  var alertText = generateWhatsAppExpiryAlertText();
+
+  var existing = document.getElementById('m-wa-expiry-modal');
+  if (existing) existing.remove();
+
+  var m = document.createElement('div');
+  m.className = 'overlay';
+  m.id = 'm-wa-expiry-modal';
+  m.style.display = 'flex';
+  m.style.zIndex = '9999';
+
+  var contacts = (DB && DB.contacts) || [];
+  var contactOptions = '<option value="">-- Broadcast to WhatsApp Group / Select Chat --</option>';
+  contacts.forEach(function(ct) {
+    if (ct.phone) {
+      contactOptions += '<option value="' + ct.phone.replace(/[^0-9]/g, '') + '">' + (ct.name || 'Contact') + ' (' + (ct.role || ct.cat || 'Marine') + ' - ' + ct.phone + ')</option>';
+    }
+  });
+
+  m.innerHTML = 
+    '<div class="modal" style="max-width:680px;width:95%;max-height:92vh;display:flex;flex-direction:column;padding:20px;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,0.3)">' +
+      '<div class="modal-hdr" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--b1);padding-bottom:10px">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="width:36px;height:36px;border-radius:10px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>' +
+          '<div>' +
+            '<div class="modal-title" style="font-size:15px;font-weight:800">Certificate Expiry WhatsApp Broadcast (30/15/7 Days)</div>' +
+            '<div style="font-size:11px;color:var(--t3)">Instant compiled notice of all expiring &amp; overdue statutory certificates</div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="modal-close" onclick="this.closest(\'.overlay\').remove()" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--t2)">✕</button>' +
+      '</div>' +
+
+      '<div style="margin-bottom:12px">' +
+        '<label style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px;display:block">Target Surveyor / Superintendent / Group:</label>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+          '<select class="fi" id="wa-expiry-contact-select" onchange="if(this.value)document.getElementById(\'wa-expiry-phone\').value=this.value">' +
+            contactOptions +
+          '</select>' +
+          '<input type="tel" class="fi" id="wa-expiry-phone" placeholder="Enter Phone No (e.g. 919876543210)" />' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="flex:1;min-height:220px;margin-bottom:14px;display:flex;flex-direction:column">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+          '<label style="font-size:11px;font-weight:700;color:var(--t2)">Broadcast Message (Editable):</label>' +
+          '<span style="font-size:10px;color:var(--t3)">Customise surveyor instructions before sending</span>' +
+        '</div>' +
+        '<textarea id="wa-expiry-textarea" class="fi" style="width:100%;height:260px;font-family:monospace;font-size:11.5px;line-height:1.45;padding:12px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;resize:vertical;color:var(--t1)">' +
+          alertText.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+        '</textarea>' +
+      '</div>' +
+
+      '<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;border-top:1px solid var(--b1);padding-top:12px">' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn btn-ghost btn-sm" onclick="copyWhatsAppExpiryAlert()" style="font-weight:700;display:flex;align-items:center;gap:5px">' +
+            '<span>📋</span> <span id="wa-exp-copy-text">Copy to Clipboard</span>' +
+          '</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn btn-ghost btn-sm" onclick="this.closest(\'.overlay\').remove()">Cancel</button>' +
+          '<button class="btn btn-ok btn-sm" onclick="dispatchWhatsAppExpiryAlert()" style="font-weight:800;background:#25D366;border-color:#25D366;color:#fff;padding:8px 16px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(37,211,102,0.35)">' +
+            '<span style="font-size:15px">📲</span> Open WhatsApp &amp; Broadcast' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(m);
+}
+
+function dispatchWhatsAppExpiryAlert() {
+  var ta = document.getElementById('wa-expiry-textarea');
+  var phoneInput = document.getElementById('wa-expiry-phone');
+  var text = (ta && ta.value) || generateWhatsAppExpiryAlertText();
+  var phone = (phoneInput && phoneInput.value.replace(/[^0-9]/g, '')) || '';
+
+  var encoded = encodeURIComponent(text);
+  var waUrl = phone ? ('https://api.whatsapp.com/send?phone=' + phone + '&text=' + encoded) : ('https://api.whatsapp.com/send?text=' + encoded);
+
+  window.open(waUrl, '_blank');
+  toast('Opening WhatsApp for Certificate Expiry broadcast ✓', 'var(--ok)');
+  audit('Certificate Expiry broadcast dispatched via WhatsApp', 'var(--ok)');
+}
+
+function copyWhatsAppExpiryAlert() {
+  var ta = document.getElementById('wa-expiry-textarea');
+  var text = (ta && ta.value) || generateWhatsAppExpiryAlertText();
+  navigator.clipboard.writeText(text).then(function() {
+    var btnText = document.getElementById('wa-exp-copy-text');
+    if (btnText) {
+      btnText.textContent = 'Copied! ✓';
+      setTimeout(function(){ btnText.textContent = 'Copy to Clipboard'; }, 2000);
+    }
+    toast('Certificate Expiry notice copied to clipboard ✓', 'var(--ok)');
+  }).catch(function() {
+    if (ta) { ta.select(); document.execCommand('copy'); }
+    toast('Copied ✓');
+  });
+}
+
+function sendSingleCertWhatsAppAlert(certId) {
+  var text = generateWhatsAppExpiryAlertText(certId);
+  var encoded = encodeURIComponent(text);
+  var waUrl = 'https://api.whatsapp.com/send?text=' + encoded;
+  window.open(waUrl, '_blank');
+  toast('Opening WhatsApp with certificate renewal details ✓', 'var(--ok)');
+  audit('Single Certificate WhatsApp alert created for ID: ' + certId, 'var(--ok)');
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   FEATURE 2: 1-CLICK CLOUD DATABASE BACKUP & OFFLINE DISASTER RECOVERY
+   ══════════════════════════════════════════════════════════════════════ */
+
+function downloadCompleteDatabaseBackup() {
+  var now = new Date();
+  var timestamp = now.toISOString().replace(/[:.]/g, '-');
+  var dateStr = now.toISOString().split('T')[0];
+  var formattedTime = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB');
+
+  var backupPayload = {
+    _generator: 'TugWatch Enterprise Marine OS',
+    _version: '8.0-Lossless-CloudSnapshot',
+    _schema: 'tw_complete_master_backup',
+    _exportedAt: now.toISOString(),
+    _exportedFormatted: formattedTime,
+    _exportedBy: (CU ? CU.name + ' (@' + CU.username + ')' : 'Master Admin'),
+    stats: {
+      vessels: (DB.vessels || []).length,
+      crew: (DB.crew || []).length,
+      certificates: (DB.certs || []).length,
+      maintenance: (DB.maint || []).length,
+      deficiencies: (DB.defs || []).length,
+      voyages: (DB.voyages || []).length,
+      bunker: (DB.bunker || []).length,
+      materials: (DB.materials || []).length,
+      requests: (DB.requests || []).length,
+      invoices: (DB.invoices || []).length,
+      accounts: (DB.accounts || DB.users || []).length,
+      contacts: (DB.contacts || []).length
+    },
+    data: DB
+  };
+
+  // 1. Download Local JSON Backup
+  var jsonStr = JSON.stringify(backupPayload, null, 2);
+  var blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'TugWatch_Fleet_Backup_' + dateStr + '_' + timestamp.slice(11, 19) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  // 2. Concurrently Push Cloud Snapshot to Firebase (Disaster Recovery Point)
+  if (FB_READY && FB_DB) {
+    try {
+      var snapKey = 'snapshot_' + timestamp;
+      var snapMeta = {
+        key: snapKey,
+        timestamp: now.toISOString(),
+        formattedTime: formattedTime,
+        by: (CU ? CU.name : 'Admin'),
+        stats: backupPayload.stats
+      };
+      FB_DB.ref('tugwatch/backups/' + snapKey).set(backupPayload);
+      FB_DB.ref('tugwatch/backups/latest_meta').set(snapMeta);
+      FB_DB.ref('tugwatch/backups/history/' + snapKey).set(snapMeta);
+    } catch(e) {
+      console.warn('Firebase snapshot push error:', e);
+    }
+  }
+
+  // 3. Update localStorage and UI indicators
+  localStorage.setItem('tw_last_backup_time', now.toISOString());
+  updateBackupTimestampUI(formattedTime);
+
+  audit('Complete Database Backup created (Offline JSON + Firebase Cloud Snapshot)', 'var(--ok)');
+  toast('Complete Database Backup downloaded & synced to Cloud ✓', 'var(--ok)');
+}
+
+function pushCloudBackupSnapshot() {
+  if (!FB_READY || !FB_DB) {
+    toast('Cloud database is not connected. Downloading offline backup instead.');
+    downloadCompleteDatabaseBackup();
+    return;
+  }
+
+  var now = new Date();
+  var timestamp = now.toISOString().replace(/[:.]/g, '-');
+  var formattedTime = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB');
+
+  var backupPayload = {
+    _generator: 'TugWatch Enterprise Marine OS',
+    _version: '8.0-CloudSnapshot',
+    _exportedAt: now.toISOString(),
+    _exportedFormatted: formattedTime,
+    _exportedBy: (CU ? CU.name + ' (@' + CU.username + ')' : 'Master Admin'),
+    stats: {
+      vessels: (DB.vessels || []).length,
+      crew: (DB.crew || []).length,
+      certificates: (DB.certs || []).length,
+      voyages: (DB.voyages || []).length,
+      bunker: (DB.bunker || []).length
+    },
+    data: DB
+  };
+
+  var snapKey = 'snapshot_' + timestamp;
+  var snapMeta = {
+    key: snapKey,
+    timestamp: now.toISOString(),
+    formattedTime: formattedTime,
+    by: (CU ? CU.name : 'Admin'),
+    stats: backupPayload.stats
+  };
+
+  FB_DB.ref('tugwatch/backups/' + snapKey).set(backupPayload).then(function() {
+    FB_DB.ref('tugwatch/backups/latest_meta').set(snapMeta);
+    FB_DB.ref('tugwatch/backups/history/' + snapKey).set(snapMeta);
+    localStorage.setItem('tw_last_backup_time', now.toISOString());
+    updateBackupTimestampUI(formattedTime);
+    audit('Cloud Disaster Recovery Snapshot pushed: ' + snapKey, 'var(--ok)');
+    toast('Cloud Backup Snapshot created successfully ✓', 'var(--ok)');
+  }).catch(function(err) {
+    uiAlert('Failed to push cloud backup: ' + err.message);
+  });
+}
+
+function updateBackupTimestampUI(formattedTime) {
+  var lastTime = formattedTime;
+  if (!lastTime) {
+    var stored = localStorage.getItem('tw_last_backup_time');
+    if (stored) {
+      var d = new Date(stored);
+      lastTime = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB');
+    }
+  }
+  var els = document.querySelectorAll('.tw-last-backup-display');
+  els.forEach(function(el) {
+    el.textContent = lastTime ? ('Last Backup: ' + lastTime) : 'No recent backup';
+  });
+}
+
+function openDisasterRecoveryModal() {
+  var existing = document.getElementById('m-disaster-recovery');
+  if (existing) existing.remove();
+
+  var storedTime = localStorage.getItem('tw_last_backup_time');
+  var formattedStored = storedTime ? (new Date(storedTime).toLocaleDateString('en-GB') + ' ' + new Date(storedTime).toLocaleTimeString('en-GB')) : 'Never on this device';
+
+  var m = document.createElement('div');
+  m.className = 'overlay';
+  m.id = 'm-disaster-recovery';
+  m.style.display = 'flex';
+  m.style.zIndex = '9999';
+
+  m.innerHTML = 
+    '<div class="modal" style="max-width:620px;width:95%;padding:22px;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,0.3)">' +
+      '<div class="modal-hdr" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--b1);padding-bottom:10px">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="width:36px;height:36px;border-radius:10px;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px">☁️</div>' +
+          '<div>' +
+            '<div class="modal-title" style="font-size:15px;font-weight:800">Fleet Data Backup &amp; Disaster Recovery</div>' +
+            '<div style="font-size:11px;color:var(--t3)">Automated 1-Click Backups, Cloud Snapshots &amp; Offline Restoration</div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="modal-close" onclick="this.closest(\'.overlay\').remove()" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--t2)">✕</button>' +
+      '</div>' +
+
+      '<div style="background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">' +
+        '<div>' +
+          '<div style="font-size:11px;color:var(--t3);font-weight:600">Local &amp; Cloud Backup Status</div>' +
+          '<div style="font-size:13px;font-weight:800;color:var(--t1)" class="tw-last-backup-display">Last Backup: ' + formattedStored + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn btn-primary btn-sm" onclick="downloadCompleteDatabaseBackup()" style="font-weight:700">💾 1-Click Backup</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
+        '<div style="border:1px solid var(--b1);border-radius:10px;padding:14px;background:var(--bg1)">' +
+          '<div style="font-size:13px;font-weight:800;margin-bottom:4px;color:var(--t1)">📥 Download Backup</div>' +
+          '<div style="font-size:10.5px;color:var(--t3);margin-bottom:10px">Export complete offline JSON file with all vessels, crew, certs, bunkers, and logs.</div>' +
+          '<button class="btn btn-outline btn-sm" onclick="downloadCompleteDatabaseBackup()" style="width:100%;font-weight:700">Download JSON (.json)</button>' +
+        '</div>' +
+
+        '<div style="border:1px solid var(--b1);border-radius:10px;padding:14px;background:var(--bg1)">' +
+          '<div style="font-size:13px;font-weight:800;margin-bottom:4px;color:var(--t1)">☁️ Cloud Snapshot</div>' +
+          '<div style="font-size:10.5px;color:var(--t3);margin-bottom:10px">Push frozen recovery point directly to Firebase Realtime Database.</div>' +
+          '<button class="btn btn-ok btn-sm" onclick="pushCloudBackupSnapshot()" style="width:100%;font-weight:700">Push Cloud Snapshot</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="border:1px dashed var(--b2);border-radius:10px;padding:16px;background:var(--s1);text-align:center">' +
+        '<div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">🔄 Restore Database from Backup File</div>' +
+        '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Select a previously saved TugWatch JSON backup file to restore.</div>' +
+        '<input type="file" id="disaster-restore-file" accept=".json" style="display:none" onchange="handleBackupFileSelect(this)" />' +
+        '<button class="btn btn-accent btn-sm" onclick="document.getElementById(\'disaster-restore-file\').click()" style="font-weight:700">' +
+          '📂 Select Backup JSON to Restore' +
+        '</button>' +
+        '<div id="restore-file-info" style="margin-top:10px;font-size:11px;color:var(--t2)"></div>' +
+      '</div>' +
+
+      '<div style="display:flex;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--b1);padding-top:12px">' +
+        '<button class="btn btn-ghost btn-sm" onclick="this.closest(\'.overlay\').remove()">Close</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(m);
+}
+
+function handleBackupFileSelect(inputEl) {
+  if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+  var file = inputEl.files[0];
+  var reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      var raw = JSON.parse(e.target.result);
+      var backupData = raw.data || raw;
+      if (!backupData || typeof backupData !== 'object') throw new Error('Invalid JSON structure');
+
+      var vCount = (backupData.vessels || []).length;
+      var cCount = (backupData.crew || []).length;
+      var certCount = (backupData.certs || []).length;
+      var expDate = raw._exportedFormatted || raw._exportedAt || 'Unknown date';
+
+      var infoDiv = document.getElementById('restore-file-info');
+      if (infoDiv) {
+        infoDiv.innerHTML = 
+          '<div style="background:var(--s2);padding:10px;border-radius:8px;border:1px solid var(--accent-dim);text-align:left;margin-top:8px">' +
+            '<div style="font-weight:800;color:var(--accent);margin-bottom:4px">✓ Backup File Validated:</div>' +
+            '<div>• <strong>File:</strong> ' + file.name + '</div>' +
+            '<div>• <strong>Exported:</strong> ' + expDate + '</div>' +
+            '<div>• <strong>Contents:</strong> ' + vCount + ' Vessels, ' + cCount + ' Crew, ' + certCount + ' Certificates</div>' +
+            '<div style="margin-top:10px;display:flex;gap:8px">' +
+              '<button class="btn btn-danger btn-sm" onclick="executeDatabaseRestore(' + JSON.stringify(file.name) + ')" style="font-weight:800">⚠️ Confirm &amp; Restore Database</button>' +
+            '</div>' +
+          '</div>';
+      }
+      window.__pendingRestoreData = backupData;
+    } catch(err) {
+      uiAlert('Failed to parse backup file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function executeDatabaseRestore(fileName) {
+  if (!window.__pendingRestoreData) {
+    uiAlert('No valid backup data selected');
+    return;
+  }
+  if (!confirm('⚠️ WARNING: This will replace the current local database with the selected backup file ("' + fileName + '") and sync the changes to Cloud. Are you sure you want to proceed?')) {
+    return;
+  }
+
+  DB = window.__pendingRestoreData;
+  saveDB();
+  audit('Disaster Recovery: Database restored from backup file: ' + fileName, 'var(--err)');
+  toast('Database restored successfully! Reloading...');
+  setTimeout(function(){ location.reload(); }, 1200);
+}
+
+// Global window exposure
+window.generateWhatsAppFleetBriefingText = generateWhatsAppFleetBriefingText;
+window.openWhatsAppFleetBriefingModal = openWhatsAppFleetBriefingModal;
+window.dispatchWhatsAppBriefing = dispatchWhatsAppBriefing;
+window.copyWhatsAppBriefing = copyWhatsAppBriefing;
+window.downloadWhatsAppBriefingTxt = downloadWhatsAppBriefingTxt;
+
+window.generateWhatsAppExpiryAlertText = generateWhatsAppExpiryAlertText;
+window.sendWhatsAppExpiryBroadcast = sendWhatsAppExpiryBroadcast;
+window.dispatchWhatsAppExpiryAlert = dispatchWhatsAppExpiryAlert;
+window.copyWhatsAppExpiryAlert = copyWhatsAppExpiryAlert;
+window.sendSingleCertWhatsAppAlert = sendSingleCertWhatsAppAlert;
+
+window.downloadCompleteDatabaseBackup = downloadCompleteDatabaseBackup;
+window.pushCloudBackupSnapshot = pushCloudBackupSnapshot;
+window.openDisasterRecoveryModal = openDisasterRecoveryModal;
+window.handleBackupFileSelect = handleBackupFileSelect;
+window.executeDatabaseRestore = executeDatabaseRestore;
+window.updateBackupTimestampUI = updateBackupTimestampUI;
 
 </script>
 
