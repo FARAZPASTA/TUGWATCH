@@ -15532,7 +15532,7 @@ function saveCompany() {
     fillCompanySelects();
     var nb = document.getElementById('nb-companies');
     if (nb) nb.textContent = (DB.companies||[]).length;
-    audit('Company profile saved: ' + co.name + (bypass ? ' [bypass]' : ''), 'var(--ok)');
+    audit('Company profile saved: ' + co.name, 'var(--ok)');
     toast('Company profile saved — ' + co.docs.length + ' document(s) attached');
     // Reset modal state cleanly
     resetCompanyModalForm();
