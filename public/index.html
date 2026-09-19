@@ -3026,11 +3026,19 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div class="page" id="p-crew">
       <div class="page-hdr">
         <div class="page-hdr-title">Crew Management</div>
-        <button class="btn btn-ghost btn-sm admin-only" onclick="go('contacts-dir')">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-outline btn-sm" onclick="openPrintCrewListModal()">
+            <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>📄 Print IMO Crew List on Letterhead
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="openOfficialLetterModal('crew_sea_time')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>✉ Sea Time Certificate
+          </button>
+          <button class="btn btn-ghost btn-sm admin-only" onclick="go('contacts-dir')">
             <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3-8.59A2 2 0 012.11 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.09a16 16 0 006 6l.46-.46a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>Alert Contacts
           </button>
-          <button class="btn btn-primary" onclick="return openModal('m-crew',event)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Crew Member</button>
-        <button class="btn btn-ghost btn-sm admin-only" onclick="exportExcel('crew')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+          <button class="btn btn-primary btn-sm" onclick="return openModal('m-crew',event)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Crew</button>
+          <button class="btn btn-ghost btn-sm admin-only" onclick="exportExcel('crew')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+        </div>
       </div>
       <div class="crew-grid" id="crew-grid"><div class="empty">No crew added yet.</div></div>
     </div>
@@ -3054,9 +3062,14 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div class="page" id="p-companies">
       <div class="page-hdr">
         <div class="page-hdr-title">Company Profiles</div>
-        <button class="btn btn-primary" onclick="return openModal('m-company',event)">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Company
-        </button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-outline" onclick="openOfficialLetterModal('custom')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>✉ Official Letter on Letterhead
+          </button>
+          <button class="btn btn-primary" onclick="return openModal('m-company',event)">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Company
+          </button>
+        </div>
       </div>
       <div id="companies-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;align-items:stretch"></div>
     </div>
@@ -6165,19 +6178,19 @@ html[data-theme="dark"] #l-pass::placeholder {
 </div>
 
 <!-- ADD / EDIT COMPANY -->
-<div class="overlay" id="m-company"><div class="modal modal-wide" style="max-width:680px;max-height:92vh;overflow-y:auto">
+<div class="overlay" id="m-company"><div class="modal modal-wide" style="max-width:720px;max-height:92vh;overflow-y:auto">
   <button class="modal-close" data-close="m-company"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   <div class="modal-title" id="m-company-title">Add Company Profile</div>
   <input type="hidden" id="co-id"/>
 
-  <!-- Company Logo Upload -->
-  <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;background:var(--s2);padding:10px 14px;border-radius:8px;border:1px solid var(--b2)">
-    <div id="co-logo-preview" style="width:48px;height:48px;border-radius:6px;background:var(--s3);border:1px dashed var(--b2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden">🏢</div>
+  <!-- Company Logo Upload with Drag & Drop -->
+  <div id="co-logo-dropzone" class="co-drop-target" style="margin-bottom:14px;display:flex;align-items:center;gap:12px;background:var(--s2);padding:12px 14px;border-radius:8px;border:1.5px dashed var(--b2);transition:all .2s ease">
+    <div id="co-logo-preview" style="width:52px;height:52px;border-radius:8px;background:var(--s3);border:1px dashed var(--b2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden">🏢</div>
     <div style="flex:1">
-      <label class="fl">Company Logo Image</label>
+      <label class="fl" style="font-weight:600">Company Logo Image <span style="font-size:9.5px;font-weight:400;color:var(--accent);margin-left:4px">📁 Click to Choose or Drag &amp; Drop file here</span></label>
       <input type="file" class="fi" id="co-logo-file" accept="image/*" style="font-size:11px" onchange="previewCoLogo(this)"/>
       <input type="hidden" id="co-logo-data"/>
-      <div style="font-size:9px;color:var(--t3);margin-top:2px">PNG, JPG, SVG or WEBP logo for printable Payment Advice vouchers, letterheads &amp; invoices.</div>
+      <div style="font-size:9.5px;color:var(--t3);margin-top:2px">PNG, JPG, SVG or WEBP logo for official Letterheads, Payment Advices &amp; Invoices.</div>
     </div>
   </div>
 
@@ -6190,6 +6203,12 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div class="fr2"><div class="fg"><label class="fl">GST Number <span class="req">*</span></label><input class="fi" id="co-gst" placeholder="22AAAAA0000A1Z5" style="text-transform:uppercase"/></div><div class="fg"><label class="fl">PAN Number <span class="req">*</span></label><input class="fi" id="co-pan" placeholder="AAAAA0000A" style="text-transform:uppercase"/></div></div>
   <div class="fr2"><div class="fg"><label class="fl">MSME / Udyam Number</label><input class="fi" id="co-msme" placeholder="UDYAM-XX-00-0000000"/></div><div class="fg"><label class="fl">CIN (Company Identification No.)</label><input class="fi" id="co-cin" placeholder="L12345MH2000PLC123456"/></div></div>
 
+  <!-- BANKING & PAYMENT DETAILS -->
+  <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin:16px 0 10px;border-left:3px solid var(--accent);padding-left:8px">🏦 Banking &amp; Payment Details <span style="font-size:9px;font-weight:400;color:var(--t3);text-transform:none">(Printed on Invoices, Quotations &amp; Official Letterheads)</span></div>
+  <div class="fr2"><div class="fg"><label class="fl">Bank Name</label><input class="fi" id="co-bank-name" placeholder="e.g. HDFC Bank / State Bank of India"/></div><div class="fg"><label class="fl">Account Holder Name</label><input class="fi" id="co-bank-accname" placeholder="e.g. ACE Marine Private Limited"/></div></div>
+  <div class="fr2"><div class="fg"><label class="fl">Account Number</label><input class="fi" id="co-bank-accno" placeholder="e.g. 50200012345678" style="font-family:var(--fm)"/></div><div class="fg"><label class="fl">IFSC Code</label><input class="fi" id="co-bank-ifsc" placeholder="e.g. HDFC0000123" style="text-transform:uppercase;font-family:var(--fm)"/></div></div>
+  <div class="fr2"><div class="fg"><label class="fl">Branch &amp; City</label><input class="fi" id="co-bank-branch" placeholder="e.g. Jamnagar Main Branch, Gujarat"/></div><div class="fg"><label class="fl">UPI ID / Payment QR VPA</label><input class="fi" id="co-bank-upi" placeholder="e.g. acemarine@hdfcbank"/></div></div>
+
   <!-- MANDATORY DOCUMENTS -->
   <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.7px;margin:16px 0 4px;border-left:3px solid #dc2626;padding-left:8px">Mandatory Documents <span style="font-size:9px;font-weight:400;color:var(--t3);text-transform:none">(GST Certificate, MSME Certificate & PAN Card required)</span></div>
   <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
@@ -6201,10 +6220,10 @@ html[data-theme="dark"] #l-pass::placeholder {
         <span id="co-gst-cert-name" style="font-size:11px;color:#15803d;font-weight:600"></span>
         <button type="button" onclick="removeCompanyMandatoryDoc('gst')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px">✕</button>
       </div>
-      <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px dashed #fca5a5;border-radius:8px;padding:10px 14px;cursor:pointer" id="co-gst-cert-zone">
+      <label class="co-drop-target" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px dashed #fca5a5;border-radius:8px;padding:10px 14px;cursor:pointer;transition:all .2s ease" id="co-gst-cert-zone">
         <input type="file" id="co-gst-cert" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="previewCompanyMandatoryDoc('gst',this)"/>
         <svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/><polyline points="14 2 14 8 20 8" stroke="#dc2626" stroke-width="1.5"/></svg>
-        <div><div style="font-size:11px;font-weight:600;color:#dc2626">Upload GST Certificate</div><div style="font-size:10px;color:var(--t3)">PDF, JPG or PNG · Required</div></div>
+        <div><div style="font-size:11px;font-weight:600;color:#dc2626">Upload GST Certificate <span style="font-size:9.5px;font-weight:400;color:var(--t3)">(or Drag &amp; Drop file here)</span></div><div style="font-size:10px;color:var(--t3)">PDF, JPG or PNG · Required</div></div>
       </label>
     </div>
 
@@ -6215,10 +6234,10 @@ html[data-theme="dark"] #l-pass::placeholder {
         <span id="co-msme-cert-name" style="font-size:11px;color:#15803d;font-weight:600"></span>
         <button type="button" onclick="removeCompanyMandatoryDoc('msme')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px">✕</button>
       </div>
-      <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px dashed #fca5a5;border-radius:8px;padding:10px 14px;cursor:pointer" id="co-msme-cert-zone">
+      <label class="co-drop-target" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px dashed #fca5a5;border-radius:8px;padding:10px 14px;cursor:pointer;transition:all .2s ease" id="co-msme-cert-zone">
         <input type="file" id="co-msme-cert" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="previewCompanyMandatoryDoc('msme',this)"/>
         <svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/><polyline points="14 2 14 8 20 8" stroke="#dc2626" stroke-width="1.5"/></svg>
-        <div><div style="font-size:11px;font-weight:600;color:#dc2626">Upload MSME Certificate</div><div style="font-size:10px;color:var(--t3)">PDF, JPG or PNG · Required</div></div>
+        <div><div style="font-size:11px;font-weight:600;color:#dc2626">Upload MSME Certificate <span style="font-size:9.5px;font-weight:400;color:var(--t3)">(or Drag &amp; Drop file here)</span></div><div style="font-size:10px;color:var(--t3)">PDF, JPG or PNG · Required</div></div>
       </label>
     </div>
 
@@ -6229,10 +6248,10 @@ html[data-theme="dark"] #l-pass::placeholder {
         <span id="co-pan-cert-name" style="font-size:11px;color:#15803d;font-weight:600"></span>
         <button type="button" onclick="removeCompanyMandatoryDoc('pan')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px">✕</button>
       </div>
-      <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px dashed #fca5a5;border-radius:8px;padding:10px 14px;cursor:pointer" id="co-pan-cert-zone">
+      <label class="co-drop-target" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px dashed #fca5a5;border-radius:8px;padding:10px 14px;cursor:pointer;transition:all .2s ease" id="co-pan-cert-zone">
         <input type="file" id="co-pan-cert" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="previewCompanyMandatoryDoc('pan',this)"/>
         <svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/><polyline points="14 2 14 8 20 8" stroke="#dc2626" stroke-width="1.5"/></svg>
-        <div><div style="font-size:11px;font-weight:600;color:#dc2626">Upload PAN Card</div><div style="font-size:10px;color:var(--t3)">PDF, JPG or PNG · Required</div></div>
+        <div><div style="font-size:11px;font-weight:600;color:#dc2626">Upload PAN Card <span style="font-size:9.5px;font-weight:400;color:var(--t3)">(or Drag &amp; Drop file here)</span></div><div style="font-size:10px;color:var(--t3)">PDF, JPG or PNG · Required</div></div>
       </label>
     </div>
 
@@ -6256,6 +6275,150 @@ html[data-theme="dark"] #l-pass::placeholder {
     <button class="btn btn-primary" onclick="saveCompany()">Save Company Profile</button>
   </div>
 </div></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PRINT IMO CREW LIST ON LETTERHEAD MODAL
+══════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="m-print-crewlist">
+  <div class="modal modal-wide" style="max-width:880px;max-height:92vh;overflow-y:auto">
+    <button class="modal-close" data-close="m-print-crewlist"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+      <span>📄 IMO Crew Manifest / Crew List on Letterhead</span>
+      <span style="font-size:10.5px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:10px;font-weight:600">IMO FAL Form 5</span>
+    </div>
+    
+    <div style="background:var(--s2);padding:14px;border-radius:8px;border:1px solid var(--b2);margin-bottom:14px">
+      <div class="fr3">
+        <div class="fg">
+          <label class="fl">Letterhead Company <span class="req">*</span></label>
+          <select class="fi" id="pcl-company" onchange="renderCrewListLetterheadPreview()"></select>
+        </div>
+        <div class="fg">
+          <label class="fl">Filter Vessel <span class="req">*</span></label>
+          <select class="fi" id="pcl-vessel" onchange="renderCrewListLetterheadPreview()"></select>
+        </div>
+        <div class="fg">
+          <label class="fl">Document Date</label>
+          <input type="date" class="fi" id="pcl-date" onchange="renderCrewListLetterheadPreview()"/>
+        </div>
+      </div>
+      <div class="fr4">
+        <div class="fg">
+          <label class="fl">Port of Departure / Call</label>
+          <input class="fi" id="pcl-port" placeholder="e.g. Sikka Port / Bedi" oninput="renderCrewListLetterheadPreview()"/>
+        </div>
+        <div class="fg">
+          <label class="fl">Port of Arrival / Destination</label>
+          <input class="fi" id="pcl-dest" placeholder="e.g. Kandla / Mumbai" oninput="renderCrewListLetterheadPreview()"/>
+        </div>
+        <div class="fg">
+          <label class="fl">Voyage / Operation No.</label>
+          <input class="fi" id="pcl-voyage" placeholder="e.g. VOY-2026/09" oninput="renderCrewListLetterheadPreview()"/>
+        </div>
+        <div class="fg">
+          <label class="fl">Master on Duty</label>
+          <input class="fi" id="pcl-master" placeholder="e.g. Capt. Rahim" oninput="renderCrewListLetterheadPreview()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE LETTERHEAD PREVIEW CONTAINER -->
+    <div style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">📋 Live Letterhead Document Preview</div>
+    <div id="pcl-preview-container" style="background:#fff;color:#111827;border:1px solid #d1d5db;border-radius:8px;padding:24px 28px;box-shadow:0 4px 12px rgba(0,0,0,0.06);min-height:380px;font-family:system-ui,-apple-system,sans-serif">
+      <!-- Populated via renderCrewListLetterheadPreview() -->
+    </div>
+
+    <div class="modal-footer" style="margin-top:16px">
+      <button class="btn btn-ghost" data-close="m-print-crewlist">Close</button>
+      <button class="btn btn-outline" onclick="copyCrewListText()">📋 Copy Text</button>
+      <button class="btn btn-primary" onclick="printCrewListOnLetterhead()">
+        <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print IMO Crew List / PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     UNIVERSAL OFFICIAL MARITIME LETTER CREATOR MODAL
+══════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="m-official-letter">
+  <div class="modal modal-wide" style="max-width:900px;max-height:92vh;overflow-y:auto">
+    <button class="modal-close" data-close="m-official-letter"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+      <span>✉ Official Maritime Letterhead Document Creator</span>
+      <span style="font-size:10.5px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-weight:600">Company Letterhead Engine</span>
+    </div>
+    
+    <div style="background:var(--s2);padding:14px;border-radius:8px;border:1px solid var(--b2);margin-bottom:14px">
+      <div class="fr3">
+        <div class="fg">
+          <label class="fl">Letterhead Company <span class="req">*</span></label>
+          <select class="fi" id="pol-company" onchange="renderOfficialLetterPreview()"></select>
+        </div>
+        <div class="fg">
+          <label class="fl">Document Template</label>
+          <select class="fi" id="pol-template" onchange="applyOfficialLetterTemplate(this.value)">
+            <option value="custom">Custom Maritime Letter</option>
+            <option value="crew_sea_time">Crew Sea Time &amp; Service Certificate</option>
+            <option value="port_clearance">Port Entry &amp; Clearance Request</option>
+            <option value="noc_signoff">No Objection Certificate (NOC) / Sign-Off</option>
+            <option value="bunker_auth">Bunker Supply &amp; Delivery Authorization</option>
+            <option value="vessel_charter">Vessel Availability / Charter Confirmation</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Ref No. &amp; Date</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" id="pol-refno" placeholder="Ref: ACE/OPS/2026/01" oninput="renderOfficialLetterPreview()"/>
+            <input type="date" class="fi" id="pol-date" style="max-width:130px" onchange="renderOfficialLetterPreview()"/>
+          </div>
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="fg">
+          <label class="fl">Recipient / Addressee</label>
+          <input class="fi" id="pol-recipient" placeholder="e.g. The Mercantile Marine Department (MMD) / Port Conservator" oninput="renderOfficialLetterPreview()"/>
+        </div>
+        <div class="fg">
+          <label class="fl">Letter Subject</label>
+          <input class="fi" id="pol-subject" placeholder="e.g. TO WHOMSOEVER IT MAY CONCERN — SEA TIME CERTIFICATE" oninput="renderOfficialLetterPreview()"/>
+        </div>
+      </div>
+      <div class="fr3">
+        <div class="fg">
+          <label class="fl">Select Crew (for certificates)</label>
+          <select class="fi" id="pol-crew" onchange="populateLetterCrewData(this.value)"><option value="">— Select Crew (Optional) —</option></select>
+        </div>
+        <div class="fg">
+          <label class="fl">Select Vessel</label>
+          <select class="fi" id="pol-vessel" onchange="populateLetterVesselData(this.value)"><option value="">— Select Vessel (Optional) —</option></select>
+        </div>
+        <div class="fg">
+          <label class="fl">Authorized Signatory</label>
+          <input class="fi" id="pol-signatory" placeholder="e.g. For ACE MARINE — Managing Partner" oninput="renderOfficialLetterPreview()"/>
+        </div>
+      </div>
+      <div class="fg" style="margin-top:8px">
+        <label class="fl">Letter Body Content</label>
+        <textarea class="fi" id="pol-body" rows="6" placeholder="Enter letter body text here..." oninput="renderOfficialLetterPreview()"></textarea>
+      </div>
+    </div>
+
+    <!-- LIVE LETTERHEAD PREVIEW -->
+    <div style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">📋 Official Letterhead Print Preview</div>
+    <div id="pol-preview-container" style="background:#fff;color:#111827;border:1px solid #d1d5db;border-radius:8px;padding:28px 32px;box-shadow:0 4px 12px rgba(0,0,0,0.06);min-height:450px;font-family:system-ui,-apple-system,sans-serif">
+      <!-- Populated via renderOfficialLetterPreview() -->
+    </div>
+
+    <div class="modal-footer" style="margin-top:16px">
+      <button class="btn btn-ghost" data-close="m-official-letter">Close</button>
+      <button class="btn btn-outline" onclick="copyOfficialLetterText()">📋 Copy Text</button>
+      <button class="btn btn-primary" onclick="printOfficialLetter()">
+        <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print on Official Letterhead / PDF
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ADD CREW MEMBER -->
 <div class="overlay" id="m-crew"><div class="modal modal-wide">
@@ -13693,7 +13856,7 @@ function renderCompanies() {
           </div>
         </div>
 
-        <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:12px;background:var(--s2);padding:10px 12px;border-radius:8px;border:1px solid var(--b2);display:flex;flex-direction:column;gap:5px;min-height:92px;justify-content:center">
+        <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:12px;background:var(--s2);padding:10px 12px;border-radius:8px;border:1px solid var(--b2);display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;align-items:flex-start;gap:6px">
             <span style="flex-shrink:0;font-size:12px">📍</span>
             <span style="color:var(--t2);word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px">${addrStr || '<span style="color:var(--t4);font-style:italic">No registered address</span>'}</span>
@@ -13706,6 +13869,14 @@ function renderCompanies() {
             ${co.gst ? '<div style="font-size:10px;font-family:var(--fm);background:var(--s3);padding:2px 6px;border-radius:4px;border:1px solid var(--b2);color:var(--t1)"><strong>GST:</strong> '+co.gst+'</div>' : ''}
             ${co.pan ? '<div style="font-size:10px;font-family:var(--fm);background:var(--s3);padding:2px 6px;border-radius:4px;border:1px solid var(--b2);color:var(--t1)"><strong>PAN:</strong> '+co.pan+'</div>' : ''}
           </div>
+          ${(co.bankName || co.bankAccNo) ? `
+          <div style="margin-top:4px;padding-top:6px;border-top:1px dashed var(--b2);font-size:10px;color:var(--t2);display:flex;flex-direction:column;gap:2px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span>🏦 <strong>${co.bankName || 'Bank'}:</strong> <span style="font-family:var(--fm)">${co.bankAccNo || '—'}</span></span>
+              ${co.bankIfsc ? '<span style="font-family:var(--fm);font-size:9.5px;color:var(--t3)">IFSC: '+co.bankIfsc+'</span>' : ''}
+            </div>
+            ${co.bankBranch ? '<div style="font-size:9.5px;color:var(--t3)">📍 '+co.bankBranch+'</div>' : ''}
+          </div>` : ''}
         </div>
       </div>
 
@@ -13738,6 +13909,643 @@ function renderCompanies() {
         </div>
       </div>`;
     grid.appendChild(card);
+  });
+}
+
+
+
+/* ══════════════════════════════════════════════════════════════
+   DRAG & DROP ATTACHMENT ENGINE FOR COMPANY PROFILES
+══════════════════════════════════════════════════════════════ */
+function setupCompanyDropZones() {
+  setTimeout(function() {
+    var modal = document.getElementById('m-company');
+    if (!modal) return;
+
+    function bindDropTarget(zoneEl, onFilesReceived) {
+      if (!zoneEl || zoneEl._ddBound) return;
+      zoneEl._ddBound = true;
+
+      ['dragenter', 'dragover'].forEach(function(evtName) {
+        zoneEl.addEventListener(evtName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          zoneEl.style.borderColor = 'var(--accent, #2563eb)';
+          zoneEl.style.background = '#eff6ff';
+          zoneEl.style.transform = 'scale(1.01)';
+        }, false);
+      });
+
+      ['dragleave', 'dragend'].forEach(function(evtName) {
+        zoneEl.addEventListener(evtName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          zoneEl.style.borderColor = '';
+          zoneEl.style.background = '';
+          zoneEl.style.transform = '';
+        }, false);
+      });
+
+      zoneEl.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        zoneEl.style.borderColor = '';
+        zoneEl.style.background = '';
+        zoneEl.style.transform = '';
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+          onFilesReceived(e.dataTransfer.files);
+        }
+      }, false);
+    }
+
+    // Logo drop zone
+    var logoZone = modal.querySelector('#co-logo-dropzone');
+    if (logoZone) {
+      bindDropTarget(logoZone, function(files) {
+        var file = files[0];
+        if (!file || !file.type.startsWith('image/')) {
+          toast('Please drop an image file for company logo', 'var(--warn)'); return;
+        }
+        var fakeInp = { files: [file] };
+        previewCoLogo(fakeInp);
+        toast('Company logo attached via drag & drop');
+      });
+    }
+
+    // Mandatory doc zones
+    ['gst', 'msme', 'pan'].forEach(function(type) {
+      var zone = modal.querySelector('#co-' + type + '-cert-zone');
+      if (zone) {
+        bindDropTarget(zone, function(files) {
+          var file = files[0];
+          if (!file) return;
+          var fakeInp = { files: [file] };
+          previewCompanyMandatoryDoc(type, fakeInp);
+          toast(type.toUpperCase() + ' Certificate attached via drag & drop');
+        });
+      }
+    });
+  }, 100);
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   MARITIME PRINT-ON-LETTERHEAD ENGINE
+══════════════════════════════════════════════════════════════ */
+
+function getActiveOrFirstCompany() {
+  var activeCoId = localStorage.getItem('tw_active_company_id');
+  var list = DB.companies || [];
+  if (activeCoId) {
+    var found = list.find(function(c){ return c.id === activeCoId; });
+    if (found) return found;
+  }
+  return list[0] || {
+    id: 'default',
+    name: 'SAARVIN TUG SERVICES / ACE MARINE',
+    tag: 'Own Enterprise',
+    entity: 'Partnership',
+    addr: '46, HAPA Industrial Estate, Hapa-Jamnagar - 361120',
+    email: 'ops@saarvin.in',
+    phone: '+91 93289 98664',
+    gst: '24AAPFA2336N1Z9',
+    pan: 'AAPFA2336N',
+    bankName: 'HDFC Bank',
+    bankAccNo: '50200012345678',
+    bankIfsc: 'HDFC0000123',
+    bankBranch: 'Jamnagar Main Branch, Gujarat'
+  };
+}
+
+function generateCompanyLetterheadHeader(co) {
+  if (!co) co = getActiveOrFirstCompany();
+  var logoHtml = co.logo
+    ? '<img src="' + co.logo + '" style="max-height:65px;max-width:140px;object-fit:contain"/>'
+    : '<div style="font-size:32px">🏢</div>';
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #1e3a8a;padding-bottom:14px;margin-bottom:20px;gap:20px">
+      <div style="flex-shrink:0">
+        ${logoHtml}
+      </div>
+      <div style="flex:1;text-align:right">
+        <div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-0.3px;text-transform:uppercase;line-height:1.2">${co.name}</div>
+        ${co.tradename ? '<div style="font-size:11px;font-weight:600;color:#475569;margin-top:1px">(' + co.tradename + ')</div>' : ''}
+        <div style="font-size:10px;color:#334155;margin-top:4px;line-height:1.5">
+          ${co.address || co.addr || ''}
+        </div>
+        <div style="font-size:9.5px;color:#475569;margin-top:3px;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
+          ${co.email ? '<span>✉ ' + co.email + '</span>' : ''}
+          ${co.phone ? '<span>📞 ' + co.phone + '</span>' : ''}
+          ${co.web ? '<span>🌐 ' + co.web + '</span>' : ''}
+        </div>
+        <div style="font-size:9.5px;color:#0f172a;margin-top:3px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;font-family:monospace;font-weight:600">
+          ${co.gst ? '<span>GSTIN: ' + co.gst + '</span>' : ''}
+          ${co.pan ? '<span>PAN: ' + co.pan + '</span>' : ''}
+          ${co.cin ? '<span>CIN: ' + co.cin + '</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function generateCompanyLetterheadFooter(co) {
+  if (!co) co = getActiveOrFirstCompany();
+  return `
+    <div style="margin-top:36px;border-top:1.5px solid #cbd5e1;padding-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#64748b;line-height:1.5">
+      <div>
+        ${(co.bankName || co.bankAccNo) ? `<strong>Bank Details:</strong> ${co.bankName || 'Bank'} | A/C: <span style="font-family:monospace">${co.bankAccNo || '—'}</span> | IFSC: <span style="font-family:monospace">${co.bankIfsc || '—'}</span> ${co.bankBranch ? ' | Branch: '+co.bankBranch : ''}` : 'Official Fleet Maritime Correspondence'}
+      </div>
+      <div style="text-align:right">
+        Generated via <strong>TugWatch Fleet OS</strong> · Page 1 of 1
+      </div>
+    </div>`;
+}
+
+
+/* ── 1. IMO CREW LIST ON LETTERHEAD ────────────────────────── */
+
+function openPrintCrewListModal(vesselId) {
+  openModal('m-print-crewlist');
+
+  // Fill company options
+  var coSel = document.getElementById('pcl-company');
+  if (coSel) {
+    var companies = DB.companies || [];
+    var activeCo = getActiveOrFirstCompany();
+    coSel.innerHTML = companies.map(function(c) {
+      return '<option value="' + c.id + '"' + (c.id === activeCo.id ? ' selected' : '') + '>' + c.name + ' (' + (c.tag||c.entity||'Main') + ')</option>';
+    }).join('');
+    if (!companies.length) {
+      coSel.innerHTML = '<option value="default">SAARVIN / ACE MARINE (Default)</option>';
+    }
+  }
+
+  // Fill vessel options
+  var vSel = document.getElementById('pcl-vessel');
+  if (vSel) {
+    var vessels = DB.vessels || [];
+    var opts = '<option value="all">— All Active Fleet Crew (' + (DB.crew||[]).length + ' Nos) —</option>';
+    vessels.forEach(function(v) {
+      var vCrew = (DB.crew||[]).filter(function(cr){ return cr.vessel === v.id || cr.vessel === v.name; }).length;
+      opts += '<option value="' + v.id + '"' + (vesselId === v.id ? ' selected' : '') + '>' + v.name + ' (' + vCrew + ' crew)</option>';
+    });
+    vSel.innerHTML = opts;
+  }
+
+  // Pre-fill date & defaults
+  var dInp = document.getElementById('pcl-date');
+  if (dInp) dInp.value = today();
+
+  var portInp = document.getElementById('pcl-port');
+  if (portInp && !portInp.value) portInp.value = 'Sikka Port / Bedi Marine Terminal';
+
+  var destInp = document.getElementById('pcl-dest');
+  if (destInp && !destInp.value) destInp.value = 'Coastal / Port Limits';
+
+  var voyInp = document.getElementById('pcl-voyage');
+  if (voyInp && !voyInp.value) voyInp.value = 'VOY-' + new Date().getFullYear() + '/' + String(new Date().getMonth()+1).padStart(2,'0');
+
+  var mastInp = document.getElementById('pcl-master');
+  if (mastInp && !mastInp.value) {
+    var masterCrew = (DB.crew||[]).find(function(c){ return (c.role||'').toLowerCase().includes('master'); });
+    mastInp.value = masterCrew ? masterCrew.name : 'Master in Command';
+  }
+
+  renderCrewListLetterheadPreview();
+}
+
+function renderCrewListLetterheadPreview() {
+  var container = document.getElementById('pcl-preview-container');
+  if (!container) return;
+
+  var coId = val('pcl-company');
+  var co = (DB.companies||[]).find(function(c){ return c.id === coId; }) || getActiveOrFirstCompany();
+  var vesselId = val('pcl-vessel');
+  var docDate = val('pcl-date') || today();
+  var port = val('pcl-port') || 'Port Limits';
+  var dest = val('pcl-dest') || 'Sea / Coastal';
+  var voyage = val('pcl-voyage') || '—';
+  var masterName = val('pcl-master') || 'Master on Duty';
+
+  // Filter Crew
+  var crewList = (DB.crew || []).slice();
+  var vesselName = 'ALL FLEET VESSELS';
+  var vObj = null;
+  if (vesselId && vesselId !== 'all') {
+    vObj = (DB.vessels||[]).find(function(v){ return v.id === vesselId || v.name === vesselId; });
+    if (vObj) {
+      vesselName = vObj.name;
+      crewList = crewList.filter(function(c){ return c.vessel === vObj.id || c.vessel === vObj.name; });
+    }
+  }
+
+  var headerHtml = generateCompanyLetterheadHeader(co);
+  var footerHtml = generateCompanyLetterheadFooter(co);
+
+  var rowsHtml = '';
+  if (!crewList.length) {
+    rowsHtml = '<tr><td colspan="8" style="padding:14px;text-align:center;color:#6b7280;font-style:italic">No crew members assigned to this vessel yet.</td></tr>';
+  } else {
+    crewList.forEach(function(c, i) {
+      rowsHtml += `
+        <tr style="border-bottom:1px solid #e5e7eb;font-size:10px;color:#1e293b">
+          <td style="padding:7px 8px;text-align:center;font-weight:600">${i+1}</td>
+          <td style="padding:7px 8px;font-weight:700;color:#0f172a">${c.name}</td>
+          <td style="padding:7px 8px;font-weight:600;color:#1e40af">${c.role || '—'}</td>
+          <td style="padding:7px 8px">Indian</td>
+          <td style="padding:7px 8px;font-family:monospace">${c.cdc || c.crewno || '—'}</td>
+          <td style="padding:7px 8px;font-family:monospace">${c.indos || '—'}</td>
+          <td style="padding:7px 8px;white-space:nowrap">${c.son ? fmtDate(c.son) : 'Active'}</td>
+          <td style="padding:7px 8px">${c.station || (vObj ? vObj.name : (c.vessel || '—'))}</td>
+        </tr>`;
+    });
+  }
+
+  container.innerHTML = `
+    ${headerHtml}
+    
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:800;color:#0f172a;letter-spacing:0.5px;text-transform:uppercase">IMO FAL FORM 5 — CREW LIST / CREW MANIFEST</div>
+      <div style="font-size:10.5px;color:#475569;margin-top:2px">Issued in accordance with the Convention on Facilitation of International Maritime Traffic</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:10.5px;color:#334155">
+      <div><strong>Vessel Name:</strong> <span style="font-weight:700;color:#0f172a">${vesselName}</span></div>
+      <div><strong>Flag / Port of Registry:</strong> Indian / Bedi</div>
+      <div><strong>Date of Issue:</strong> ${fmtDate(docDate)}</div>
+      <div><strong>Port of Departure:</strong> ${port}</div>
+      <div><strong>Port of Arrival:</strong> ${dest}</div>
+      <div><strong>Voyage / Ref No:</strong> ${voyage}</div>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;border:1px solid #cbd5e1">
+      <thead>
+        <tr style="background:#0f172a;color:#ffffff;font-size:9.5px;text-transform:uppercase;letter-spacing:0.3px;text-align:left">
+          <th style="padding:7px 8px;text-align:center;width:30px">#</th>
+          <th style="padding:7px 8px">Full Name of Seafarer</th>
+          <th style="padding:7px 8px">Rank / Rating</th>
+          <th style="padding:7px 8px">Nationality</th>
+          <th style="padding:7px 8px">CDC / Passport No.</th>
+          <th style="padding:7px 8px">INDOS No.</th>
+          <th style="padding:7px 8px">Sign-On Date</th>
+          <th style="padding:7px 8px">Port / Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:32px;padding:0 10px">
+      <div style="text-align:center;width:200px">
+        <div style="height:45px;border-bottom:1.5px dashed #64748b;margin-bottom:6px"></div>
+        <div style="font-size:10px;font-weight:700;color:#0f172a">Vessel / Company Seal</div>
+        <div style="font-size:9px;color:#64748b">Stamp &amp; Verification</div>
+      </div>
+      <div style="text-align:center;width:240px">
+        <div style="height:45px;border-bottom:1.5px dashed #64748b;margin-bottom:6px;display:flex;align-items:flex-end;justify-content:center;font-size:11px;font-weight:600;color:#1e40af">
+          ${masterName}
+        </div>
+        <div style="font-size:10px;font-weight:700;color:#0f172a">Master / Authorized Signatory</div>
+        <div style="font-size:9px;color:#64748b">Master in Command (${vesselName})</div>
+      </div>
+    </div>
+
+    ${footerHtml}
+  `;
+}
+
+function printCrewListOnLetterhead() {
+  var container = document.getElementById('pcl-preview-container');
+  if (!container) return;
+  var w = window.open('', '_blank', 'width=900,height=800');
+  w.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>IMO Crew List on Letterhead</title>
+      <style>
+        @page { size: A4 portrait; margin: 12mm 15mm; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #fff; color: #111827; margin: 0; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        @media print {
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      </style>
+    </head>
+    <body>
+      ${container.innerHTML}
+      <script>window.onload = function(){ window.print(); };<\/script>
+    </body>
+    </html>
+  `);
+  w.document.close();
+  toast('Opening print dialog for IMO Crew List...');
+}
+
+function copyCrewListText() {
+  var vesselId = val('pcl-vessel');
+  var crewList = (DB.crew || []).slice();
+  if (vesselId && vesselId !== 'all') {
+    crewList = crewList.filter(function(c){ return c.vessel === vesselId; });
+  }
+  var text = "🚢 IMO CREW LIST — " + val('pcl-port') + " (" + fmtDate(val('pcl-date')) + ")\n";
+  crewList.forEach(function(c, i) {
+    text += (i+1) + ". " + c.name + " (" + (c.role||'Crew') + ") | CDC: " + (c.cdc||'—') + " | INDOS: " + (c.indos||'—') + "\n";
+  });
+  navigator.clipboard.writeText(text).then(function(){
+    toast('Crew List text copied to clipboard!');
+  });
+}
+
+
+/* ── 2. UNIVERSAL OFFICIAL MARITIME LETTER CREATOR ─────────── */
+
+function openOfficialLetterModal(templateType, targetId) {
+  openModal('m-official-letter');
+
+  // Fill company select
+  var coSel = document.getElementById('pol-company');
+  if (coSel) {
+    var companies = DB.companies || [];
+    var activeCo = getActiveOrFirstCompany();
+    coSel.innerHTML = companies.map(function(c) {
+      return '<option value="' + c.id + '"' + (c.id === activeCo.id ? ' selected' : '') + '>' + c.name + ' (' + (c.tag||c.entity||'Main') + ')</option>';
+    }).join('');
+    if (!companies.length) {
+      coSel.innerHTML = '<option value="default">SAARVIN / ACE MARINE (Default)</option>';
+    }
+  }
+
+  // Fill crew select
+  var crSel = document.getElementById('pol-crew');
+  if (crSel) {
+    var crew = DB.crew || [];
+    var opts = '<option value="">— Select Crew Member (Optional) —</option>';
+    crew.forEach(function(c) {
+      opts += '<option value="' + c.id + '"' + (targetId === c.id ? ' selected' : '') + '>' + c.name + ' (' + (c.role||'Crew') + ' - ' + (c.vessel||'No Vessel') + ')</option>';
+    });
+    crSel.innerHTML = opts;
+  }
+
+  // Fill vessel select
+  var vSel = document.getElementById('pol-vessel');
+  if (vSel) {
+    var vessels = DB.vessels || [];
+    var vOpts = '<option value="">— Select Vessel (Optional) —</option>';
+    vessels.forEach(function(v) {
+      vOpts += '<option value="' + v.id + '"' + (targetId === v.id ? ' selected' : '') + '>' + v.name + ' (' + (v.bhp||'') + ' BHP)</option>';
+    });
+    vSel.innerHTML = vOpts;
+  }
+
+  // Template select
+  var tplSel = document.getElementById('pol-template');
+  if (tplSel) tplSel.value = templateType || 'custom';
+
+  var dInp = document.getElementById('pol-date');
+  if (dInp) dInp.value = today();
+
+  var refInp = document.getElementById('pol-refno');
+  if (refInp && !refInp.value) {
+    refInp.value = 'REF/TW/' + new Date().getFullYear() + '/' + String(Math.floor(1000 + Math.random() * 9000));
+  }
+
+  applyOfficialLetterTemplate(templateType || 'custom');
+}
+
+function applyOfficialLetterTemplate(tplKey) {
+  var subjEl = document.getElementById('pol-subject');
+  var recipEl = document.getElementById('pol-recipient');
+  var bodyEl = document.getElementById('pol-body');
+  var signEl = document.getElementById('pol-signatory');
+
+  var co = getActiveOrFirstCompany();
+  if (signEl && !signEl.value) {
+    signEl.value = 'For ' + co.name + '\nAuthorized Signatory / Operations Manager';
+  }
+
+  if (tplKey === 'crew_sea_time') {
+    if (recipEl) recipEl.value = 'TO WHOMSOEVER IT MAY CONCERN / THE MERCANTILE MARINE DEPARTMENT (MMD)';
+    if (subjEl) subjEl.value = 'SEA SERVICE & SEA TIME EXPERIENCE CERTIFICATE';
+    if (bodyEl) {
+      bodyEl.value = 
+`This is to certify that Mr. [CREW_NAME], holding CDC No. [CDC_NO] and INDOS No. [INDOS_NO], has served on board our registered Tug Boat / Vessel "[VESSEL_NAME]" in the capacity of [RANK].
+
+Period of Sea Service: From [SIGN_ON_DATE] to [CURRENT_DATE].
+Area of Operation: Coastal Waters of India / Port Limits (Sikka / Bedi / Kandla).
+Vessel Particulars: BHP: 1200 | Gross Tonnage: 145 GT | Propulsion: Twin Screw Marine Diesel.
+
+During his tenure of service on board, his conduct, sober habits, and professional performance of navigational and engine watchkeeping duties were found to be exemplary and of the highest order.
+
+We wish him all success in his future maritime endeavors.`;
+    }
+  } else if (tplKey === 'port_clearance') {
+    if (recipEl) recipEl.value = 'The Port Officer / Deputy Conservator, Gujarat Maritime Board (GMB)';
+    if (subjEl) subjEl.value = 'REQUEST FOR PORT ENTRY, CLEARANCE & BERTHING PERMISSION';
+    if (bodyEl) {
+      bodyEl.value = 
+`We hereby request your esteemed authority to grant Port Clearance & Berthing Permission for our vessel "[VESSEL_NAME]" arriving at Sikka / Bedi Port on [CURRENT_DATE].
+
+Vessel Details:
+• Vessel Name: [VESSEL_NAME]
+• Master in Command: [MASTER_NAME]
+• Purpose of Call: Bunker Supply / Cargo Towing / Pilotage Operations
+• Total Crew on Board: [CREW_COUNT] Nos. (IMO Crew List attached)
+
+All statutory certificates, insurance covers, and trading licenses are valid and in full compliance with Directorate General of Shipping regulations.`;
+    }
+  } else if (tplKey === 'noc_signoff') {
+    if (recipEl) recipEl.value = 'The Immigration Officer & Mercantile Marine Department';
+    if (subjEl) subjEl.value = 'NO OBJECTION CERTIFICATE (NOC) FOR CREW SIGN-OFF';
+    if (bodyEl) {
+      bodyEl.value = 
+`This is to confirm that the management of [COMPANY_NAME] has NO OBJECTION to the routine sign-off of Mr. [CREW_NAME] (Rank: [RANK], CDC: [CDC_NO]) from the vessel "[VESSEL_NAME]" at this port on [CURRENT_DATE].
+
+All contractual dues, wages, and travel arrangements have been settled in full compliance with the Maritime Labour Convention (MLC 2006).`;
+    }
+  } else if (tplKey === 'bunker_auth') {
+    if (recipEl) recipEl.value = 'The Bunker Supplier / Terminal In-Charge';
+    if (subjEl) subjEl.value = 'AUTHORIZATION FOR BUNKER DELIVERY & FUEL TRANSFER';
+    if (bodyEl) {
+      bodyEl.value = 
+`We hereby authorize our vessel "[VESSEL_NAME]" and her Master / Chief Engineer to receive High Speed Diesel (HSD) bunkers as per the details below:
+
+• Quantity: [BUNKER_QTY] KL / Metric Tons
+• Location: Sikka Anchorage / Bedi Inner Harbor
+• Date of Bunker: [CURRENT_DATE]
+
+The Chief Engineer is authorized to inspect sampling seals, verify BDN figures, and endorse delivery receipts on behalf of the company.`;
+    }
+  } else if (tplKey === 'vessel_charter') {
+    if (recipEl) recipEl.value = 'The Charterer / Port Terminal Operator';
+    if (subjEl) subjEl.value = 'CONFIRMATION OF VESSEL AVAILABILITY & CHARTER PARTICULARS';
+    if (bodyEl) {
+      bodyEl.value = 
+`We are pleased to confirm the commercial availability of our Tug Boat "[VESSEL_NAME]" for your proposed coastal towage and marine assistance operations.
+
+Vessel Summary:
+• Bollard Pull: 16 Tons
+• Main Engine: 1200 BHP Twin Cummins
+• Registry & Class: Indian Flag / IRS Class Certified
+
+The vessel is currently stationed at Sikka Port in full operational readiness with crew on board.`;
+    }
+  } else {
+    if (recipEl && !recipEl.value) recipEl.value = 'To Whomsoever It May Concern';
+    if (subjEl && !subjEl.value) subjEl.value = 'OFFICIAL MARITIME OPERATIONS MEMORANDUM';
+    if (bodyEl && !bodyEl.value) {
+      bodyEl.value = `This is an official communication issued by the operations management of [COMPANY_NAME].\n\nPlease enter the details of the communication here...`;
+    }
+  }
+
+  // Populate selected crew/vessel if already selected
+  var crewId = val('pol-crew');
+  if (crewId) populateLetterCrewData(crewId);
+  var vId = val('pol-vessel');
+  if (vId) populateLetterVesselData(vId);
+
+  renderOfficialLetterPreview();
+}
+
+function populateLetterCrewData(crewId) {
+  if (!crewId) return;
+  var c = (DB.crew||[]).find(function(x){ return x.id === crewId; });
+  if (!c) return;
+
+  var bodyEl = document.getElementById('pol-body');
+  if (bodyEl) {
+    var text = bodyEl.value;
+    text = text.replace(/\[CREW_NAME\]/g, c.name);
+    text = text.replace(/\[CDC_NO\]/g, c.cdc || c.crewno || '—');
+    text = text.replace(/\[INDOS_NO\]/g, c.indos || '—');
+    text = text.replace(/\[RANK\]/g, c.role || 'Crew');
+    text = text.replace(/\[SIGN_ON_DATE\]/g, c.son ? fmtDate(c.son) : 'Commencement of charter');
+    bodyEl.value = text;
+  }
+  if (c.vessel) {
+    var vSel = document.getElementById('pol-vessel');
+    if (vSel) {
+      var vMatch = (DB.vessels||[]).find(function(v){ return v.id === c.vessel || v.name === c.vessel; });
+      if (vMatch) { vSel.value = vMatch.id; populateLetterVesselData(vMatch.id); }
+    }
+  }
+  renderOfficialLetterPreview();
+}
+
+function populateLetterVesselData(vesselId) {
+  if (!vesselId) return;
+  var v = (DB.vessels||[]).find(function(x){ return x.id === vesselId || x.name === vesselId; });
+  if (!v) return;
+
+  var bodyEl = document.getElementById('pol-body');
+  if (bodyEl) {
+    var text = bodyEl.value;
+    text = text.replace(/\[VESSEL_NAME\]/g, v.name);
+    text = text.replace(/\[BHP\]/g, v.bhp || '1200');
+    var vCrew = (DB.crew||[]).filter(function(cr){ return cr.vessel === v.id || cr.vessel === v.name; });
+    text = text.replace(/\[CREW_COUNT\]/g, String(vCrew.length || 6));
+    var mast = vCrew.find(function(cr){ return (cr.role||'').toLowerCase().includes('master'); });
+    text = text.replace(/\[MASTER_NAME\]/g, mast ? mast.name : 'Capt. Rahim');
+    bodyEl.value = text;
+  }
+  renderOfficialLetterPreview();
+}
+
+function renderOfficialLetterPreview() {
+  var container = document.getElementById('pol-preview-container');
+  if (!container) return;
+
+  var coId = val('pol-company');
+  var co = (DB.companies||[]).find(function(c){ return c.id === coId; }) || getActiveOrFirstCompany();
+  var refNo = val('pol-refno') || 'REF/TW/2026/01';
+  var docDate = val('pol-date') || today();
+  var recipient = val('pol-recipient') || 'To Whomsoever It May Concern';
+  var subject = val('pol-subject') || 'OFFICIAL MEMORANDUM';
+  var rawBody = val('pol-body') || '';
+  var signatory = val('pol-signatory') || ('For ' + co.name);
+
+  // Replace remaining tags in preview
+  var bodyHtml = rawBody
+    .replace(/\[COMPANY_NAME\]/g, co.name)
+    .replace(/\[CURRENT_DATE\]/g, fmtDate(docDate))
+    .split('\n\n').map(function(para) {
+      return '<p style="margin:0 0 12px 0;line-height:1.7;text-align:justify">' + para.replace(/\n/g, '<br/>') + '</p>';
+    }).join('');
+
+  var headerHtml = generateCompanyLetterheadHeader(co);
+  var footerHtml = generateCompanyLetterheadFooter(co);
+
+  container.innerHTML = `
+    ${headerHtml}
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;font-size:11px;color:#334155">
+      <div><strong>Ref No:</strong> <span style="font-family:monospace;font-weight:600;color:#0f172a">${refNo}</span></div>
+      <div><strong>Date:</strong> <span style="font-weight:600;color:#0f172a">${fmtDate(docDate)}</span></div>
+    </div>
+
+    <div style="margin-bottom:16px;font-size:11.5px;color:#0f172a;line-height:1.5">
+      <div style="font-weight:700;color:#64748b;font-size:10px;text-transform:uppercase;margin-bottom:2px">To,</div>
+      <div style="font-weight:700;font-size:12px">${recipient.replace(/\n/g, '<br/>')}</div>
+    </div>
+
+    <div style="margin-bottom:18px;background:#f1f5f9;border-left:3.5px solid #1e3a8a;padding:8px 12px;border-radius:0 6px 6px 0">
+      <div style="font-size:11.5px;font-weight:800;color:#0f172a;letter-spacing:0.2px">
+        SUBJECT: ${subject.toUpperCase()}
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:#1e293b;line-height:1.7;margin-bottom:32px">
+      ${bodyHtml}
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;padding:0 10px">
+      <div style="text-align:center;width:180px">
+        <div style="height:50px;border-bottom:1.5px dashed #cbd5e1;margin-bottom:6px"></div>
+        <div style="font-size:9.5px;font-weight:700;color:#0f172a">Official Company Seal</div>
+      </div>
+      <div style="text-align:center;width:240px">
+        <div style="height:50px;border-bottom:1.5px dashed #cbd5e1;margin-bottom:6px"></div>
+        <div style="font-size:10.5px;font-weight:700;color:#0f172a">${signatory.replace(/\n/g, '<br/>')}</div>
+      </div>
+    </div>
+
+    ${footerHtml}
+  `;
+}
+
+function printOfficialLetter() {
+  var container = document.getElementById('pol-preview-container');
+  if (!container) return;
+  var w = window.open('', '_blank', 'width=900,height=800');
+  w.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Official Maritime Letter on Letterhead</title>
+      <style>
+        @page { size: A4 portrait; margin: 15mm 18mm; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #fff; color: #111827; margin: 0; padding: 15px; }
+        @media print {
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      </style>
+    </head>
+    <body>
+      ${container.innerHTML}
+      <script>window.onload = function(){ window.print(); };<\/script>
+    </body>
+    </html>
+  `);
+  w.document.close();
+  toast('Opening print dialog for Official Letterhead document...');
+}
+
+function copyOfficialLetterText() {
+  var text = "📄 " + val('pol-subject') + "\nRef: " + val('pol-refno') + " | Date: " + fmtDate(val('pol-date')) + "\n\nTo: " + val('pol-recipient') + "\n\n" + val('pol-body') + "\n\n" + val('pol-signatory');
+  navigator.clipboard.writeText(text).then(function(){
+    toast('Letter text copied to clipboard!');
   });
 }
 
@@ -13910,7 +14718,11 @@ function resetCompanyModalForm() {
   var modal = document.getElementById('m-company') || document;
   _coMandatoryDocs = { gst: null, msme: null, pan: null };
   _coExtraDocCount = 0;
-  clearFields(['co-id','co-name','co-addr','co-email','co-phone','co-web','co-gst','co-pan','co-msme','co-cin','co-tag','co-entity','co-tradename','co-logo-data']);
+  clearFields([
+    'co-id','co-name','co-addr','co-email','co-phone','co-web','co-gst','co-pan',
+    'co-msme','co-cin','co-tag','co-entity','co-tradename','co-logo-data',
+    'co-bank-name','co-bank-accname','co-bank-accno','co-bank-ifsc','co-bank-branch','co-bank-upi'
+  ]);
   var logoFile = modal.querySelector('#co-logo-file') || document.getElementById('co-logo-file');
   if (logoFile) logoFile.value = '';
   var logoData = modal.querySelector('#co-logo-data') || document.getElementById('co-logo-data');
@@ -13926,6 +14738,7 @@ function resetCompanyModalForm() {
   }
   var title = modal.querySelector('#m-company-title') || document.getElementById('m-company-title');
   if (title) title.textContent = 'Add Company Profile';
+  setupCompanyDropZones();
 }
 
 function previewCoLogo(inp) {
@@ -13963,6 +14776,12 @@ function openCompanyEdit(id) {
   setVal('co-msme', co.msme||'');
   setVal('co-cin', co.cin||'');
   setVal('co-tradename', co.tradename||'');
+  setVal('co-bank-name', co.bankName || co.bank || '');
+  setVal('co-bank-accname', co.bankAccName || co.accHolder || '');
+  setVal('co-bank-accno', co.bankAccNo || co.accNo || '');
+  setVal('co-bank-ifsc', co.bankIfsc || co.ifsc || '');
+  setVal('co-bank-branch', co.bankBranch || co.branch || '');
+  setVal('co-bank-upi', co.bankUpi || co.upi || '');
   if (co.logo) {
     setVal('co-logo-data', co.logo);
     var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
@@ -13974,6 +14793,7 @@ function openCompanyEdit(id) {
     var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
     if (prev) prev.innerHTML = '🏢';
   }
+  setupCompanyDropZones();
   // Show existing docs
   var docsList = document.getElementById('co-docs-list');
   if (docsList && co.docs && co.docs.length) {
@@ -14121,6 +14941,12 @@ function saveCompany() {
     entity:  entity || 'Pvt Ltd',
     tradename: getCoField('co-tradename'),
     logo:    getCoField('co-logo-data'),
+    bankName: getCoField('co-bank-name'),
+    bankAccName: getCoField('co-bank-accname'),
+    bankAccNo: getCoField('co-bank-accno'),
+    bankIfsc: (getCoField('co-bank-ifsc')||'').toUpperCase(),
+    bankBranch: getCoField('co-bank-branch'),
+    bankUpi: getCoField('co-bank-upi'),
     active:  true,
     // Mandatory docs — preserve existing if bypass used
     mandatoryDocs: {
@@ -14205,7 +15031,13 @@ function editCompany(idx) {
     'co-email':co.email||'', 'co-phone':co.phone||'',
     'co-web':co.web||'', 'co-gst':co.gst||'', 'co-pan':co.pan||'',
     'co-msme':co.msme||'', 'co-cin':co.cin||'',
-    'co-tag':co.tag||'', 'co-entity':co.entity||'', 'co-tradename':co.tradename||''
+    'co-tag':co.tag||'', 'co-entity':co.entity||'', 'co-tradename':co.tradename||'',
+    'co-bank-name':co.bankName||co.bank||'',
+    'co-bank-accname':co.bankAccName||co.accHolder||'',
+    'co-bank-accno':co.bankAccNo||co.accNo||'',
+    'co-bank-ifsc':co.bankIfsc||co.ifsc||'',
+    'co-bank-branch':co.bankBranch||co.branch||'',
+    'co-bank-upi':co.bankUpi||co.upi||''
   };
   Object.keys(fields).forEach(function(id) {
     var el = modal.querySelector('#' + id) || document.getElementById(id);
