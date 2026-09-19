@@ -14079,6 +14079,165 @@ function fillCompanySelects() {
   sel2.forEach(function(s){ s.innerHTML = opts; });
 }
 
+/* ══════════════════════════════════════════════════════════════
+   COMPANY & BANK DETAILS SHARING ENGINE
+══════════════════════════════════════════════════════════════ */
+function generateCompanyShareText(coId) {
+  var co = (DB.companies||[]).find(function(c){ return c.id === coId; }) || getActiveOrFirstCompany();
+  if (!co) return '';
+
+  var text = '🏢 *' + (co.name||'').toUpperCase() + '*' + (co.tradename ? ' (' + co.tradename + ')' : '') + '\n';
+  if (co.addr || co.address) text += '📍 Address: ' + (co.addr || co.address) + '\n';
+  if (co.gst) text += '📄 GSTIN: ' + co.gst;
+  if (co.pan) text += ' | PAN: ' + co.pan;
+  text += '\n';
+  if (co.email) text += '✉ Email: ' + co.email + ' ';
+  if (co.phone) text += '| 📞 Phone: ' + co.phone;
+  text += '\n\n';
+
+  var bList = co.bankAccounts && co.bankAccounts.length ? co.bankAccounts : ((co.bankName || co.bankAccNo) ? [{ bankName: co.bankName, bankAccName: co.bankAccName, bankAccNo: co.bankAccNo, bankIfsc: co.bankIfsc, bankBranch: co.bankBranch, bankUpi: co.bankUpi, isPrimary: true }] : []);
+
+  if (bList.length > 0) {
+    text += '🏦 *OFFICIAL BANKING & PAYMENT DETAILS:*\n';
+    text += '━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    bList.forEach(function(b, i) {
+      text += (b.isPrimary ? '⭐ ' : '• ') + '*' + (b.bankName || 'Bank Account') + '*' + (b.isPrimary ? ' (Primary)' : '') + '\n';
+      text += '  • A/C Name: ' + (b.bankAccName || co.name) + '\n';
+      text += '  • A/C No: ' + (b.bankAccNo || '—') + '\n';
+      text += '  • IFSC Code: ' + (b.bankIfsc || '—') + '\n';
+      if (b.bankBranch) text += '  • Branch: ' + b.bankBranch + '\n';
+      if (b.bankUpi) text += '  • UPI ID: ' + b.bankUpi + '\n';
+      if (i < bList.length - 1) text += '-------------------------\n';
+    });
+    text += '━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+  }
+
+  text += '_Generated via TugWatch Fleet Operations OS_';
+  return text;
+}
+
+function shareCompanyWhatsApp(coId) {
+  var text = generateCompanyShareText(coId);
+  if (!text) { toast('No company details found', 'var(--warn)'); return; }
+  var encoded = encodeURIComponent(text);
+  window.open('https://api.whatsapp.com/send?text=' + encoded, '_blank');
+}
+window.shareCompanyWhatsApp = shareCompanyWhatsApp;
+
+function copyCompanyBankDetails(coId) {
+  var text = generateCompanyShareText(coId);
+  if (!text) { toast('No company details found', 'var(--warn)'); return; }
+  navigator.clipboard.writeText(text).then(function() {
+    toast('Company & bank details copied to clipboard ✓', 'var(--ok)');
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Company & bank details copied to clipboard ✓', 'var(--ok)');
+  });
+}
+window.copyCompanyBankDetails = copyCompanyBankDetails;
+
+function printCompanyBankMandate(coId) {
+  var co = (DB.companies||[]).find(function(c){ return c.id === coId; }) || getActiveOrFirstCompany();
+  if (!co) { toast('Company not found', 'var(--warn)'); return; }
+
+  var bList = co.bankAccounts && co.bankAccounts.length ? co.bankAccounts : ((co.bankName || co.bankAccNo) ? [{ bankName: co.bankName, bankAccName: co.bankAccName, bankAccNo: co.bankAccNo, bankIfsc: co.bankIfsc, bankBranch: co.bankBranch, bankUpi: co.bankUpi, isPrimary: true }] : []);
+
+  var headerHtml = (typeof generateCompanyLetterheadHeader === 'function') ? generateCompanyLetterheadHeader(co) : '<div style="font-size:20px;font-weight:800;border-bottom:2px solid #0f172a;padding-bottom:8px;margin-bottom:16px">' + co.name + '</div>';
+
+  var bankRows = bList.map(function(b, idx) {
+    return `
+      <tr style="border-bottom:1px solid #e2e8f0;background:${idx%2===0?'#fff':'#f8fafc'}">
+        <td style="padding:10px 12px;font-weight:700;color:#0f172a;width:30%">${b.bankName || 'Bank'} ${b.isPrimary ? '<span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700;margin-left:4px">⭐ PRIMARY</span>' : ''}</td>
+        <td style="padding:10px 12px;color:#334155">${b.bankAccName || co.name}</td>
+        <td style="padding:10px 12px;font-family:monospace;font-weight:700;color:#0f172a;font-size:11pt">${b.bankAccNo || '—'}</td>
+        <td style="padding:10px 12px;font-family:monospace;font-weight:700;color:#1e3a8a">${b.bankIfsc || '—'}</td>
+        <td style="padding:10px 12px;font-size:9pt;color:#64748b">${b.bankBranch || '—'} ${b.bankUpi ? '<br><span style="color:#059669">UPI: '+b.bankUpi+'</span>' : ''}</td>
+      </tr>`;
+  }).join('');
+
+  var stampHtml = (co.stampImage || co.stamp)
+    ? '<img src="' + (co.stampImage || co.stamp) + '" style="max-height:55px;max-width:140px;object-fit:contain" alt="Seal"/>'
+    : '<div style="height:50px"></div>';
+
+  var html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Official Bank Mandate &amp; Payment Advice — ${co.name}</title>
+  <style>
+    @page { size: A4 portrait; margin: 18mm 16mm; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 20px; font-size: 10pt; line-height: 1.5; background: #fff; }
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    th { background: #0f172a; color: #fff; text-align: left; padding: 8px 12px; font-size: 9.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  ${headerHtml}
+  
+  <div style="text-align:center;margin:18px 0 22px">
+    <div style="font-size:15pt;font-weight:800;text-transform:uppercase;color:#0f172a;letter-spacing:0.5px;text-decoration:underline">OFFICIAL BANK MANDATE &amp; PAYMENT DETAILS ADVICE</div>
+    <div style="font-size:9pt;color:#64748b;margin-top:4px">Date: ${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})} · Ref: TW/BM/${new Date().getFullYear()}</div>
+  </div>
+
+  <div style="font-size:10pt;color:#334155;margin-bottom:14px">
+    To Whom It May Concern / All Valued Clients &amp; Vendors,<br><br>
+    Please find below our official registered banking and electronic settlement details for all wire transfers (NEFT / RTGS / IMPS / UPI) and commercial transactions:
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Bank &amp; Account</th>
+        <th>Account Beneficiary</th>
+        <th>Account Number</th>
+        <th>IFSC Code</th>
+        <th>Branch &amp; UPI</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${bankRows || '<tr><td colspan="5" style="padding:14px;text-align:center">No bank accounts registered.</td></tr>'}
+    </tbody>
+  </table>
+
+  <div style="margin-top:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-size:9pt;color:#475569">
+    <strong>Statutory Registrations:</strong> &nbsp;
+    ${co.gst ? '<span>GSTIN: <strong>' + co.gst + '</strong></span> &nbsp;·&nbsp; ' : ''}
+    ${co.pan ? '<span>PAN: <strong>' + co.pan + '</strong></span> &nbsp;·&nbsp; ' : ''}
+    ${co.cin ? '<span>CIN: <strong>' + co.cin + '</strong></span> &nbsp;·&nbsp; ' : ''}
+    ${co.msme ? '<span>MSME: <strong>' + co.msme + '</strong></span>' : ''}
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:50px;page-break-inside:avoid">
+    <div style="font-size:8.5pt;color:#94a3b8">
+      Electronic Verification: Confirmed &amp; Authorised Record<br>
+      System: TugWatch Fleet Operations OS
+    </div>
+    <div style="text-align:center;width:200px">
+      <div style="height:55px;border-bottom:1.5px dashed #94a3b8;display:flex;align-items:center;justify-content:center;margin-bottom:6px">
+        ${stampHtml}
+      </div>
+      <div style="font-size:9.5pt;font-weight:700;color:#0f172a">Authorised Signatory</div>
+      <div style="font-size:8.5pt;color:#64748b">${co.name}</div>
+    </div>
+  </div>
+  <script>window.onload = function(){ window.print(); };<\/script>
+</body>
+</html>`;
+
+  var w = window.open('', '_blank', 'width=900,height=800');
+  if (!w) { uiAlert('Pop-up blocked. Please allow pop-ups for TugWatch to print bank mandate.'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+window.printCompanyBankMandate = printCompanyBankMandate;
+
+
 function renderCompanies() {
   var grid = document.getElementById('companies-grid');
   if (!grid) return;
@@ -14181,6 +14340,19 @@ function renderCompanies() {
           <div style="font-size:10px;color:var(--t3);font-weight:600">🚢 ${vesselCount} vessel(s) assigned</div>
         </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap">${complianceBadges}</div>
+
+        <!-- 1-Click Sharing & Bank Actions -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 2px">
+          <button class="btn btn-sm" style="background:#25D366;color:#fff;font-size:9.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px" onclick="shareCompanyWhatsApp('${co.id}')" title="Share Company & Bank Details on WhatsApp">
+            📲 Share on WA
+          </button>
+          <button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px" onclick="copyCompanyBankDetails('${co.id}')" title="Copy Bank Details to Clipboard">
+            📋 Copy Bank Info
+          </button>
+          <button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px" onclick="printCompanyBankMandate('${co.id}')" title="Print Official Bank Mandate on Letterhead">
+            🖨️ Bank Mandate
+          </button>
+        </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px">
           ${(function(){
             var mdocs = co.mandatoryDocs || {};
