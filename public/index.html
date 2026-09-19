@@ -6203,11 +6203,15 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div class="fr2"><div class="fg"><label class="fl">GST Number <span class="req">*</span></label><input class="fi" id="co-gst" placeholder="22AAAAA0000A1Z5" style="text-transform:uppercase"/></div><div class="fg"><label class="fl">PAN Number <span class="req">*</span></label><input class="fi" id="co-pan" placeholder="AAAAA0000A" style="text-transform:uppercase"/></div></div>
   <div class="fr2"><div class="fg"><label class="fl">MSME / Udyam Number</label><input class="fi" id="co-msme" placeholder="UDYAM-XX-00-0000000"/></div><div class="fg"><label class="fl">CIN (Company Identification No.)</label><input class="fi" id="co-cin" placeholder="L12345MH2000PLC123456"/></div></div>
 
-  <!-- BANKING & PAYMENT DETAILS -->
-  <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin:16px 0 10px;border-left:3px solid var(--accent);padding-left:8px">🏦 Banking &amp; Payment Details <span style="font-size:9px;font-weight:400;color:var(--t3);text-transform:none">(Printed on Invoices, Quotations &amp; Official Letterheads)</span></div>
-  <div class="fr2"><div class="fg"><label class="fl">Bank Name</label><input class="fi" id="co-bank-name" placeholder="e.g. HDFC Bank / State Bank of India"/></div><div class="fg"><label class="fl">Account Holder Name</label><input class="fi" id="co-bank-accname" placeholder="e.g. ACE Marine Private Limited"/></div></div>
-  <div class="fr2"><div class="fg"><label class="fl">Account Number</label><input class="fi" id="co-bank-accno" placeholder="e.g. 50200012345678" style="font-family:var(--fm)"/></div><div class="fg"><label class="fl">IFSC Code</label><input class="fi" id="co-bank-ifsc" placeholder="e.g. HDFC0000123" style="text-transform:uppercase;font-family:var(--fm)"/></div></div>
-  <div class="fr2"><div class="fg"><label class="fl">Branch &amp; City</label><input class="fi" id="co-bank-branch" placeholder="e.g. Jamnagar Main Branch, Gujarat"/></div><div class="fg"><label class="fl">UPI ID / Payment QR VPA</label><input class="fi" id="co-bank-upi" placeholder="e.g. acemarine@hdfcbank"/></div></div>
+  <!-- BANKING & PAYMENT DETAILS (MULTIPLE ACCOUNTS SUPPORT) -->
+  <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin:16px 0 6px;border-left:3px solid var(--accent);padding-left:8px;display:flex;align-items:center;justify-content:space-between">
+    <span>🏦 Banking &amp; Payment Accounts <span style="font-size:9px;font-weight:400;color:var(--t3);text-transform:none">(Add as many bank accounts as needed)</span></span>
+  </div>
+  <div id="co-bank-accounts-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px"></div>
+  <button type="button" class="btn btn-outline btn-sm" onclick="addCompanyBankAccountRow()" style="margin-bottom:14px">
+    <svg viewBox="0 0 24 24" fill="none" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/></svg>
+    + Add Another Bank Account
+  </button>
 
   <!-- MANDATORY DOCUMENTS -->
   <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.7px;margin:16px 0 4px;border-left:3px solid #dc2626;padding-left:8px">Mandatory Documents <span style="font-size:9px;font-weight:400;color:var(--t3);text-transform:none">(GST Certificate, MSME Certificate & PAN Card required)</span></div>
@@ -13920,14 +13924,27 @@ function renderCompanies() {
             ${co.gst ? '<div style="font-size:10px;font-family:var(--fm);background:var(--s3);padding:2px 6px;border-radius:4px;border:1px solid var(--b2);color:var(--t1)"><strong>GST:</strong> '+co.gst+'</div>' : ''}
             ${co.pan ? '<div style="font-size:10px;font-family:var(--fm);background:var(--s3);padding:2px 6px;border-radius:4px;border:1px solid var(--b2);color:var(--t1)"><strong>PAN:</strong> '+co.pan+'</div>' : ''}
           </div>
-          ${(co.bankName || co.bankAccNo) ? `
-          <div style="margin-top:4px;padding-top:6px;border-top:1px dashed var(--b2);font-size:10px;color:var(--t2);display:flex;flex-direction:column;gap:2px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <span>🏦 <strong>${co.bankName || 'Bank'}:</strong> <span style="font-family:var(--fm)">${co.bankAccNo || '—'}</span></span>
-              ${co.bankIfsc ? '<span style="font-family:var(--fm);font-size:9.5px;color:var(--t3)">IFSC: '+co.bankIfsc+'</span>' : ''}
-            </div>
-            ${co.bankBranch ? '<div style="font-size:9.5px;color:var(--t3)">📍 '+co.bankBranch+'</div>' : ''}
-          </div>` : ''}
+          ${(function(){
+            var bList = co.bankAccounts && co.bankAccounts.length ? co.bankAccounts : ((co.bankName || co.bankAccNo) ? [{ bankName: co.bankName, bankAccNo: co.bankAccNo, bankIfsc: co.bankIfsc, bankBranch: co.bankBranch, isPrimary: true }] : []);
+            if (!bList.length) return '';
+            return `
+            <div style="margin-top:4px;padding-top:6px;border-top:1px dashed var(--b2);font-size:10px;color:var(--t2);display:flex;flex-direction:column;gap:5px">
+              <div style="font-size:9.5px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:4px">
+                <span>🏦 Bank Accounts (${bList.length})</span>
+              </div>
+              ${bList.map(function(b){
+                return `
+                  <div style="background:var(--s3);padding:4px 8px;border-radius:6px;border:1px solid var(--b2);display:flex;flex-direction:column;gap:1px">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <span style="font-weight:700;color:var(--t1)">${b.bankName || 'Bank'} ${b.isPrimary ? '<span style="color:#d97706;font-size:9px;font-weight:600">⭐ Primary</span>' : ''}</span>
+                      ${b.bankIfsc ? '<span style="font-family:var(--fm);font-size:9px;color:var(--t3)">IFSC: '+b.bankIfsc+'</span>' : ''}
+                    </div>
+                    <div style="font-family:var(--fm);font-size:10px;color:var(--t1)">A/C: <strong>${b.bankAccNo || '—'}</strong></div>
+                    ${b.bankBranch ? '<div style="font-size:9px;color:var(--t3)">📍 '+b.bankBranch+'</div>' : ''}
+                  </div>`;
+              }).join('')}
+            </div>`;
+          })()}
         </div>
       </div>
 
@@ -14101,12 +14118,25 @@ function generateCompanyLetterheadHeader(co) {
 
 function generateCompanyLetterheadFooter(co) {
   if (!co) co = getActiveOrFirstCompany();
+  var bList = co.bankAccounts && co.bankAccounts.length ? co.bankAccounts : ((co.bankName || co.bankAccNo) ? [{ bankName: co.bankName, bankAccNo: co.bankAccNo, bankIfsc: co.bankIfsc, bankBranch: co.bankBranch, isPrimary: true }] : []);
+  var bankStr = '';
+  if (bList.length === 1) {
+    var b = bList[0];
+    bankStr = '<strong>Bank Details:</strong> ' + (b.bankName||'Bank') + ' | A/C: <span style="font-family:monospace">' + (b.bankAccNo||'—') + '</span> | IFSC: <span style="font-family:monospace">' + (b.bankIfsc||'—') + '</span>' + (b.bankBranch ? ' | Branch: ' + b.bankBranch : '');
+  } else if (bList.length > 1) {
+    bankStr = '<strong>Bank Accounts:</strong> ' + bList.map(function(b){
+      return (b.bankName||'Bank') + ' (A/C: <span style="font-family:monospace">' + (b.bankAccNo||'—') + '</span>, IFSC: <span style="font-family:monospace">' + (b.bankIfsc||'—') + '</span>)';
+    }).join(' | ');
+  } else {
+    bankStr = 'Official Fleet Maritime Correspondence';
+  }
+
   return `
     <div style="margin-top:36px;border-top:1.5px solid #cbd5e1;padding-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#64748b;line-height:1.5">
-      <div>
-        ${(co.bankName || co.bankAccNo) ? `<strong>Bank Details:</strong> ${co.bankName || 'Bank'} | A/C: <span style="font-family:monospace">${co.bankAccNo || '—'}</span> | IFSC: <span style="font-family:monospace">${co.bankIfsc || '—'}</span> ${co.bankBranch ? ' | Branch: '+co.bankBranch : ''}` : 'Official Fleet Maritime Correspondence'}
+      <div style="max-width:75%">
+        ${bankStr}
       </div>
-      <div style="text-align:right">
+      <div style="text-align:right;flex-shrink:0">
         Generated via <strong>TugWatch Fleet OS</strong> · Page 1 of 1
       </div>
     </div>`;
@@ -14765,14 +14795,134 @@ function toggleVaultAccess(coId, userId, btn) {
 }
 
 
+
+/* ══════════════════════════════════════════════════════════════
+   MULTI-BANK ACCOUNTS ENGINE FOR COMPANY PROFILES
+══════════════════════════════════════════════════════════════ */
+var _coBankRowCount = 0;
+
+function addCompanyBankAccountRow(existingBank) {
+  _coBankRowCount++;
+  var n = _coBankRowCount;
+  var list = document.getElementById('co-bank-accounts-list');
+  if (!list) return;
+
+  var b = existingBank || {};
+  var isPrimary = b.isPrimary !== undefined ? b.isPrimary : (list.children.length === 0);
+
+  var card = document.createElement('div');
+  card.id = 'co-bank-row-' + n;
+  card.className = 'co-bank-row-card';
+  card.style.cssText = 'background:var(--s2, #f8fafc);border:1px solid var(--b2, #e2e8f0);border-radius:8px;padding:12px 14px;position:relative;display:flex;flex-direction:column;gap:8px';
+
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+      <div style="font-size:11px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:6px">
+        <span>🏦 Bank Account #${n}</span>
+        <label style="font-size:10px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:4px;cursor:pointer;margin-left:8px">
+          <input type="radio" name="co-primary-bank" value="${n}" ${isPrimary ? 'checked' : ''} style="accent-color:var(--accent);cursor:pointer"/>
+          ⭐ Primary / Default Bank
+        </label>
+      </div>
+      <button type="button" onclick="removeCompanyBankAccountRow(${n})" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;color:#dc2626;font-size:11px" title="Remove Bank Account">✕ Remove</button>
+    </div>
+    <div class="fr2">
+      <div class="fg">
+        <label class="fl">Bank Name &amp; Account Type <span class="req">*</span></label>
+        <input class="fi" id="co-bank-name-${n}" placeholder="e.g. HDFC Bank (Current A/C)" value="${esc(b.bankName || b.bank || '')}"/>
+      </div>
+      <div class="fg">
+        <label class="fl">Account Holder Name</label>
+        <input class="fi" id="co-bank-accname-${n}" placeholder="e.g. ACE Marine Private Limited" value="${esc(b.bankAccName || b.holder || b.accHolder || '')}"/>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg">
+        <label class="fl">Account Number <span class="req">*</span></label>
+        <input class="fi" id="co-bank-accno-${n}" placeholder="e.g. 50200012345678" value="${esc(b.bankAccNo || b.acc || b.accNo || '')}" style="font-family:var(--fm, monospace)"/>
+      </div>
+      <div class="fg">
+        <label class="fl">IFSC Code <span class="req">*</span></label>
+        <input class="fi" id="co-bank-ifsc-${n}" placeholder="e.g. HDFC0000123" value="${esc(b.bankIfsc || b.ifsc || '')}" style="text-transform:uppercase;font-family:var(--fm, monospace)"/>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg">
+        <label class="fl">Branch &amp; City</label>
+        <input class="fi" id="co-bank-branch-${n}" placeholder="e.g. Jamnagar Main Branch, Gujarat" value="${esc(b.bankBranch || b.branch || '')}"/>
+      </div>
+      <div class="fg">
+        <label class="fl">UPI ID / Payment QR VPA</label>
+        <input class="fi" id="co-bank-upi-${n}" placeholder="e.g. acemarine@hdfcbank" value="${esc(b.bankUpi || b.upi || '')}"/>
+      </div>
+    </div>
+  `;
+  list.appendChild(card);
+}
+
+function removeCompanyBankAccountRow(n) {
+  var row = document.getElementById('co-bank-row-' + n);
+  if (!row) return;
+  var list = document.getElementById('co-bank-accounts-list');
+  if (list && list.children.length <= 1) {
+    toast('At least one bank account row should be maintained', 'var(--warn)');
+    return;
+  }
+  row.remove();
+  // Ensure at least one primary is checked
+  var primaries = document.querySelectorAll('input[name="co-primary-bank"]');
+  var hasChecked = Array.prototype.some.call(primaries, function(r){ return r.checked; });
+  if (!hasChecked && primaries.length > 0) primaries[0].checked = true;
+}
+
+function collectCompanyBankAccounts() {
+  var list = document.getElementById('co-bank-accounts-list');
+  if (!list) return [];
+  var rows = list.querySelectorAll('.co-bank-row-card');
+  var accounts = [];
+
+  rows.forEach(function(row) {
+    var idNum = row.id.replace('co-bank-row-', '');
+    var nameEl = document.getElementById('co-bank-name-' + idNum);
+    var accnameEl = document.getElementById('co-bank-accname-' + idNum);
+    var accnoEl = document.getElementById('co-bank-accno-' + idNum);
+    var ifscEl = document.getElementById('co-bank-ifsc-' + idNum);
+    var branchEl = document.getElementById('co-bank-branch-' + idNum);
+    var upiEl = document.getElementById('co-bank-upi-' + idNum);
+    var radioEl = row.querySelector('input[name="co-primary-bank"]');
+
+    var bName = nameEl ? nameEl.value.trim() : '';
+    var bAccNo = accnoEl ? accnoEl.value.trim() : '';
+
+    if (bName || bAccNo) {
+      accounts.push({
+        id: 'bank_' + idNum + '_' + Date.now(),
+        bankName: bName,
+        bankAccName: accnameEl ? accnameEl.value.trim() : '',
+        bankAccNo: bAccNo,
+        bankIfsc: ifscEl ? ifscEl.value.trim().toUpperCase() : '',
+        bankBranch: branchEl ? branchEl.value.trim() : '',
+        bankUpi: upiEl ? upiEl.value.trim() : '',
+        isPrimary: !!(radioEl && radioEl.checked)
+      });
+    }
+  });
+
+  if (accounts.length > 0 && !accounts.some(function(a){ return a.isPrimary; })) {
+    accounts[0].isPrimary = true;
+  }
+  return accounts;
+}
+
+
 function resetCompanyModalForm() {
   var modal = document.getElementById('m-company') || document;
   _coMandatoryDocs = { gst: null, msme: null, pan: null };
   _coExtraDocCount = 0;
+  _coBankRowCount = 0;
   clearFields([
     'co-id','co-name','co-addr','co-email','co-phone','co-web','co-gst','co-pan',
-    'co-msme','co-cin','co-tag','co-entity','co-tradename','co-logo-data',
-    'co-bank-name','co-bank-accname','co-bank-accno','co-bank-ifsc','co-bank-branch','co-bank-upi'
+    'co-msme','co-cin','co-tag','co-entity','co-tradename','co-logo-data'
   ]);
   var logoFile = modal.querySelector('#co-logo-file') || document.getElementById('co-logo-file');
   if (logoFile) logoFile.value = '';
@@ -14783,6 +14933,11 @@ function resetCompanyModalForm() {
   ['gst','msme','pan'].forEach(function(t){ removeCompanyMandatoryDoc(t); });
   var edl = modal.querySelector('#co-extra-docs-list') || document.getElementById('co-extra-docs-list');
   if (edl) edl.innerHTML = '';
+  var bankList = modal.querySelector('#co-bank-accounts-list') || document.getElementById('co-bank-accounts-list');
+  if (bankList) {
+    bankList.innerHTML = '';
+    addCompanyBankAccountRow(); // Add 1 empty bank row
+  }
   var byp = modal.querySelector('#co-doc-bypass') || document.getElementById('co-doc-bypass');
   if (byp) {
     byp.checked = !!(CU && (CU.role === 'admin' || CU.role === 'master'));
@@ -14827,12 +14982,28 @@ function openCompanyEdit(id) {
   setVal('co-msme', co.msme||'');
   setVal('co-cin', co.cin||'');
   setVal('co-tradename', co.tradename||'');
-  setVal('co-bank-name', co.bankName || co.bank || '');
-  setVal('co-bank-accname', co.bankAccName || co.accHolder || '');
-  setVal('co-bank-accno', co.bankAccNo || co.accNo || '');
-  setVal('co-bank-ifsc', co.bankIfsc || co.ifsc || '');
-  setVal('co-bank-branch', co.bankBranch || co.branch || '');
-  setVal('co-bank-upi', co.bankUpi || co.upi || '');
+  var bankList = document.getElementById('co-bank-accounts-list');
+  if (bankList) {
+    bankList.innerHTML = '';
+    _coBankRowCount = 0;
+    var bArr = co.bankAccounts || [];
+    if (!bArr.length && (co.bankName || co.bankAccNo)) {
+      bArr = [{
+        bankName: co.bankName,
+        bankAccName: co.bankAccName || co.accHolder || '',
+        bankAccNo: co.bankAccNo,
+        bankIfsc: co.bankIfsc,
+        bankBranch: co.bankBranch,
+        bankUpi: co.bankUpi,
+        isPrimary: true
+      }];
+    }
+    if (bArr.length > 0) {
+      bArr.forEach(function(b){ addCompanyBankAccountRow(b); });
+    } else {
+      addCompanyBankAccountRow();
+    }
+  }
   if (co.logo) {
     setVal('co-logo-data', co.logo);
     var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
@@ -14992,12 +15163,13 @@ function saveCompany() {
     entity:  entity || 'Pvt Ltd',
     tradename: getCoField('co-tradename'),
     logo:    getCoField('co-logo-data'),
-    bankName: getCoField('co-bank-name'),
-    bankAccName: getCoField('co-bank-accname'),
-    bankAccNo: getCoField('co-bank-accno'),
-    bankIfsc: (getCoField('co-bank-ifsc')||'').toUpperCase(),
-    bankBranch: getCoField('co-bank-branch'),
-    bankUpi: getCoField('co-bank-upi'),
+    bankAccounts: collectCompanyBankAccounts(),
+    bankName: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankName : ''; })(),
+    bankAccName: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankAccName : ''; })(),
+    bankAccNo: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankAccNo : ''; })(),
+    bankIfsc: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankIfsc : ''; })(),
+    bankBranch: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankBranch : ''; })(),
+    bankUpi: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankUpi : ''; })(),
     active:  true,
     // Mandatory docs — preserve existing if bypass used
     mandatoryDocs: {
