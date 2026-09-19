@@ -8960,8 +8960,10 @@ window.syncCollectionToCloud = syncCollectionToCloud;
 
 /* ── Safe Non-Destructive Cloud Sync to Firebase ───────── */
 var FB_SYNC_PENDING = false;
+var _cloudHydrated = false;
+
 function saveToFirebase() {
-  if (!FB_READY || !FB_DB) return;
+  if (!FB_READY || !FB_DB || !_cloudHydrated) return;
   if (FB_SYNCING) {
     FB_SYNC_PENDING = true;
     return;
@@ -8970,14 +8972,24 @@ function saveToFirebase() {
   FB_SYNC_PENDING = false;
   
   var snapshot = {};
+  var protectedArrays = ['companies', 'vessels', 'crew', 'certs', 'bunkerReceipts', 'materials', 'requests', 'invoices', 'salaries'];
+  
   Object.keys(DB).forEach(function(key) {
-    // Accounts and Users have their own dedicated authoritative sync function to prevent race conditions
     if (key !== 'accounts' && key !== 'users' && key !== 'dynamicAdmins') {
       if (DB[key] !== undefined && DB[key] !== null) {
+        // Never wipe cloud collection with an empty array during background sync
+        if (protectedArrays.includes(key) && Array.isArray(DB[key]) && DB[key].length === 0) {
+          return;
+        }
         snapshot[key] = DB[key];
       }
     }
   });
+
+  if (Object.keys(snapshot).length === 0) {
+    FB_SYNCING = false;
+    return;
+  }
 
   FB_DB.ref('tugwatch').update(snapshot)
     .then(function(){
@@ -9077,6 +9089,7 @@ function loadFromFirebase(callback) {
 
         if (typeof ensureAccountsMigrated === 'function') ensureAccountsMigrated();
         sanitizeDB();
+        _cloudHydrated = true;
         saveDB();
 
         // KICK-OUT PROTECTION: If active user was deleted from cloud, sign them out immediately
