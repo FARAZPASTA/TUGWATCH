@@ -8624,16 +8624,31 @@ function downloadFullDatabaseBackup() {
    ══════════════════════════════════════════════════════════ */
 function setupGranularRealtimeListeners() {
   if (!FB_READY || !FB_DB) return;
-  // Complete list of all 40+ system collections for full multi-PC realtime replication
+  // Complete list of all 60+ system collections for 100% full multi-PC realtime replication
   var syncCollections = [
-    'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares', 
-    'materials', 'requests', 'salaries', 'invoices', 'expenses', 'portDues',
-    'bunkerReceipts', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders', 
-    'visits', 'drillRecords', 'changeLog', 'log', 'leaveRecords', 'docSubmissions', 
-    'purchaseOrders', 'officeStaff', 'companies', 'accounts', 'users', 'dynamicAdmins', 
-    'vehicles', 'vendors', 'contactsDir', 'dorEntries', 'orbEntries', 'vtmsLog', 
-    'checklistRecords', 'crewContracts', 'crewNOK', 'letterFormats', 'quotations', 
-    'docCycles', 'taskList', 'hsd'
+    // Fleet & Maritime Assets
+    'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares',
+    // Fuel & Engineering
+    'bunkerReceipts', 'hsd', 'runningHoursConfig',
+    // Materials & Procurement
+    'materials', 'requests', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders',
+    'purchaseOrders', 'vesselPOs', 'vendors', 'equipChanges',
+    // Accounts & Finance
+    'companies', 'accounts', 'users', 'dynamicAdmins', 'salaries', 'salary_settings',
+    'paymentAdvices', 'invoices', 'expenses', 'portDues', 'quotations', 'quotationFormats',
+    // Marine Logs & Compliance
+    'dorEntries', 'orbEntries', 'vtmsLog', 'vtmsDirectory', 'checklistRecords', 'checklistTemplates',
+    'docSubmissions', 'docCycles', 'drydocks', 'plasticLog', 'classDieselReports', 'portalVault',
+    'complianceUploads', 'complianceReminders', 'letterFormats',
+    // Crew HR & Management
+    'crewContracts', 'contractTemplates', 'crewNOK', 'crewMovements', 'exCrew',
+    'leaveRecords', 'leaveBalance', 'officeStaff', 'hireRequests',
+    // Logistics, Transport & Contacts
+    'vehicles', 'visits', 'visitTemplates', 'contactsDir', 'voyageContacts',
+    // Safety, Alerts & System
+    'drillRecords', 'changeLog', 'log', 'taskList', 'vaultFolders', 'tides', 'tideCharts',
+    'tideLocs', 'alertContacts', 'notifications', 'activityLog', 'loginHistory', 'threads',
+    'signOnLog', 'disabledAdmins', 'adminOverrides', 'adminRequests'
   ];
   
   syncCollections.forEach(function(col) {
@@ -9027,7 +9042,22 @@ function loadFromFirebase(callback) {
     .then(function(snapshot) {
       var data = snapshot.val();
       if (data && typeof data === 'object') {
-        var arrayCollections = ['accounts', 'users', 'dynamicAdmins', 'vessels', 'crew', 'companies', 'officeStaff', 'vehicles', 'vendors', 'contactsDir', 'spares', 'certs', 'maint', 'defs', 'incidents', 'voyages', 'materials', 'requests', 'salaries', 'invoices', 'expenses', 'portDues', 'bunkerReceipts', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders', 'visits', 'drillRecords', 'changeLog', 'log', 'leaveRecords', 'docSubmissions', 'purchaseOrders'];
+        var arrayCollections = [
+          'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares',
+          'bunkerReceipts', 'materials', 'requests', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders',
+          'purchaseOrders', 'vesselPOs', 'vendors', 'equipChanges',
+          'companies', 'accounts', 'users', 'dynamicAdmins', 'salaries', 'salary_settings',
+          'paymentAdvices', 'invoices', 'expenses', 'portDues', 'quotations', 'quotationFormats',
+          'dorEntries', 'orbEntries', 'vtmsLog', 'vtmsDirectory', 'checklistRecords', 'checklistTemplates',
+          'docSubmissions', 'docCycles', 'drydocks', 'plasticLog', 'classDieselReports', 'portalVault',
+          'complianceUploads', 'complianceReminders', 'letterFormats',
+          'crewContracts', 'contractTemplates', 'crewNOK', 'crewMovements', 'exCrew',
+          'leaveRecords', 'officeStaff', 'hireRequests',
+          'vehicles', 'visits', 'visitTemplates', 'contactsDir', 'voyageContacts',
+          'drillRecords', 'changeLog', 'log', 'taskList', 'vaultFolders', 'tideCharts',
+          'tideLocs', 'alertContacts', 'notifications', 'activityLog', 'loginHistory', 'threads',
+          'signOnLog', 'disabledAdmins', 'adminRequests', 'incidents'
+        ];
         
         arrayCollections.forEach(function(key) {
           var cloudArr = safeArrayExtract(data[key]);
