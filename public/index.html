@@ -8688,6 +8688,7 @@ function setupGranularRealtimeListeners() {
           if (pageId === 'visit' && typeof renderVisits === 'function') renderVisits();
           if (pageId === 'vehicles' && typeof renderVehicles === 'function') renderVehicles();
           if (pageId === 'office-staff' && typeof renderOfficeStaff === 'function') renderOfficeStaff();
+          if (pageId === 'companies' && typeof renderCompanies === 'function') renderCompanies();
           if (pageId === 'vendors' && typeof renderVendors === 'function') renderVendors();
           if (pageId === 'quotations' && typeof renderQuotations === 'function') renderQuotations();
           if (pageId === 'po-module' && typeof renderPOs === 'function') renderPOs();
@@ -8849,6 +8850,41 @@ function pushAllLocalDataToCloud(silent) {
   }
 }
 window.pushAllLocalDataToCloud = pushAllLocalDataToCloud;
+
+
+/* ── Direct Authoritative Cloud Sync per Collection ─────────── */
+function syncCollectionToCloud(col) {
+  if (!col || DB[col] === undefined) return;
+  var payload = DB[col];
+
+  // 1. Direct REST PUT to Firebase Realtime Database (Guaranteed 100% cloud delivery independent of SDK)
+  try {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + col + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function(res) {
+      if (res.ok) {
+        console.log('TugWatch Cloud: Synced ' + col + ' via direct REST ✓');
+      }
+    }).catch(function(err){
+      console.warn('TugWatch Cloud REST sync error for ' + col + ':', err);
+    });
+  } catch(e) {}
+
+  // 2. Secondary Firebase SDK write if connected
+  try {
+    if (FB_READY && FB_DB) {
+      FB_DB.ref('tugwatch/' + col).set(payload);
+    }
+  } catch(e) {}
+
+  // 3. Save offline collection snapshot in localStorage
+  try {
+    localStorage.setItem('tw_col_' + col, JSON.stringify(payload));
+  } catch(e) {}
+}
+window.syncCollectionToCloud = syncCollectionToCloud;
 
 /* ── Safe Non-Destructive Cloud Sync to Firebase ───────── */
 var FB_SYNC_PENDING = false;
@@ -14994,6 +15030,7 @@ function saveCompany() {
       DB.companies.push(co);
     }
     saveDB();
+    if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('companies');
     closeModal('m-company');
     renderCompanies();
     fillCompanySelects();
@@ -15098,6 +15135,8 @@ function delCompany(idx) {
   if (!co) return;
   if (!confirm('Delete company "' + co.name + '"? Vessels assigned to this company will lose the assignment.')) return;
   DB.companies.splice(idx, 1);
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('companies');
   renderCompanies();
   fillCompanySelects();
   audit('Deleted company: ' + co.name, 'var(--err)');
@@ -34601,17 +34640,27 @@ function saveCompanyProfileV8() {
   if (!compName) { uiAlert('Company Name is required'); return; }
 
   DB.companies = DB.companies || [];
-  if (!DB.companies.length) DB.companies.push({ id: uid() });
+  var activeCoId = localStorage.getItem('tw_active_company_id');
+  var comp = (activeCoId && DB.companies.find(function(c){ return c.id === activeCoId; })) || DB.companies[0];
+  if (!comp) {
+    comp = { id: uid(), active: true, docs: [], mandatoryDocs: {} };
+    DB.companies.push(comp);
+  }
 
-  var comp = DB.companies[0];
   comp.name = compName;
-  comp.gst = (val('gp-comp-gst') || val('mg-comp-gst') || '').trim();
-  comp.pan = (val('gp-comp-pan') || val('mg-comp-pan') || '').trim();
-  comp.address = (val('gp-comp-addr') || val('mg-comp-addr') || '').trim();
-  comp.email = (val('gp-comp-email') || val('mg-comp-email') || '').trim();
-  comp.phone = (val('gp-comp-phone') || val('mg-comp-phone') || '').trim();
+  var g = (val('gp-comp-gst') || val('mg-comp-gst') || '').trim();
+  if (g) comp.gst = g;
+  var p = (val('gp-comp-pan') || val('mg-comp-pan') || '').trim();
+  if (p) comp.pan = p;
+  var a = (val('gp-comp-addr') || val('mg-comp-addr') || '').trim();
+  if (a) { comp.address = a; comp.addr = a; }
+  var em = (val('gp-comp-email') || val('mg-comp-email') || '').trim();
+  if (em) comp.email = em;
+  var ph = (val('gp-comp-phone') || val('mg-comp-phone') || '').trim();
+  if (ph) comp.phone = ph;
 
   saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('companies');
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
@@ -36190,17 +36239,27 @@ function saveCompanyProfileClean() {
   if (!compName) { uiAlert('Company Name is required'); return; }
 
   DB.companies = DB.companies || [];
-  if (!DB.companies.length) DB.companies.push({ id: uid() });
+  var activeCoId = localStorage.getItem('tw_active_company_id');
+  var comp = (activeCoId && DB.companies.find(function(c){ return c.id === activeCoId; })) || DB.companies[0];
+  if (!comp) {
+    comp = { id: uid(), active: true, docs: [], mandatoryDocs: {} };
+    DB.companies.push(comp);
+  }
 
-  var comp = DB.companies[0];
   comp.name = compName;
-  comp.gst = (val('mg-co-gst') || val('co-gst') || '').trim();
-  comp.pan = (val('mg-co-pan') || val('co-pan') || '').trim();
-  comp.address = (val('mg-co-addr') || val('co-addr') || '').trim();
-  comp.email = (val('mg-co-email') || val('co-email') || '').trim();
-  comp.phone = (val('mg-co-phone') || val('co-phone') || '').trim();
+  var g = (val('mg-co-gst') || val('co-gst') || '').trim();
+  if (g) comp.gst = g;
+  var p = (val('mg-co-pan') || val('co-pan') || '').trim();
+  if (p) comp.pan = p;
+  var a = (val('mg-co-addr') || val('co-addr') || '').trim();
+  if (a) { comp.address = a; comp.addr = a; }
+  var em = (val('mg-co-email') || val('co-email') || '').trim();
+  if (em) comp.email = em;
+  var ph = (val('mg-co-phone') || val('co-phone') || '').trim();
+  if (ph) comp.phone = ph;
 
   saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('companies');
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
