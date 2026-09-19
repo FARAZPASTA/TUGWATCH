@@ -6184,14 +6184,48 @@ html[data-theme="dark"] #l-pass::placeholder {
   <input type="hidden" id="co-id"/>
 
   <!-- Company Logo Upload with Drag & Drop -->
-  <div id="co-logo-dropzone" class="co-drop-target" style="margin-bottom:14px;display:flex;align-items:center;gap:12px;background:var(--s2);padding:12px 14px;border-radius:8px;border:1.5px dashed var(--b2);transition:all .2s ease">
-    <div id="co-logo-preview" style="width:52px;height:52px;border-radius:8px;background:var(--s3);border:1px dashed var(--b2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden">🏢</div>
-    <div style="flex:1">
-      <label class="fl" style="font-weight:600">Company Logo Image <span style="font-size:9.5px;font-weight:400;color:var(--accent);margin-left:4px">📁 Click to Choose or Drag &amp; Drop file here</span></label>
-      <input type="file" class="fi" id="co-logo-file" accept="image/*" style="font-size:11px" onchange="previewCoLogo(this)"/>
-      <input type="hidden" id="co-logo-data"/>
-      <div style="font-size:9.5px;color:var(--t3);margin-top:2px">PNG, JPG, SVG or WEBP logo for official Letterheads, Payment Advices &amp; Invoices.</div>
+  <div class="fr2" style="gap:10px;margin-bottom:14px">
+    <div id="co-logo-dropzone" class="co-drop-target" style="display:flex;align-items:center;gap:10px;background:var(--s2);padding:10px 12px;border-radius:8px;border:1.5px dashed var(--b2);transition:all .2s ease">
+      <div id="co-logo-preview" style="width:48px;height:48px;border-radius:8px;background:var(--s3);border:1px dashed var(--b2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden">🏢</div>
+      <div style="flex:1;min-width:0">
+        <label class="fl" style="font-weight:600">Company Logo</label>
+        <input type="file" class="fi" id="co-logo-file" accept="image/*" style="font-size:10.5px" onchange="previewCoLogo(this)"/>
+        <input type="hidden" id="co-logo-data"/>
+        <div style="font-size:9px;color:var(--t3);margin-top:1px">PNG / JPG logo</div>
+      </div>
     </div>
+
+    <!-- Official Company Stamp / Seal -->
+    <div id="co-stamp-dropzone" class="co-drop-target" style="display:flex;align-items:center;gap:10px;background:var(--s2);padding:10px 12px;border-radius:8px;border:1.5px dashed var(--b2);transition:all .2s ease">
+      <div id="co-stamp-preview" style="width:48px;height:48px;border-radius:8px;background:var(--s3);border:1px dashed var(--b2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden">⭕</div>
+      <div style="flex:1;min-width:0">
+        <label class="fl" style="font-weight:600">Company Seal / Stamp</label>
+        <input type="file" class="fi" id="co-stamp-file" accept="image/*" style="font-size:10.5px" onchange="previewCoStamp(this)"/>
+        <input type="hidden" id="co-stamp-data"/>
+        <div style="font-size:9px;color:var(--t3);margin-top:1px">Transparent stamp / seal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Official Company Letterhead Header Graphic Upload -->
+  <div id="co-letterhead-dropzone" class="co-drop-target" style="margin-bottom:14px;background:var(--s2);padding:12px 14px;border-radius:8px;border:1.5px dashed var(--b2);transition:all .2s ease">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-size:11px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:6px">
+        <span>📜 Official Pre-Printed Company Letterhead (Header Graphic / PDF)</span>
+        <span style="font-size:9.5px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:6px;font-weight:600">High-Res</span>
+      </div>
+      <div id="co-letterhead-clear-btn" style="display:none">
+        <button type="button" onclick="clearCompanyLetterhead()" style="background:none;border:none;color:#dc2626;font-size:10.5px;cursor:pointer;font-weight:600">✕ Remove</button>
+      </div>
+    </div>
+    <div id="co-letterhead-preview" style="display:none;margin-bottom:8px;padding:8px;background:#fff;border-radius:6px;border:1px solid var(--b2);text-align:center">
+      <img id="co-letterhead-img" src="" style="max-height:85px;max-width:100%;object-fit:contain"/>
+    </div>
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+      <input type="file" class="fi" id="co-letterhead-file" accept="image/*,.pdf" style="font-size:11px;flex:1" onchange="previewCoLetterhead(this)"/>
+      <input type="hidden" id="co-letterhead-data"/>
+    </label>
+    <div style="font-size:9.5px;color:var(--t3);margin-top:3px">Upload your official letterhead graphic (PNG, JPG, SVG). When attached, all IMO Crew Lists, Official Letters &amp; Vouchers print directly with your official letterhead design.</div>
   </div>
 
   <!-- Basic Info -->
@@ -14040,6 +14074,32 @@ function setupCompanyDropZones() {
       });
     }
 
+    // Stamp drop zone
+    var stampZone = modal.querySelector('#co-stamp-dropzone');
+    if (stampZone) {
+      bindDropTarget(stampZone, function(files) {
+        var file = files[0];
+        if (!file || !file.type.startsWith('image/')) {
+          toast('Please drop an image file for company seal / stamp', 'var(--warn)'); return;
+        }
+        var fakeInp = { files: [file] };
+        previewCoStamp(fakeInp);
+        toast('Official company seal attached via drag & drop');
+      });
+    }
+
+    // Official Letterhead drop zone
+    var lhZone = modal.querySelector('#co-letterhead-dropzone');
+    if (lhZone) {
+      bindDropTarget(lhZone, function(files) {
+        var file = files[0];
+        if (!file) return;
+        var fakeInp = { files: [file] };
+        previewCoLetterhead(fakeInp);
+        toast('Official company letterhead attached via drag & drop');
+      });
+    }
+
     // Mandatory doc zones
     ['gst', 'msme', 'pan'].forEach(function(type) {
       var zone = modal.querySelector('#co-' + type + '-cert-zone');
@@ -14087,6 +14147,16 @@ function getActiveOrFirstCompany() {
 
 function generateCompanyLetterheadHeader(co) {
   if (!co) co = getActiveOrFirstCompany();
+
+  // If user uploaded an official graphic letterhead, render the actual letterhead image across top!
+  if (co.letterheadImage || co.letterhead) {
+    var lhSrc = co.letterheadImage || co.letterhead;
+    return `
+      <div style="margin-bottom:18px;text-align:center;border-bottom:2px solid #1e3a8a;padding-bottom:10px">
+        <img src="${lhSrc}" style="width:100%;max-height:140px;object-fit:contain" alt="${co.name} Official Letterhead"/>
+      </div>`;
+  }
+
   var logoHtml = co.logo
     ? '<img src="' + co.logo + '" style="max-height:65px;max-width:140px;object-fit:contain"/>'
     : '<div style="font-size:32px">🏢</div>';
@@ -14583,7 +14653,9 @@ function renderOfficialLetterPreview() {
 
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;padding:0 10px">
       <div style="text-align:center;width:180px">
-        <div style="height:50px;border-bottom:1.5px dashed #cbd5e1;margin-bottom:6px"></div>
+        <div style="height:50px;border-bottom:1.5px dashed #cbd5e1;margin-bottom:6px;display:flex;align-items:center;justify-content:center">
+          ${(co.stampImage || co.stamp) ? '<img src="' + (co.stampImage || co.stamp) + '" style="max-height:48px;max-width:140px;object-fit:contain" alt="Seal"/>' : ''}
+        </div>
         <div style="font-size:9.5px;font-weight:700;color:#0f172a">Official Company Seal</div>
       </div>
       <div style="text-align:center;width:240px">
@@ -14915,6 +14987,55 @@ function collectCompanyBankAccounts() {
 }
 
 
+
+function previewCoLetterhead(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  var file = inp.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var modal = document.getElementById('m-company') || document;
+    var dataEl = modal.querySelector('#co-letterhead-data') || document.getElementById('co-letterhead-data');
+    if (dataEl) dataEl.value = e.target.result;
+    var prev = modal.querySelector('#co-letterhead-preview') || document.getElementById('co-letterhead-preview');
+    var img = modal.querySelector('#co-letterhead-img') || document.getElementById('co-letterhead-img');
+    var clearBtn = modal.querySelector('#co-letterhead-clear-btn') || document.getElementById('co-letterhead-clear-btn');
+    if (img) img.src = e.target.result;
+    if (prev) prev.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'block';
+    toast('Official company letterhead attached ✓');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearCompanyLetterhead() {
+  var modal = document.getElementById('m-company') || document;
+  var fileEl = modal.querySelector('#co-letterhead-file') || document.getElementById('co-letterhead-file');
+  var dataEl = modal.querySelector('#co-letterhead-data') || document.getElementById('co-letterhead-data');
+  var prev = modal.querySelector('#co-letterhead-preview') || document.getElementById('co-letterhead-preview');
+  var clearBtn = modal.querySelector('#co-letterhead-clear-btn') || document.getElementById('co-letterhead-clear-btn');
+  if (fileEl) fileEl.value = '';
+  if (dataEl) dataEl.value = '';
+  if (prev) prev.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'none';
+  toast('Company letterhead graphic cleared');
+}
+
+function previewCoStamp(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  var file = inp.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var modal = document.getElementById('m-company') || document;
+    var dataEl = modal.querySelector('#co-stamp-data') || document.getElementById('co-stamp-data');
+    if (dataEl) dataEl.value = e.target.result;
+    var prev = modal.querySelector('#co-stamp-preview') || document.getElementById('co-stamp-preview');
+    if (prev) prev.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:contain"/>';
+    toast('Official company seal / stamp attached ✓');
+  };
+  reader.readAsDataURL(file);
+}
+
+
 function resetCompanyModalForm() {
   var modal = document.getElementById('m-company') || document;
   _coMandatoryDocs = { gst: null, msme: null, pan: null };
@@ -14930,6 +15051,13 @@ function resetCompanyModalForm() {
   if (logoData) logoData.value = '';
   var logoPrev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
   if (logoPrev) logoPrev.innerHTML = '🏢';
+  clearCompanyLetterhead();
+  var stampFile = modal.querySelector('#co-stamp-file') || document.getElementById('co-stamp-file');
+  if (stampFile) stampFile.value = '';
+  var stampData = modal.querySelector('#co-stamp-data') || document.getElementById('co-stamp-data');
+  if (stampData) stampData.value = '';
+  var stampPrev = modal.querySelector('#co-stamp-preview') || document.getElementById('co-stamp-preview');
+  if (stampPrev) stampPrev.innerHTML = '⭕';
   ['gst','msme','pan'].forEach(function(t){ removeCompanyMandatoryDoc(t); });
   var edl = modal.querySelector('#co-extra-docs-list') || document.getElementById('co-extra-docs-list');
   if (edl) edl.innerHTML = '';
@@ -15014,6 +15142,30 @@ function openCompanyEdit(id) {
     if (logoFile) logoFile.value = '';
     var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
     if (prev) prev.innerHTML = '🏢';
+  }
+  if (co.letterheadImage || co.letterhead) {
+    var lhData = co.letterheadImage || co.letterhead;
+    setVal('co-letterhead-data', lhData);
+    var lhPrev = modal.querySelector('#co-letterhead-preview') || document.getElementById('co-letterhead-preview');
+    var lhImg = modal.querySelector('#co-letterhead-img') || document.getElementById('co-letterhead-img');
+    var lhBtn = modal.querySelector('#co-letterhead-clear-btn') || document.getElementById('co-letterhead-clear-btn');
+    if (lhImg) lhImg.src = lhData;
+    if (lhPrev) lhPrev.style.display = 'block';
+    if (lhBtn) lhBtn.style.display = 'block';
+  } else {
+    clearCompanyLetterhead();
+  }
+  if (co.stampImage || co.stamp) {
+    var stData = co.stampImage || co.stamp;
+    setVal('co-stamp-data', stData);
+    var stPrev = modal.querySelector('#co-stamp-preview') || document.getElementById('co-stamp-preview');
+    if (stPrev) stPrev.innerHTML = '<img src="'+stData+'" style="width:100%;height:100%;object-fit:contain">';
+  } else {
+    setVal('co-stamp-data', '');
+    var stFile = modal.querySelector('#co-stamp-file') || document.getElementById('co-stamp-file');
+    if (stFile) stFile.value = '';
+    var stPrev = modal.querySelector('#co-stamp-preview') || document.getElementById('co-stamp-preview');
+    if (stPrev) stPrev.innerHTML = '⭕';
   }
   setupCompanyDropZones();
   // Show existing docs
@@ -15163,6 +15315,10 @@ function saveCompany() {
     entity:  entity || 'Pvt Ltd',
     tradename: getCoField('co-tradename'),
     logo:    getCoField('co-logo-data'),
+    letterheadImage: getCoField('co-letterhead-data'),
+    letterhead: getCoField('co-letterhead-data'),
+    stampImage: getCoField('co-stamp-data'),
+    stamp: getCoField('co-stamp-data'),
     bankAccounts: collectCompanyBankAccounts(),
     bankName: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankName : ''; })(),
     bankAccName: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankAccName : ''; })(),
@@ -28850,7 +29006,7 @@ function previewInvoice() {
 }
 
 function printInvoiceHTML(d) {
-  var co = DB.companies&&DB.companies.length ? DB.companies[0] : {name:'ACE Marine',address:'Jamnagar, Gujarat'};
+  var co = (typeof getActiveOrFirstCompany === 'function') ? getActiveOrFirstCompany() : (DB.companies&&DB.companies.length ? DB.companies[0] : {name:'ACE Marine',address:'Jamnagar, Gujarat'});
   var itemsHtml = d.items.map(function(it,i){
     return '<tr><td style="padding:8px 10px;border-bottom:1px solid #e4e6eb">'+(i+1)+'</td><td style="padding:8px 10px;border-bottom:1px solid #e4e6eb">'+it.desc+'</td><td style="padding:8px 10px;border-bottom:1px solid #e4e6eb;text-align:right">'+it.qty+'</td><td style="padding:8px 10px;border-bottom:1px solid #e4e6eb;text-align:right">'+it.unit+'</td><td style="padding:8px 10px;border-bottom:1px solid #e4e6eb;text-align:right">&#8377;'+it.rate.toLocaleString('en-IN')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e4e6eb;text-align:right;font-weight:700">&#8377;'+it.amount.toLocaleString('en-IN')+'</td></tr>';
   }).join('');
