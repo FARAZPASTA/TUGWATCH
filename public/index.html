@@ -13905,17 +13905,27 @@ function openCompanyEdit(id) {
   var co = (DB.companies||[]).find(function(c){ return c.id === id; });
   if (!co) return;
   openModal('m-company');
-  document.getElementById('co-id').value    = co.id;
-  document.getElementById('co-name').value  = co.name||'';
-  document.getElementById('co-addr').value  = co.addr||co.address||'';
-  document.getElementById('co-email').value = co.email||'';
-  document.getElementById('co-phone').value = co.phone||'';
-  document.getElementById('co-web').value   = co.web||'';
-  document.getElementById('co-gst').value   = co.gst||'';
-  document.getElementById('co-tag').value   = co.tag||'';
+  var modal = document.getElementById('m-company') || document;
+  function setVal(fid, val) {
+    var el = modal.querySelector('#' + fid) || document.getElementById(fid);
+    if (el) el.value = val;
+  }
+  setVal('co-id', co.id);
+  setVal('co-name', co.name||'');
+  setVal('co-addr', co.addr||co.address||'');
+  setVal('co-email', co.email||'');
+  setVal('co-phone', co.phone||'');
+  setVal('co-web', co.web||'');
+  setVal('co-gst', co.gst||'');
+  setVal('co-pan', co.pan||'');
+  setVal('co-tag', co.tag||'');
+  setVal('co-entity', co.entity||'');
+  setVal('co-msme', co.msme||'');
+  setVal('co-cin', co.cin||'');
+  setVal('co-tradename', co.tradename||'');
   if (co.logo) {
-    document.getElementById('co-logo-data').value = co.logo;
-    var prev = document.getElementById('co-logo-preview');
+    setVal('co-logo-data', co.logo);
+    var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
     if (prev) prev.innerHTML = '<img src="'+co.logo+'" style="width:100%;height:100%;object-fit:contain">';
   }
   // Show existing docs
@@ -14011,22 +14021,33 @@ function replaceCompanyExtraDoc(n) {
 }
 
 function saveCompany() {
-  var name = (document.getElementById('co-name')||{}).value;
-  if (!name || !name.trim()) { uiAlert('Enter company name'); return; }
+  var modal = document.getElementById('m-company') || document;
+  function getCoField(id) {
+    var el = modal.querySelector('#' + id) || document.getElementById(id);
+    return el ? (el.value || '').trim() : '';
+  }
 
-  var tag    = (document.getElementById('co-tag')||{}).value;
-  var entity = (document.getElementById('co-entity')||{}).value;
-  if (!tag)    { uiAlert('Select relationship type (Client, Supplier, etc.)'); return; }
-  if (!entity) { uiAlert('Select legal entity type (Pvt Ltd, LLP, Proprietorship, etc.)'); return; }
+  var name   = getCoField('co-name');
+  if (!name) { uiAlert('Enter company name'); return; }
 
-  var gst = ((document.getElementById('co-gst')||{}).value||'').trim();
-  var pan = ((document.getElementById('co-pan')||{}).value||'').trim();
-  var bypass = document.getElementById('co-doc-bypass') && document.getElementById('co-doc-bypass').checked;
+  var tag    = getCoField('co-tag');
+  var entity = getCoField('co-entity');
+  var bypassEl = modal.querySelector('#co-doc-bypass') || document.getElementById('co-doc-bypass');
+  var bypass = !!(bypassEl && bypassEl.checked);
 
-  // Validate mandatory fields
-  if (!gst) { uiAlert('GST Number is required'); return; }
-  if (!pan)  { uiAlert('PAN Number is required'); return; }
-  if (!(document.getElementById('co-addr')||{}).value.trim()) { uiAlert('Registered address is required'); return; }
+  if (!tag && !bypass)    { uiAlert('Select relationship type (Client, Supplier, etc.)'); return; }
+  if (!entity && !bypass) { uiAlert('Select legal entity type (Pvt Ltd, LLP, Proprietorship, etc.)'); return; }
+
+  var rawGst = getCoField('co-gst');
+  var rawPan = getCoField('co-pan');
+  var gst = rawGst.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  var pan = rawPan.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  var addr = getCoField('co-addr');
+
+  // Validate mandatory fields (skip if admin bypass is checked)
+  if (!gst && !bypass) { uiAlert('GST Number is required'); return; }
+  if (!pan && !bypass)  { uiAlert('PAN Number is required'); return; }
+  if (!addr && !bypass) { uiAlert('Registered address is required'); return; }
 
   // Validate mandatory documents (bypass allowed for admin/master)
   if (!bypass) {
@@ -14035,25 +14056,25 @@ function saveCompany() {
     if (!_coMandatoryDocs.pan)  { uiAlert('Upload PAN Card (mandatory)'); return; }
   }
 
-  var existingId = (document.getElementById('co-id')||{}).value;
+  var existingId = getCoField('co-id');
   var existingCo = existingId ? (DB.companies||[]).find(function(c){ return c.id === existingId; }) : null;
 
   var co = {
     id:      existingId || uid(),
-    name:    name.trim(),
-    addr:    ((document.getElementById('co-addr')||{}).value||'').trim(),
-    address: ((document.getElementById('co-addr')||{}).value||'').trim(),
-    email:   (document.getElementById('co-email')||{}).value||'',
-    phone:   (document.getElementById('co-phone')||{}).value||'',
-    web:     (document.getElementById('co-web')||{}).value||'',
-    gst:     gst.toUpperCase(),
-    pan:     pan.toUpperCase(),
-    msme:    ((document.getElementById('co-msme')||{}).value||'').trim(),
-    cin:     ((document.getElementById('co-cin')||{}).value||'').trim(),
-    tag:     tag,
-    entity:  entity,
-    tradename: ((document.getElementById('co-tradename')||{}).value||'').trim(),
-    logo:    (document.getElementById('co-logo-data')||{}).value||'',
+    name:    name,
+    addr:    addr,
+    address: addr,
+    email:   getCoField('co-email'),
+    phone:   getCoField('co-phone'),
+    web:     getCoField('co-web'),
+    gst:     gst || rawGst.toUpperCase(),
+    pan:     pan || rawPan.toUpperCase(),
+    msme:    getCoField('co-msme'),
+    cin:     getCoField('co-cin'),
+    tag:     tag || 'Client',
+    entity:  entity || 'Pvt Ltd',
+    tradename: getCoField('co-tradename'),
+    logo:    getCoField('co-logo-data'),
     active:  true,
     // Mandatory docs — preserve existing if bypass used
     mandatoryDocs: {
@@ -14136,7 +14157,8 @@ function saveCompany() {
 function editCompany(idx) {
   var co = (DB.companies||[])[idx];
   if (!co) return;
-  var t = document.getElementById('m-company-title');
+  var modal = document.getElementById('m-company') || document;
+  var t = modal.querySelector('#m-company-title') || document.getElementById('m-company-title');
   if (t) t.textContent = 'Edit Company Profile';
   var fields = {
     'co-id':co.id, 'co-name':co.name,
@@ -14147,7 +14169,7 @@ function editCompany(idx) {
     'co-tag':co.tag||'', 'co-entity':co.entity||'', 'co-tradename':co.tradename||''
   };
   Object.keys(fields).forEach(function(id) {
-    var el = document.getElementById(id);
+    var el = modal.querySelector('#' + id) || document.getElementById(id);
     if (el) el.value = fields[id];
   });
 
