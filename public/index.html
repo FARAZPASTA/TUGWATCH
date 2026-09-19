@@ -2236,7 +2236,7 @@ html[data-theme="dark"] #l-pass::placeholder {
     </div>
     <div style="padding:8px 10px">
     <div style="position:relative">
-      <input id="global-search-input" placeholder="🔍  Search anything..." 
+      <input id="sidebar-search-input" placeholder="🔍  Search anything..." 
         style="width:100%;padding:7px 10px 7px 32px;border-radius:20px;border:1px solid #ccd0d5;font-size:11px;background:#f0f2f5;outline:none;box-sizing:border-box"
         oninput="runGlobalSearch(this.value)" autocomplete="off">
       <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:#9a9fa8;fill:none;stroke-width:2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2803,14 +2803,14 @@ html[data-theme="dark"] #l-pass::placeholder {
           <button class="btn btn-primary btn-sm" onclick="saveCompanyProfileClean()" style="font-weight:700">💾 Save Company Info</button>
         </div>
         <div class="fr3">
-          <div class="fg"><label class="fl">Company Registered Name <span class="req">*</span></label><input class="fi" id="co-name" placeholder="Saarvin Marine Pvt Ltd" style="font-weight:700"/></div>
-          <div class="fg"><label class="fl">GST / Tax Registration Number</label><input class="fi" id="co-gst" placeholder="24XXXXX0000X1Z5"/></div>
-          <div class="fg"><label class="fl">PAN Number</label><input class="fi" id="co-pan" placeholder="XXXXX0000X"/></div>
+          <div class="fg"><label class="fl">Company Registered Name <span class="req">*</span></label><input class="fi" id="mg-co-name" placeholder="Saarvin Marine Pvt Ltd" style="font-weight:700"/></div>
+          <div class="fg"><label class="fl">GST / Tax Registration Number</label><input class="fi" id="mg-co-gst" placeholder="24XXXXX0000X1Z5"/></div>
+          <div class="fg"><label class="fl">PAN Number</label><input class="fi" id="mg-co-pan" placeholder="XXXXX0000X"/></div>
         </div>
         <div class="fr3">
-          <div class="fg"><label class="fl">Registered Office Address</label><input class="fi" id="co-addr" placeholder="Jamnagar / Mumbai Office"/></div>
-          <div class="fg"><label class="fl">Official Email</label><input class="fi" id="co-email" placeholder="ops@saarvin.in"/></div>
-          <div class="fg"><label class="fl">Contact Phone</label><input class="fi" id="co-phone" placeholder="+91 288 XXXXXXX"/></div>
+          <div class="fg"><label class="fl">Registered Office Address</label><input class="fi" id="mg-co-addr" placeholder="Jamnagar / Mumbai Office"/></div>
+          <div class="fg"><label class="fl">Official Email</label><input class="fi" id="mg-co-email" placeholder="ops@saarvin.in"/></div>
+          <div class="fg"><label class="fl">Contact Phone</label><input class="fi" id="mg-co-phone" placeholder="+91 288 XXXXXXX"/></div>
         </div>
       </div>
 
@@ -3026,7 +3026,7 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div class="page" id="p-crew">
       <div class="page-hdr">
         <div class="page-hdr-title">Crew Management</div>
-        <button class="btn btn-ghost btn-sm admin-only" onclick="return openModal('m-alert-contacts',event)">
+        <button class="btn btn-ghost btn-sm admin-only" onclick="go('contacts-dir')">
             <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3-8.59A2 2 0 012.11 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.09a16 16 0 006 6l.46-.46a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>Alert Contacts
           </button>
           <button class="btn btn-primary" onclick="return openModal('m-crew',event)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Crew Member</button>
@@ -5336,7 +5336,7 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div id="tab-sec-staff" style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:0.5px">Registered Staff Users</div>
-      <button type="button" class="btn btn-primary btn-sm" onclick="closeModal('m-admin-mgmt');openModal('m-user');" style="font-size:10px;font-weight:700">+ Create Staff User</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="closeModal('m-admin-mgmt');openAccountModal('staff');" style="font-size:10px;font-weight:700">+ Create Staff User</button>
     </div>
     <div id="staff-list-dynamic" style="margin-bottom:18px;max-height:48vh;overflow-y:auto"></div>
   </div>
@@ -6278,6 +6278,59 @@ html[data-theme="dark"] #l-pass::placeholder {
     <button class="btn btn-primary" onclick="addCrew()">Add Crew Member</button>
   </div>
 </div></div>
+
+<!-- EX-CREW ADD MODAL -->
+<div class="overlay" id="m-excrew">
+  <div class="modal" style="max-width:580px;width:95%;max-height:90vh;overflow-y:auto;padding:20px;border-radius:12px">
+    <div class="modal-hdr" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--b1);padding-bottom:10px">
+      <div class="modal-title" style="font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px">
+        <span>👤</span> Add Ex-Crew Record
+      </div>
+      <button class="modal-close" data-close="m-excrew" onclick="closeModal('m-excrew')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--t2)">✕</button>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Full Name <span class="req">*</span></label><input class="fi" id="ec-name" placeholder="Full name"/></div>
+      <div class="fg"><label class="fl">Rank / Designation</label><input class="fi" id="ec-role" placeholder="e.g. Master, Chief Eng, Oiler"/></div>
+    </div>
+    <div class="fr3">
+      <div class="fg"><label class="fl">Crew Number</label><input class="fi" id="ec-crewno" placeholder="CRW-000"/></div>
+      <div class="fg"><label class="fl">Mobile No.</label><input class="fi" id="ec-mob" placeholder="+91 XXXXX XXXXX"/></div>
+      <div class="fg"><label class="fl">INDOS Number</label><input class="fi" id="ec-indos" placeholder="INDOS / CDC"/></div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">CDC Number</label><input class="fi" id="ec-cdc" placeholder="CDC number"/></div>
+      <div class="fg"><label class="fl">Served On Vessel(s)</label><input class="fi" id="ec-vessels" placeholder="e.g. SAARVIN 1, SAARVIN 2"/></div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Joining Date</label><input type="date" class="fi" id="ec-join"/></div>
+      <div class="fg"><label class="fl">Relieved Date</label><input type="date" class="fi" id="ec-relieve"/></div>
+    </div>
+    <div class="fr3">
+      <div class="fg"><label class="fl">Reason for Relieving</label><input class="fi" id="ec-reason" placeholder="Contract Completed / Personal"/></div>
+      <div class="fg"><label class="fl">Performance Rating</label>
+        <select class="fi" id="ec-perf">
+          <option value="Excellent">Excellent</option>
+          <option value="Good" selected>Good</option>
+          <option value="Average">Average</option>
+          <option value="Poor">Poor</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Eligible for Re-Hire?</label>
+        <select class="fi" id="ec-rehire">
+          <option value="Yes" selected>Yes</option>
+          <option value="Conditional">Conditional</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Remarks / Conduct History</label><textarea class="fi" id="ec-rem" rows="2" placeholder="Conduct notes, endorsements, appraisal details..."></textarea></div>
+    <div class="fg"><label class="fl">Home Address</label><input class="fi" id="ec-addr" placeholder="Permanent address"/></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;border-top:1px solid var(--b1);padding-top:12px">
+      <button class="btn btn-ghost" data-close="m-excrew" onclick="closeModal('m-excrew')">Cancel</button>
+      <button class="btn btn-primary" onclick="addExCrew()" style="font-weight:700">💾 Save Ex-Crew Record</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ OIL RECORD BOOK ENTRY ══════════════════════════════════ -->
 <div class="overlay" id="m-orb-entry"><div class="modal modal-wide">
@@ -35209,16 +35262,34 @@ async function deleteAccountClean(accountId) {
 
 function populateCompanyProfileClean() {
   var comp = (DB.companies && DB.companies[0]) ? DB.companies[0] : (DB.company || {});
-  if ($('co-name')) $('co-name').value = comp.name || 'Saarvin Marine';
-  if ($('co-gst')) $('co-gst').value = comp.gst || '';
-  if ($('co-pan')) $('co-pan').value = comp.pan || '';
-  if ($('co-addr')) $('co-addr').value = comp.address || '';
-  if ($('co-email')) $('co-email').value = comp.email || 'ops@saarvin.in';
-  if ($('co-phone')) $('co-phone').value = comp.phone || '';
+  var nameVal = comp.name || 'Saarvin Marine';
+  var gstVal = comp.gst || '';
+  var panVal = comp.pan || '';
+  var addrVal = comp.address || '';
+  var emailVal = comp.email || 'ops@saarvin.in';
+  var phoneVal = comp.phone || '';
+
+  if ($('mg-co-name')) $('mg-co-name').value = nameVal;
+  else if ($('co-name')) $('co-name').value = nameVal;
+
+  if ($('mg-co-gst')) $('mg-co-gst').value = gstVal;
+  else if ($('co-gst')) $('co-gst').value = gstVal;
+
+  if ($('mg-co-pan')) $('mg-co-pan').value = panVal;
+  else if ($('co-pan')) $('co-pan').value = panVal;
+
+  if ($('mg-co-addr')) $('mg-co-addr').value = addrVal;
+  else if ($('co-addr')) $('co-addr').value = addrVal;
+
+  if ($('mg-co-email')) $('mg-co-email').value = emailVal;
+  else if ($('co-email')) $('co-email').value = emailVal;
+
+  if ($('mg-co-phone')) $('mg-co-phone').value = phoneVal;
+  else if ($('co-phone')) $('co-phone').value = phoneVal;
 }
 
 function saveCompanyProfileClean() {
-  var compName = (val('co-name') || '').trim();
+  var compName = (val('mg-co-name') || val('co-name') || '').trim();
   if (!compName) { uiAlert('Company Name is required'); return; }
 
   DB.companies = DB.companies || [];
@@ -35226,11 +35297,11 @@ function saveCompanyProfileClean() {
 
   var comp = DB.companies[0];
   comp.name = compName;
-  comp.gst = (val('co-gst') || '').trim();
-  comp.pan = (val('co-pan') || '').trim();
-  comp.address = (val('co-addr') || '').trim();
-  comp.email = (val('co-email') || '').trim();
-  comp.phone = (val('co-phone') || '').trim();
+  comp.gst = (val('mg-co-gst') || val('co-gst') || '').trim();
+  comp.pan = (val('mg-co-pan') || val('co-pan') || '').trim();
+  comp.address = (val('mg-co-addr') || val('co-addr') || '').trim();
+  comp.email = (val('mg-co-email') || val('co-email') || '').trim();
+  comp.phone = (val('mg-co-phone') || val('co-phone') || '').trim();
 
   saveDB();
 
@@ -36269,6 +36340,32 @@ window.openDisasterRecoveryModal = openDisasterRecoveryModal;
 window.handleBackupFileSelect = handleBackupFileSelect;
 window.executeDatabaseRestore = executeDatabaseRestore;
 window.updateBackupTimestampUI = updateBackupTimestampUI;
+
+
+/* ── GLOBAL BRIDGE FUNCTIONS & ERROR RESILIENCE ──────────────── */
+function openVesselModal(vesselId) {
+  if (vesselId && typeof openEdit === 'function') {
+    openEdit('vessel', vesselId);
+  } else if (typeof openModal === 'function') {
+    openModal('m-vessel');
+  }
+}
+
+function openExCrewModal() {
+  if (typeof openModal === 'function') {
+    openModal('m-excrew');
+  }
+}
+
+function navigate(pageId) {
+  if (typeof go === 'function') {
+    return go(pageId);
+  }
+}
+
+window.openVesselModal = openVesselModal;
+window.openExCrewModal = openExCrewModal;
+window.navigate = navigate;
 
 </script>
 
