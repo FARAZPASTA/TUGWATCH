@@ -15287,6 +15287,9 @@ function openCompanyEdit(id) {
   if (!co) return;
   openModal('m-company');
   var modal = document.getElementById('m-company') || document;
+  var titleEl = modal.querySelector('#m-company-title') || document.getElementById('m-company-title');
+  if (titleEl) titleEl.textContent = 'Edit Company Profile';
+
   function setVal(fid, val) {
     var el = modal.querySelector('#' + fid) || document.getElementById(fid);
     if (el) el.value = val;
@@ -15299,11 +15302,13 @@ function openCompanyEdit(id) {
   setVal('co-web', co.web||'');
   setVal('co-gst', co.gst||'');
   setVal('co-pan', co.pan||'');
-  setVal('co-tag', co.tag||'');
-  setVal('co-entity', co.entity||'');
+  setVal('co-tag', co.tag||'Client');
+  setVal('co-entity', co.entity||'Pvt Ltd');
   setVal('co-msme', co.msme||'');
   setVal('co-cin', co.cin||'');
   setVal('co-tradename', co.tradename||'');
+
+  // Populate Bank Accounts
   var bankList = document.getElementById('co-bank-accounts-list');
   if (bankList) {
     bankList.innerHTML = '';
@@ -15326,6 +15331,8 @@ function openCompanyEdit(id) {
       addCompanyBankAccountRow();
     }
   }
+
+  // Populate Company Logo
   if (co.logo) {
     setVal('co-logo-data', co.logo);
     var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
@@ -15337,6 +15344,8 @@ function openCompanyEdit(id) {
     var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
     if (prev) prev.innerHTML = '🏢';
   }
+
+  // Populate Official Letterhead Graphic
   if (co.letterheadImage || co.letterhead) {
     var lhData = co.letterheadImage || co.letterhead;
     setVal('co-letterhead-data', lhData);
@@ -15349,6 +15358,8 @@ function openCompanyEdit(id) {
   } else {
     clearCompanyLetterhead();
   }
+
+  // Populate Company Seal / Stamp
   if (co.stampImage || co.stamp) {
     var stData = co.stampImage || co.stamp;
     setVal('co-stamp-data', stData);
@@ -15361,18 +15372,43 @@ function openCompanyEdit(id) {
     var stPrev = modal.querySelector('#co-stamp-preview') || document.getElementById('co-stamp-preview');
     if (stPrev) stPrev.innerHTML = '⭕';
   }
+
+  // Populate Mandatory Documents (GST, MSME, PAN)
+  var mDocs = co.mandatoryDocs || {};
+  ['gst', 'msme', 'pan'].forEach(function(type) {
+    var doc = mDocs[type];
+    if (doc && (doc.data || doc.name || typeof doc === 'string')) {
+      _coMandatoryDocs[type] = doc;
+      var docName = doc.name || (type.toUpperCase() + ' Certificate attached');
+      var preview = document.getElementById('co-' + type + '-cert-preview');
+      var nameEl  = document.getElementById('co-' + type + '-cert-name');
+      var zone    = document.getElementById('co-' + type + '-cert-zone');
+      if (preview) preview.style.display = 'flex';
+      if (nameEl) nameEl.textContent = '✅ ' + docName;
+      if (zone) { zone.style.borderColor = '#16a34a'; zone.style.background = '#f0fdf4'; }
+    } else {
+      removeCompanyMandatoryDoc(type);
+    }
+  });
+
+  // Populate Additional Documents (co.docs)
+  var extraList = document.getElementById('co-extra-docs-list');
+  if (extraList) {
+    extraList.innerHTML = '';
+    _coExtraDocCount = 0;
+    if (co.docs && Array.isArray(co.docs) && co.docs.length > 0) {
+      co.docs.forEach(function(d) {
+        addCompanyExtraDoc(d);
+      });
+    }
+  }
+
+  var byp = modal.querySelector('#co-doc-bypass') || document.getElementById('co-doc-bypass');
+  if (byp) {
+    byp.checked = true;
+  }
+
   setupCompanyDropZones();
-  // Show existing docs
-  var docsList = document.getElementById('co-docs-list');
-  if (docsList && co.docs && co.docs.length) {
-    docsList.innerHTML = co.docs.map(function(d) {
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f2f5">
-        <span>📎 ${d.title} — <span style="color:#65676b">${d.name}</span></span>
-        <button type="button" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:11px" 
-          onclick="deleteCompanyDoc('${co.id}','${d.id}')">✕</button>
-      </div>`;
-    }).join('');
-  } else if (docsList) { docsList.innerHTML = ''; }
 }
 
 function deleteCompanyDoc(coId, docId) {
