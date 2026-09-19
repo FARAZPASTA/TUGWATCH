@@ -13906,12 +13906,36 @@ function toggleVaultAccess(coId, userId, btn) {
 }
 
 
+function resetCompanyModalForm() {
+  var modal = document.getElementById('m-company') || document;
+  _coMandatoryDocs = { gst: null, msme: null, pan: null };
+  _coExtraDocCount = 0;
+  clearFields(['co-id','co-name','co-addr','co-email','co-phone','co-web','co-gst','co-pan','co-msme','co-cin','co-tag','co-entity','co-tradename','co-logo-data']);
+  var logoFile = modal.querySelector('#co-logo-file') || document.getElementById('co-logo-file');
+  if (logoFile) logoFile.value = '';
+  var logoData = modal.querySelector('#co-logo-data') || document.getElementById('co-logo-data');
+  if (logoData) logoData.value = '';
+  var logoPrev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
+  if (logoPrev) logoPrev.innerHTML = '🏢';
+  ['gst','msme','pan'].forEach(function(t){ removeCompanyMandatoryDoc(t); });
+  var edl = modal.querySelector('#co-extra-docs-list') || document.getElementById('co-extra-docs-list');
+  if (edl) edl.innerHTML = '';
+  var byp = modal.querySelector('#co-doc-bypass') || document.getElementById('co-doc-bypass');
+  if (byp) {
+    byp.checked = !!(CU && (CU.role === 'admin' || CU.role === 'master'));
+  }
+  var title = modal.querySelector('#m-company-title') || document.getElementById('m-company-title');
+  if (title) title.textContent = 'Add Company Profile';
+}
+
 function previewCoLogo(inp) {
   if (!inp.files[0]) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById('co-logo-data').value = e.target.result;
-    var prev = document.getElementById('co-logo-preview');
+    var modal = document.getElementById('m-company') || document;
+    var logoData = modal.querySelector('#co-logo-data') || document.getElementById('co-logo-data');
+    if (logoData) logoData.value = e.target.result;
+    var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
     if (prev) prev.innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:contain">';
   };
   reader.readAsDataURL(inp.files[0]);
@@ -13943,6 +13967,12 @@ function openCompanyEdit(id) {
     setVal('co-logo-data', co.logo);
     var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
     if (prev) prev.innerHTML = '<img src="'+co.logo+'" style="width:100%;height:100%;object-fit:contain">';
+  } else {
+    setVal('co-logo-data', '');
+    var logoFile = modal.querySelector('#co-logo-file') || document.getElementById('co-logo-file');
+    if (logoFile) logoFile.value = '';
+    var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
+    if (prev) prev.innerHTML = '🏢';
   }
   // Show existing docs
   var docsList = document.getElementById('co-docs-list');
@@ -14145,15 +14175,8 @@ function saveCompany() {
     if (nb) nb.textContent = (DB.companies||[]).length;
     audit('Company profile saved: ' + co.name + (bypass ? ' [bypass]' : ''), 'var(--ok)');
     toast('Company profile saved — ' + co.docs.length + ' document(s) attached');
-    // Reset modal state
-    _coMandatoryDocs = { gst: null, msme: null, pan: null };
-    _coExtraDocCount = 0;
-    clearFields(['co-name','co-addr','co-email','co-phone','co-web','co-gst','co-pan','co-msme','co-cin','co-tag','co-entity','co-tradename']);
-    if (document.getElementById('co-id')) document.getElementById('co-id').value = '';
-    ['gst','msme','pan'].forEach(function(t){ removeCompanyMandatoryDoc(t); });
-    var edl = document.getElementById('co-extra-docs-list');
-    if (edl) edl.innerHTML = '';
-    if (document.getElementById('co-doc-bypass')) document.getElementById('co-doc-bypass').checked = false;
+    // Reset modal state cleanly
+    resetCompanyModalForm();
   }
 
   // Read all pending extra doc files then save
@@ -14188,6 +14211,20 @@ function editCompany(idx) {
     var el = modal.querySelector('#' + id) || document.getElementById(id);
     if (el) el.value = fields[id];
   });
+
+  if (co.logo) {
+    var logoDataEl = modal.querySelector('#co-logo-data') || document.getElementById('co-logo-data');
+    if (logoDataEl) logoDataEl.value = co.logo;
+    var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
+    if (prev) prev.innerHTML = '<img src="'+co.logo+'" style="width:100%;height:100%;object-fit:contain">';
+  } else {
+    var logoDataEl = modal.querySelector('#co-logo-data') || document.getElementById('co-logo-data');
+    if (logoDataEl) logoDataEl.value = '';
+    var logoFile = modal.querySelector('#co-logo-file') || document.getElementById('co-logo-file');
+    if (logoFile) logoFile.value = '';
+    var prev = modal.querySelector('#co-logo-preview') || document.getElementById('co-logo-preview');
+    if (prev) prev.innerHTML = '🏢';
+  }
 
   // Reset and reload mandatory doc previews
   _coMandatoryDocs = { gst: null, msme: null, pan: null };
@@ -24390,17 +24427,7 @@ openModal = function(id, evt) {
     // Only reset if opening fresh (not from editCompany which sets co-id first)
     var coId = document.getElementById('co-id');
     if (!coId || !coId.value) {
-      _coMandatoryDocs = { gst: null, msme: null, pan: null };
-      _coExtraDocCount = 0;
-      ['gst','msme','pan'].forEach(function(t){ removeCompanyMandatoryDoc(t); });
-      var edl = document.getElementById('co-extra-docs-list');
-      if (edl) edl.innerHTML = '';
-      var byp = document.getElementById('co-doc-bypass');
-      if (byp) {
-        byp.checked = CU && (CU.role === 'admin' || CU.role === 'master');
-      }
-      var title = document.getElementById('m-company-title');
-      if (title) title.textContent = 'Add Company Profile';
+      if (typeof resetCompanyModalForm === 'function') resetCompanyModalForm();
     }
   }
   if (id === 'm-sidebar-customiser') { renderSidebarCustomiser(); }
