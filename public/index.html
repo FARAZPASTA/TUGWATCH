@@ -8672,7 +8672,7 @@ function setupGranularRealtimeListeners() {
         var localArr = safeArrayExtract(DB[col]);
         var itemMap = {};
 
-        // 1. Add cloud items
+        // 1. Cloud items are authoritative (live updates from other PCs)
         cloudArr.forEach(function(item) {
           if (item && typeof item === 'object') {
             var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
@@ -8680,29 +8680,12 @@ function setupGranularRealtimeListeners() {
           }
         });
 
-        // 2. Deep merge local items with cloud items without dropping local richer fields
+        // 2. Preserve only brand-new offline local items not yet in the cloud
         localArr.forEach(function(item) {
           if (item && typeof item === 'object') {
             var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-            if (k) {
-              if (!itemMap[k]) {
-                itemMap[k] = item;
-              } else {
-                var cloudItem = itemMap[k];
-                var mergedItem = Object.assign({}, cloudItem, item);
-                if (item.bankAccounts && Array.isArray(item.bankAccounts) && item.bankAccounts.length > 0) {
-                  mergedItem.bankAccounts = item.bankAccounts;
-                }
-                if (item.letterheadImage || item.letterhead) {
-                  mergedItem.letterheadImage = item.letterheadImage || item.letterhead;
-                  mergedItem.letterhead = mergedItem.letterheadImage;
-                }
-                if (item.stampImage || item.stamp) {
-                  mergedItem.stampImage = item.stampImage || item.stamp;
-                  mergedItem.stamp = mergedItem.stampImage;
-                }
-                itemMap[k] = mergedItem;
-              }
+            if (k && !itemMap[k]) {
+              itemMap[k] = item;
             }
           }
         });
@@ -9064,7 +9047,7 @@ function loadFromFirebase(callback) {
           var localArr = safeArrayExtract(DB[key]);
           var itemMap = {};
 
-          // 1. Add cloud items
+          // 1. Cloud items are authoritative
           cloudArr.forEach(function(item) {
             if (item && typeof item === 'object') {
               var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
@@ -9072,16 +9055,12 @@ function loadFromFirebase(callback) {
             }
           });
 
-          // 2. Merge local items without dropping local records
+          // 2. Preserve brand-new offline local items not yet in cloud
           localArr.forEach(function(item) {
             if (item && typeof item === 'object') {
               var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-              if (k) {
-                if (!itemMap[k]) {
-                  itemMap[k] = item;
-                } else {
-                  itemMap[k] = Object.assign({}, itemMap[k], item);
-                }
+              if (k && !itemMap[k]) {
+                itemMap[k] = item;
               }
             }
           });
