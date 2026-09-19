@@ -25990,26 +25990,79 @@ function doChangePassword() {
 }
 
 var SYSTEM_SEARCH_PAGES = [
-  { name: 'Office Staff Management', keywords: 'office staff employees shore team personnel admin department', icon: '🏬', page: 'office-staff', sub: 'Shore office team, contact directory, and departmental staff' },
-  { name: 'User & Admin Management', keywords: 'users admin master staff credentials permissions access roles passwords', icon: '👥', page: 'users', sub: 'Manage administrators, staff user accounts, and access rights' },
-  { name: 'Registered Vessels Fleet', keywords: 'vessels tugs fleet boats barges registered stationed IMO', icon: '🚢', page: 'vessels', sub: 'Fleet overview, vessel technical specs, and status' },
-  { name: 'Vessel Certificates & Expiries', keywords: 'certificates certs compliance survey IRS MMD class expiry renewals', icon: '📜', page: 'certificates', sub: 'Statutory vessel certificates, validity tracker, and renewal alerts' },
+  // 1. Overview & Fleet Operations
+  { name: 'Dashboard & Fleet Overview', keywords: 'dashboard kpi fleet active overview status weather alerts briefing stats', icon: '📊', page: 'dashboard', sub: 'Fleet summary, active operations, live weather, and critical tickers' },
+  { name: 'Registered Fleet Vessels', keywords: 'vessels tugs fleet boats barges saarvin specs imo bhp bollard pull stationed particulars drawings engine', icon: '🚢', page: 'vessels', sub: 'Fleet technical specifications, certificates, machinery, and status' },
+  { name: 'Vessel Certificates & Expiries', keywords: 'certificates certs compliance survey IRS MMD class expiry renewals statutory trading insurance', icon: '📜', page: 'certificates', sub: 'Statutory vessel certificates, 30/15/7-day alerts, and surveyor details' },
+  { name: 'Maintenance & Overhauls', keywords: 'maintenance service repair engine overhauls running hours due pms preventive', icon: '🔧', page: 'maintenance', sub: 'Preventive maintenance schedules, engine overhauls, and jobs' },
+  { name: 'Deficiency Tracker & Audits', keywords: 'deficiencies audits defects non-conformity safety rectifications audit observations', icon: '⚠️', page: 'deficiency', sub: 'Vessel defects, audit observations, and corrective action logs' },
+  { name: 'Voyage Log & Towage Runs', keywords: 'voyage towage passage trip sea route cargo master departure arrival harbor limits', icon: '⚓', page: 'voyage', sub: 'Voyage logs, towing operations, harbor shifts, and transit reports' },
+  { name: 'Daily Operations Report (DOR)', keywords: 'dor daily operations report operational log fuel rob dg hours master berth status weather briefing', icon: '📋', page: 'dor', sub: 'Comprehensive daily operational logs, fuel consumption, and weather reports' },
+  { name: 'Oil Record Book (ORB)', keywords: 'orb oil record book marpol bilges sludge bunkering discharge cargo log machinery space', icon: '🛢️', page: 'orb', sub: 'Official Part I MARPOL machinery space operations and bilge transfers' },
+  { name: 'VTMS & Port Movement Log', keywords: 'vtms radio vhf port movements pilotage inbound outbound call sign radar station', icon: '📡', page: 'vtms', sub: 'Port entry clearances, VHF communications, and radar tracking' },
+
+  // 2. Fuel & Machinery
+  { name: 'Fuel Intelligence & HSD Log', keywords: 'fuel HSD diesel bunkering ROB consumption receipts tanker generator soundings', icon: '⚡', page: 'fuel', sub: 'Daily fuel logs, trip consumption, fuel efficiency, and tanker deliveries' },
+  { name: 'Bunker Receipts & BDN', keywords: 'bunker receipts bdn delivery notes supplier tanker grade density bunker analysis', icon: '⛽', page: 'bunker', sub: 'Bunker Delivery Notes (BDN), tanker transfers, and fuel vouchers' },
+  { name: 'HSD Shore Balance & Tanks', keywords: 'hsd balance shore stock tank inventory sounding storage shore fuel', icon: '🛢️', page: 'hsd-balance', sub: 'Shore-based fuel storage, tank soundings, and net fleet balance' },
+  { name: 'HSD Fleet Comparison', keywords: 'hsd compare consumption efficiency fleet metrics fuel analytics vessel comparison', icon: '📈', page: 'hsd-compare', sub: 'Comparative vessel fuel efficiency, consumption benchmarks, and trends' },
+  { name: 'Engine Running Hours Tracker', keywords: 'running hours main engine dg generator auxiliary rh counter overhaul due', icon: '⏱️', page: 'running-hours', sub: 'Main engine and generator running hour counters with service alerts' },
+  { name: 'Site & Vessel Visits', keywords: 'visits superintendent inspection technical site visit boardings audit', icon: '📍', page: 'visit', sub: 'Superintendent and technical visit logs with inspection notes' },
+
+  // 3. Materials & Inventory
+  { name: 'Materials Provided (Outward Challans)', keywords: 'materials challan inward outward dispatch delivery stock transfer items challans delivery', icon: '📦', page: 'mat-provided', sub: 'Material delivery challans, printed dispatch receipts, and stock tracking' },
+  { name: 'Material Requisitions & Indents', keywords: 'requests requisitions indents order parts urgency spares approval workflow', icon: '🛒', page: 'mat-request', sub: 'Vessel part requisitions, approval workflows, and status' },
+  { name: 'Spares Inventory & Stock', keywords: 'spares parts inventory equipment stock items storage warehouse reorder levels', icon: '⚙️', page: 'spares', sub: 'Spare parts stock inventory, min levels, and technical specs' },
+  { name: 'Equipment In/Out Register', keywords: 'equipment movement in out transfer portable pumps hoses shackles tools', icon: '🔌', page: 'equip-register', sub: 'Temporary equipment dispatch and return tracking' },
+  { name: 'Part Specifications Catalog', keywords: 'part specs technical drawing engine filters pump valves serial specifications', icon: '📐', page: 'part-specs', sub: 'Detailed machinery parts specifications, part numbers, and drawings' },
+  { name: 'Equipment Lifecycle Engine', keywords: 'cycle lifecycle inspections survey overhaul renewal timeline machinery life', icon: '🔄', page: 'cycle', sub: 'Component lifecycle tracking, surveys, and overhaul timers' },
+
+  // 4. Commercial & Finance
+  { name: 'Invoices & Commercial Challans', keywords: 'invoices billing commercial challans client payments gst amounts tax ledger', icon: '🧾', page: 'invoices', sub: 'Tax invoices, outward commercial delivery challans, and ledger' },
+  { name: 'Quotations & Rate Estimates', keywords: 'quotations quote estimate pricing charter proposal rate commercial bid', icon: '💼', page: 'quotations', sub: 'Commercial towing quotes, rate calculations, and client proposals' },
+  { name: 'Purchase Orders & Procurement', keywords: 'purchase orders po procurement vendor supplier order supply requisition', icon: '📄', page: 'po-module', sub: 'Official PO generation, supplier orders, and delivery tracking' },
+  { name: 'Fleet Expenses & Petty Cash', keywords: 'expenses petty cash vouchers payment advice receipts finance accounts ledger', icon: '💸', page: 'expenses', sub: 'Vessel petty cash, operational expenses, and payment vouchers' },
+  { name: 'Crew Salary Processing', keywords: 'salary wages pay slips crew deductions gross net bank transfer upi payout', icon: '💰', page: 'salary', sub: 'Monthly crew salary processing, payslips, and payment records' },
+
+  // 5. People & Manning
+  { name: 'Crew Manning & INDOS Manifest', keywords: 'crew sailors officers captain chief engineer deckhand cdc indos salary sign on', icon: '👤', page: 'crew', sub: 'Active shipboard crew manifest, rank, CDC, and INDOS database' },
+  { name: 'Ex-Crew Archive & Records', keywords: 'ex-crew history relieving terminated past crew records seafarers archive', icon: '📋', page: 'ex-crew', sub: 'Historical records and performance ratings of relieved crew' },
+  { name: 'Crew Sign-In/Out Register', keywords: 'signin register sign on sign off attendance muster roll embarkation', icon: '📝', page: 'signin-register', sub: 'Daily embarkation/disembarkation register and muster tracking' },
+  { name: 'Crew Leave Management', keywords: 'leave records vacation relief crew sign off approval holidays rotation', icon: '🌴', page: 'leave', sub: 'Leave applications, rotation planning, and relief assignments' },
+  { name: 'Crew Contracts & Agreements', keywords: 'contracts crew agreement articles of agreement mlc 2006 terms employment', icon: '📑', page: 'contracts', sub: 'MLC 2006 seafarer employment agreements and contract expiry tracking' },
+  { name: 'Next of Kin (NOK) Contacts', keywords: 'nok next of kin family emergency relations mobile home contacts', icon: '👨‍👩‍👧', page: 'nok', sub: 'Crew family contacts and emergency notification registry' },
+  { name: 'Office Staff Management', keywords: 'office staff employees shore team personnel admin department management', icon: '🏬', page: 'office-staff', sub: 'Shore office team, contact directory, and departmental staff' },
+
+  // 6. Maritime Letters & Document Vaults
+  { name: 'Letter & Email Formats', keywords: 'letter letters email formats application mmd gmb noc clearance maritime memo certificate service draft templates', icon: '✉️', page: 'letters', sub: 'Official maritime letter templates, GMB/MMD applications, and sea time letters' },
+  { name: 'Letterhead & Stamps Vault', keywords: 'letterhead stamps vault seal official signature blank header footer logo pdf', icon: '🔒', page: 'letterhead-vault', sub: 'Secure admin-locked repository for official company letterheads & seals' },
+  { name: 'Document Vault & Files', keywords: 'vault documents folders pdf uploads drawings files archive blueprints', icon: '📁', page: 'vault', sub: 'Secure folder-wise repository for drawings, manuals, and records' },
+  { name: 'Document Submissions Log', keywords: 'doc submissions authority ack acknowledgement customs port mmd submission', icon: '📨', page: 'doc-submissions', sub: 'Statutory document filings, acknowledgement numbers, and submissions' },
+
+  // 7. Safety, Statutory & Tools
+  { name: 'Pre-Voyage Checklists & Drills', keywords: 'checklists pre voyage safety checks drills fire abandon ship sopep', icon: '✅', page: 'checklists', sub: 'Safety checklists, emergency drills, and verification records' },
   { name: 'Astronomical Lunar Tide Engine', keywords: 'tides lunar moon stream water level depth spring neap eclipse sikka bedi kandla mundra', icon: '🌙', page: 'tides', sub: 'Real-time harmonic tidal waves, moon phase, and UKC draft calculator' },
-  { name: 'Fuel Intelligence & HSD Bunkering', keywords: 'fuel HSD diesel bunkering ROB consumption receipts tanker', icon: '⚡', page: 'fuel', sub: 'Daily HSD logs, trip-wise consumption, and bunker receipts' },
-  { name: 'Crew Manning & INDOS Manifest', keywords: 'crew sailors officers captain chief engineer deckhand cdc indos salary', icon: '👤', page: 'crew', sub: 'Active shipboard crew manifest, rank, CDC, and INDOS database' },
-  { name: 'Ex-Crew Archive & Records', keywords: 'ex-crew history relieving terminated past crew records', icon: '📋', page: 'ex-crew', sub: 'Historical records and performance ratings of relieved crew' },
-  { name: 'Maintenance & Work Overhauls', keywords: 'maintenance service repair engine overhauls running hours due', icon: '🔧', page: 'maintenance', sub: 'Preventive maintenance schedules, engine overhauls, and jobs' },
-  { name: 'Deficiency Tracker & Audits', keywords: 'deficiencies audits defects non-conformity safety rectifications', icon: '⚠️', page: 'deficiency', sub: 'Vessel defects, audit observations, and corrective action logs' },
-  { name: 'Material Inward & Outward Challans', keywords: 'materials challan inward outward dispatch delivery stock transfer items', icon: '📦', page: 'mat-provided', sub: 'Material delivery challans, printed dispatch receipts, and stock tracking' },
-  { name: 'Material Requisitions & Indents', keywords: 'requests requisitions indents order parts urgency', icon: '🛒', page: 'mat-request', sub: 'Vessel part requisitions, approval workflows, and status' },
-  { name: 'Spares Inventory & Part Specs', keywords: 'spares parts inventory equipment stock items storage', icon: '⚙️', page: 'spares', sub: 'Spare parts stock inventory, min levels, and technical specs' },
-  { name: 'Invoices & Commercial Challans', keywords: 'invoices billing commercial challans client payments gst amounts', icon: '🧾', page: 'invoices', sub: 'Tax invoices, outward commercial delivery challans, and ledger' },
-  { name: 'Crew Salary Processing', keywords: 'salary wages pay slips crew deductions gross net bank transfer upi', icon: '💰', page: 'salary', sub: 'Monthly crew salary processing, payslips, and payment records' },
-  { name: 'VTMS & Port Authorities Directory', keywords: 'vtms port vhf channels emergency hotlines radio radar sikka bedi kandla', icon: '📡', page: 'vtms', sub: 'Official port contacts, VHF working frequencies, and radar stations' },
-  { name: 'Document Vault & Secure Storage', keywords: 'vault documents folders pdf uploads drawings files archive', icon: '📁', page: 'vault', sub: 'Secure folder-wise repository for drawings, manuals, and records' },
-  { name: 'Backup, Extraction & Restore Center', keywords: 'backup restore export json zip download offline extraction input', icon: '💾', page: 'backup', sub: 'Universal offline backup exporter and lossless data input engine' },
-  { name: 'Master Control Desk', keywords: 'master godpanel settings configuration audit locks elevation', icon: '👑', page: 'godpanel', sub: 'Master administrator system controls, company profiles, and locks' }
+  { name: 'Swachh Sagar Portal Log', keywords: 'swachh sagar port portal waste clearance dgs green port', icon: '🌊', page: 'swachh-sagar', sub: 'Government port environmental compliance and portal entries' },
+  { name: 'Plastic & Garbage Log Book', keywords: 'plastic garbage waste logbook marpol annex v disposal incinerator', icon: '♻️', page: 'plastic-waste', sub: 'MARPOL Annex V garbage discharge and shore disposal logs' },
+  { name: 'Fleet Vehicles & Fuel', keywords: 'vehicles fleet cars trucks drivers fuel log registration insurance', icon: '🚗', page: 'vehicles', sub: 'Company support vehicles, maintenance, insurance, and fuel logs' },
+  { name: 'Vendors & Suppliers Directory', keywords: 'vendors suppliers workshop stores chandler contacts directory phone address', icon: '🏪', page: 'vendors', sub: 'Approved marine suppliers, repair workshops, and service partners' },
+  { name: 'Alert Contacts Directory', keywords: 'contacts directory phone numbers port officers mmd agents emergency hotlines', icon: '📞', page: 'contacts-dir', sub: 'Quick emergency contact numbers, agents, and port authorities' },
+  { name: 'Task List & Staff Assignments', keywords: 'tasks assignments todo staff due completed work operational jobs', icon: '☑️', page: 'tasklist', sub: 'Fleet operations task delegation, deadlines, and completion tracking' },
+  { name: 'Work Orders Tracker', keywords: 'work orders charterer client jobs maintenance work contract jobs', icon: '📋', page: 'workorders', sub: 'Client work orders, charter scopes, and operational execution' },
+
+  // 8. Governance & Administration
+  { name: 'Company Profiles & Letterheads', keywords: 'companies company profiles clients suppliers agents sister entity ace marine emerald bank accounts gst pan ifsc letterhead', icon: '🏢', page: 'companies', sub: 'Legal entities, bank accounts, GSTIN, PAN, and corporate letterhead settings' },
+  { name: 'User & Admin Management', keywords: 'users admin master staff credentials permissions access roles passwords', icon: '👥', page: 'users', sub: 'Manage administrators, staff user accounts, and access rights' },
+  { name: 'Master Control Desk & Governance', keywords: 'master godpanel settings configuration audit locks elevation governance', icon: '👑', page: 'godpanel', sub: 'Master administrator system controls, company profiles, and system locks' },
+  { name: 'Backup, Extraction & Restore', keywords: 'backup restore export json zip download offline extraction input disaster recovery', icon: '💾', page: 'backup', sub: 'Universal offline backup exporter and lossless data input engine' },
+  { name: 'Security Audit Log', keywords: 'seclog security login attempts audit trail ip timestamp failed logins', icon: '🛡️', page: 'seclog', sub: 'Security audit trail, logins, failed attempts, and role elevations' },
+  { name: 'User Activity Log', keywords: 'activity log audit history actions updates vessel modifications deletions', icon: '📜', page: 'actlog', sub: 'Complete chronological history of fleet actions across all users' }
 ];
+
+/* ══════════════════════════════════════════════════════════════
+   UNIFIED 48-MODULE UNIVERSAL OMNISEARCH ENGINE
+══════════════════════════════════════════════════════════════ */
+var _searchTimeout = null;
 
 function runGlobalSearch(q) {
   clearTimeout(_searchTimeout);
@@ -26021,13 +26074,13 @@ function runGlobalSearch(q) {
   
   if (q.length === 0) {
     if (resDiv) resDiv.style.display = 'none';
-    if (panelList) panelList.innerHTML = '<div style="text-align:center;padding:32px;color:#9a9fa8;font-size:13px">Start typing to search across all data...</div>';
+    if (panelList) panelList.innerHTML = '<div style="text-align:center;padding:32px;color:#9a9fa8;font-size:13px">Start typing to search across all 48 modules and fleet records...</div>';
     return;
   }
   
   if (resDiv) resDiv.style.display = 'block';
   if (q.length < 2) {
-    var promptHtml = '<div style="padding:20px;text-align:center;color:var(--t3);font-size:11px">Type at least 2 characters…</div>';
+    var promptHtml = '<div style="padding:20px;text-align:center;color:var(--t3);font-size:11px">Type at least 2 characters to search...</div>';
     if (listDiv) listDiv.innerHTML = promptHtml;
     if (panelList) panelList.innerHTML = promptHtml;
     if (summary) summary.textContent = 'Ready to search';
@@ -26041,16 +26094,17 @@ function runGlobalSearch(q) {
       title = String(title || '');
       subtitle = String(subtitle || '');
       extra = String(extra || '');
-      if ((title + ' ' + subtitle + ' ' + extra).toLowerCase().indexOf(q) !== -1) {
-        results.push({module:module, icon:icon, title:title, subtitle:subtitle, page:page});
+      var searchStr = (title + ' ' + subtitle + ' ' + extra).toLowerCase();
+      if (searchStr.indexOf(q) !== -1) {
+        results.push({ module: module, icon: icon, title: title, subtitle: subtitle, page: page });
       }
     }
 
-        // ── NAVIGATION PAGES & MODULES ──────────────────────
+    // ── 1. ALL SYSTEM NAVIGATION PAGES & MODULES ─────────────
     SYSTEM_SEARCH_PAGES.forEach(function(p) {
-      if ((p.name + ' ' + p.keywords + ' ' + p.sub).toLowerCase().includes(q)) {
+      if ((p.name + ' ' + p.keywords + ' ' + p.sub).toLowerCase().indexOf(q) !== -1) {
         results.push({
-          module: 'Navigation',
+          module: 'Navigation Target',
           icon: p.icon,
           title: 'Go to: ' + p.name,
           subtitle: p.sub,
@@ -26059,132 +26113,183 @@ function runGlobalSearch(q) {
       }
     });
 
-    // ── VESSELS ─────────────────────────────────────────
-    (DB.vessels||[]).forEach(function(v) {
-      hit('Vessel','🚢', v.name, (v.type||'')+(v.cat?' · '+v.cat:'')+(v.imo?' · IMO '+v.imo:''), 'vessels', (v.desc||'')+' '+(v.stationed||''));
+    // ── 2. LETTER & EMAIL TEMPLATES ──────────────────────────
+    (DB.letterFormats || []).forEach(function(l) {
+      hit('Letter & Email Formats', '✉️', l.title, (l.cat||'General') + (l.subcat ? ' / ' + l.subcat : '') + (l.vessel ? ' · ' + vname(l.vessel) : ''), 'letters', (l.subject||'') + ' ' + (l.content||'') + ' ' + (l.body||''));
     });
 
-    // ── CERTIFICATES ────────────────────────────────────
-    (DB.certs||[]).forEach(function(c) {
-      hit('Certificate','📋', c.name, vname(c.vessel)+(c.auth?' · '+c.auth:'')+(c.expiry?' · exp '+fmtDate(c.expiry):''), 'certificates', c.auth);
+    // ── 3. COMPANY PROFILES & BANK DETAILS ──────────────────
+    (DB.companies || []).forEach(function(c) {
+      var bankInfo = (c.bankAccounts||[]).map(function(b){ return (b.bankName||'')+' '+(b.bankAccNo||'')+' '+(b.bankIfsc||'')+' '+(b.bankBranch||''); }).join(' ');
+      if (!bankInfo && c.bankName) bankInfo = c.bankName + ' ' + (c.bankAccNo||'') + ' ' + (c.bankIfsc||'');
+      hit('Company Profile', '🏢', c.name + (c.tradename ? ' (' + c.tradename + ')' : ''), (c.tag||'') + (c.entity ? ' · ' + c.entity : '') + (c.phone ? ' · ' + c.phone : ''), 'companies', (c.address||'') + ' ' + (c.gst||'') + ' ' + (c.pan||'') + ' ' + (c.email||'') + ' ' + bankInfo);
     });
 
-    // ── CREW ────────────────────────────────────────────
-    (DB.crew||[]).forEach(function(m) {
-      hit('Crew','👤', m.name, (m.role||'')+(m.vessel?' · '+vname(m.vessel):'')+(m.mob?' · '+m.mob:''), 'crew', (m.indos||'')+' '+(m.cdc||'')+' '+(m.crewno||''));
+    // ── 4. FLEET VESSELS ─────────────────────────────────────
+    (DB.vessels || []).forEach(function(v) {
+      hit('Fleet Vessel', '🚢', v.name, (v.type||'') + (v.cat ? ' · ' + v.cat : '') + (v.hp ? ' · ' + v.hp : '') + (v.imo ? ' · IMO ' + v.imo : ''), 'vessels', (v.desc||'') + ' ' + (v.stationed||'') + ' ' + (v.engmodel||'') + ' ' + (v.flag||''));
     });
 
-    // ── EX-CREW ─────────────────────────────────────────
-    (DB.exCrew||[]).forEach(function(e) {
-      hit('Ex-Crew','👤', e.name, (e.role||'')+(e.mob?' · '+e.mob:''), 'ex-crew', (e.indos||'')+' '+(e.reason||''));
+    // ── 5. STATUTORY CERTIFICATES ────────────────────────────
+    (DB.certs || []).forEach(function(c) {
+      hit('Certificate', '📜', c.name, vname(c.vessel) + (c.auth ? ' · ' + c.auth : '') + (c.expiry ? ' · Exp: ' + fmtDate(c.expiry) : ''), 'certificates', (c.certNo||'') + ' ' + (c.auth||'') + ' ' + (c.type||''));
     });
 
-    // ── MAINTENANCE ─────────────────────────────────────
-    (DB.maint||[]).forEach(function(m) {
-      hit('Maintenance','🔧', (m.type||'Maint')+': '+(m.desc||''), vname(m.vessel)+(m.next?' · Due '+fmtDate(m.next):''), 'maintenance', m.status);
+    // ── 6. CREW MANNING ──────────────────────────────────────
+    (DB.crew || []).forEach(function(m) {
+      hit('Crew Member', '👤', m.name, (m.role||'Crew') + (m.vessel ? ' · ' + vname(m.vessel) : '') + (m.mob ? ' · ' + m.mob : ''), 'crew', (m.indos||'') + ' ' + (m.cdc||'') + ' ' + (m.crewno||'') + ' ' + (m.station||''));
     });
 
-    // ── DEFICIENCY ──────────────────────────────────────
-    (DB.defs||[]).forEach(function(d) {
-      hit('Deficiency','⚠', d.desc, vname(d.vessel)+' · '+(d.sev||'')+(d.status?' · '+d.status:''), 'deficiency', (d.src||'')+' '+(d.assign||''));
+    // ── 7. EX-CREW RECORDS ───────────────────────────────────
+    (DB.exCrew || []).forEach(function(e) {
+      hit('Ex-Crew Archive', '📋', e.name, (e.role||'') + (e.mob ? ' · ' + e.mob : '') + (e.relieved ? ' · Relieved ' + fmtDate(e.relieved) : ''), 'ex-crew', (e.indos||'') + ' ' + (e.reason||'') + ' ' + (e.vessels||''));
     });
 
-    // ── VOYAGES ─────────────────────────────────────────
-    (DB.voyages||[]).forEach(function(v) {
-      hit('Voyage','⚓', (v.from||'?')+' → '+(v.to||'?'), vname(v.vessel)+(v.dep?' · '+fmtDate(v.dep):'')+(v.master?' · '+v.master:''), 'voyage', (v.cargo||'')+' '+(v.master||''));
+    // ── 8. DAILY OPERATIONS REPORTS (DOR) ────────────────────
+    (DB.dorEntries || []).forEach(function(d) {
+      hit('DOR Report', '📋', fmtDate(d.date) + ' — ' + vname(d.vessel), (d.port||'') + (d.status ? ' · ' + d.status : '') + (d.master ? ' · Capt. ' + d.master : ''), 'dor', (d.activity||'') + ' ' + (d.remarks||'') + ' ' + (d.location||''));
     });
 
-    // ── HSD FUEL LOG ────────────────────────────────────
-    Object.keys(DB.hsd||{}).forEach(function(key) {
-      var entry=DB.hsd[key];
-      if(!entry||!entry.trips) return;
-      var date=entry.date||key.split('_')[0];
-      var vid=entry.vessel||key.split('_')[1];
-      entry.trips.forEach(function(t,ti) {
-        var text=(t.loc||'')+(t.job||'')+(t._by||'');
-        if(text.toLowerCase().indexOf(q)!==-1||vname(vid).toLowerCase().indexOf(q)!==-1||date.indexOf(q)!==-1) {
-          results.push({module:'HSD Log',icon:'⛽',title:'Trip '+(ti+1)+' · '+fmtDate(date),subtitle:vname(vid)+(t.loc?' · '+t.loc:'')+(t.hsd?' · '+t.hsd.cons+'L':''),page:'fuel'});
-        }
+    // ── 9. OIL RECORD BOOK (ORB) ─────────────────────────────
+    (DB.orbEntries || []).forEach(function(e) {
+      hit('ORB Log', '🛢️', 'Code ' + (e.code||'') + ' — ' + (e.operation||'').substring(0, 45), vname(e.vessel) + (e.date ? ' · ' + fmtDate(e.date) : '') + (e.qty ? ' · ' + e.qty + ' m³' : ''), 'orb', (e.officer||'') + ' ' + (e.tanks||'') + ' ' + (e.position||''));
+    });
+
+    // ── 10. VTMS & PORT MOVEMENTS ────────────────────────────
+    (DB.vtmsLog || []).forEach(function(v) {
+      hit('VTMS Log', '📡', (v.type||'VTMS') + ' — ' + (v.port||'Port'), vname(v.vessel) + (v.date ? ' · ' + fmtDate(v.date) : '') + (v.status ? ' · ' + v.status : ''), 'vtms', (v.agent||'') + ' ' + (v.pilot||'') + ' ' + (v.purpose||'') + ' ' + (v.vhf||''));
+    });
+
+    // ── 11. INVOICES & BILLING ───────────────────────────────
+    (DB.invoices || []).forEach(function(inv) {
+      hit('Invoice', '🧾', inv.no || 'Invoice', (inv.docType||'Tax Invoice') + ' · ' + (inv.clientName||'') + (inv.total ? ' · ₹' + fmt(inv.total) : ''), 'invoices', (inv.ref||'') + ' ' + (inv.status||'') + ' ' + (inv.desc||''));
+    });
+
+    // ── 12. QUOTATIONS & PROPOSALS ───────────────────────────
+    (DB.quotations || []).forEach(function(qObj) {
+      hit('Quotation', '💼', qObj.no || 'Quote', (qObj.client||'') + (qObj.vessel ? ' · ' + vname(qObj.vessel) : '') + (qObj.total ? ' · ₹' + fmt(qObj.total) : ''), 'quotations', (qObj.subject||'') + ' ' + (qObj.scope||''));
+    });
+
+    // ── 13. PURCHASE ORDERS ──────────────────────────────────
+    (DB.purchaseOrders || []).forEach(function(p) {
+      hit('Purchase Order', '📄', p.no || 'PO', vname(p.vessel) + (p.supplier ? ' · ' + p.supplier : '') + (p.status ? ' · ' + p.status : ''), 'po-module', (p.itemsSummary||'') + ' ' + (p.rem||''));
+    });
+
+    // ── 14. FLEET EXPENSES & PETTY CASH ──────────────────────
+    (DB.expenses || []).forEach(function(exp) {
+      hit('Expense Voucher', '💸', (exp.voucherNo||'Voucher') + ': ' + (exp.cat||'General'), (exp.payee||'') + (exp.vessel ? ' · ' + vname(exp.vessel) : '') + (exp.amount ? ' · ₹' + fmt(exp.amount) : ''), 'expenses', (exp.desc||'') + ' ' + (exp.mode||''));
+    });
+
+    // ── 15. CREW SALARY ──────────────────────────────────────
+    (DB.salaries || []).forEach(function(s) {
+      hit('Crew Salary', '💰', s.crewName + ' · ' + s.month, vname(s.vessel) + ' · ₹' + fmt(s.net) + ' net · ' + (s.mode||'Bank'), 'salary', (s.bank||'') + ' ' + (s.acc||''));
+    });
+
+    // ── 16. MATERIALS PROVIDED & CHALLANS ────────────────────
+    (DB.materials || []).forEach(function(m) {
+      var items = m.items ? m.items.map(function(i){ return i.item; }).join(', ') : (m.item||'');
+      hit('Material Challan', '📦', m.challanNo || 'Challan', vname(m.vessel) + (m.date ? ' · ' + fmtDate(m.date) : '') + (items ? ' · ' + items : ''), 'mat-provided', items + ' ' + (m.supplier||'') + ' ' + (m.rcvby||''));
+    });
+
+    // ── 17. MATERIAL REQUISITIONS ────────────────────────────
+    (DB.requests || []).forEach(function(r) {
+      hit('Mat Requisition', '🛒', (r.ref||'Req') + ': ' + (r.item||''), vname(r.vessel) + ' · ' + (r.urg||'') + (r.status ? ' · ' + r.status : ''), 'mat-request', (r.reqby||'') + ' ' + (r.status||''));
+    });
+
+    // ── 18. SPARES & INVENTORY ───────────────────────────────
+    (DB.spares || []).forEach(function(s) {
+      hit('Spare Part', '⚙️', s.name, vname(s.vessel) + (s.partno ? ' · P/N: ' + s.partno : '') + (s.cat ? ' · ' + s.cat : ''), 'spares', (s.supplier||'') + ' ' + (s.invNo||''));
+    });
+
+    // ── 19. PART SPECIFICATIONS ──────────────────────────────
+    (DB.partSpecs || []).forEach(function(p) {
+      hit('Part Spec', '📐', p.equipment + (p.part ? ' — ' + p.part : ''), vname(p.vessel) + (p.make ? ' · ' + p.make : '') + (p.size ? ' · ' + p.size : ''), 'part-specs', (p.model||'') + ' ' + (p.partNo||''));
+    });
+
+    // ── 20. BUNKER RECEIPTS ──────────────────────────────────
+    (DB.bunkerReceipts || []).forEach(function(b) {
+      hit('Bunker Receipt', '⛽', b.receiptNo || 'BDN Receipt', vname(b.vessel) + (b.supplier ? ' · ' + b.supplier : '') + (b.qty ? ' · ' + fmt(b.qty) + 'L' : ''), 'bunker', (b.grade||'') + ' ' + (b.driver||'') + ' ' + (b.vehicle||''));
+    });
+
+    // ── 21. MAINTENANCE OVERHAULS ────────────────────────────
+    (DB.maint || []).forEach(function(m) {
+      hit('Maintenance', '🔧', (m.type||'Maint') + ': ' + (m.desc||''), vname(m.vessel) + (m.next ? ' · Due ' + fmtDate(m.next) : '') + (m.status ? ' · ' + m.status : ''), 'maintenance', (m.status||'') + ' ' + (m.assigned||''));
+    });
+
+    // ── 22. DEFICIENCIES & DEFECTS ───────────────────────────
+    (DB.defs || []).forEach(function(d) {
+      hit('Deficiency', '⚠️', d.desc, vname(d.vessel) + ' · ' + (d.sev||'') + (d.status ? ' · ' + d.status : ''), 'deficiency', (d.src||'') + ' ' + (d.assign||''));
+    });
+
+    // ── 23. VOYAGE & TOWING LOGS ─────────────────────────────
+    (DB.voyages || []).forEach(function(v) {
+      hit('Voyage Log', '⚓', (v.from||'?') + ' → ' + (v.to||'?'), vname(v.vessel) + (v.dep ? ' · ' + fmtDate(v.dep) : '') + (v.master ? ' · ' + v.master : ''), 'voyage', (v.cargo||'') + ' ' + (v.master||''));
+    });
+
+    // ── 24. FLEET VEHICLES ───────────────────────────────────
+    (DB.vehicles || []).forEach(function(v) {
+      hit('Vehicle', '🚗', v.regNo, (v.type||'') + (v.model ? ' · ' + v.model : '') + (v.driver ? ' · ' + v.driver : ''), 'vehicles', (v.engine||'') + ' ' + (v.chassis||'') + ' ' + (v.fuelType||''));
+    });
+
+    // ── 25. VENDORS & SUPPLIERS ──────────────────────────────
+    (DB.vendors || []).forEach(function(v) {
+      hit('Vendor', '🏪', v.name, (v.cat||'') + (v.city ? ' · ' + v.city : '') + (v.phone ? ' · ' + v.phone : ''), 'vendors', (v.contact||'') + ' ' + (v.email||'') + ' ' + (v.gst||'') + ' ' + (v.notes||''));
+    });
+
+    // ── 26. TASK LIST & WORK ORDERS ──────────────────────────
+    (DB.taskList || []).forEach(function(t) {
+      hit('Task', '☑️', t.title, (t.assignedTo||'') + (t.due ? ' · Due ' + fmtDate(t.due) : '') + (t.status ? ' · ' + t.status : ''), 'tasklist', (t.desc||'') + ' ' + (t.cat||''));
+    });
+    (DB.workOrders || []).forEach(function(wo) {
+      hit('Work Order', '📋', wo.title, vname(wo.vessel) + (wo.charterer ? ' · ' + wo.charterer : '') + (wo.status ? ' · ' + wo.status : ''), 'workorders', (wo.assignedTo||'') + ' ' + (wo.desc||''));
+    });
+
+    // ── 27. STAFF & ADMIN ACCOUNTS ───────────────────────────
+    (DB.users || []).forEach(function(u) {
+      hit('Staff User', '👥', u.name, '@' + u.username + (u.desig ? ' · ' + u.desig : '') + (u.role ? ' · ' + u.role : ''), 'users', (u.email||'') + ' ' + (u.mob||''));
+    });
+    ([resolveAdmin(MASTER)].concat(allAdmins())).forEach(function(a) {
+      if (a) hit('Administrator', '👑', a.name, '@' + (a.username||'') + ' · ' + (a.desig||'Administrator'), 'users', (a.role||'') + ' ' + (a.email||''));
+    });
+    (DB.officeStaff || []).forEach(function(s) {
+      hit('Office Staff', '🏬', s.name, (s.role||'') + (s.mob ? ' · ' + s.mob : '') + (s.dept ? ' · ' + s.dept : ''), 'office-staff', (s.email||'') + ' ' + (s.dept||''));
+    });
+
+    // ── 28. CHECKLISTS & DRILLS ──────────────────────────────
+    (DB.checklistRecords || []).forEach(function(r) {
+      hit('Checklist Run', '✅', r.templateName, vname(r.vessel) + (r.date ? ' · ' + fmtDate(r.date) : '') + (r.master ? ' · ' + r.master : ''), 'checklists', r.remarks||'');
+    });
+    (DB.drillRecords || []).forEach(function(d) {
+      hit('Drill Record', '🔔', d.type, vname(d.vessel) + (d.date ? ' · ' + fmtDate(d.date) : '') + (d.result ? ' · ' + d.result : ''), 'checklists', (d.master||'') + ' ' + (d.obs||''));
+    });
+
+    // ── 29. CREW CONTRACTS & NOK ─────────────────────────────
+    (DB.crewContracts || []).forEach(function(c) {
+      hit('Crew Contract', '📑', c.crewName + ' — ' + (c.rank||'Crew'), vname(c.vessel) + (c.joining ? ' · ' + fmtDate(c.joining) : '') + (c.docno ? ' · ' + c.docno : ''), 'contracts', (c.docno||'') + ' ' + (c.salary||''));
+    });
+    (DB.crewNOK || []).forEach(function(n) {
+      hit('Next of Kin', '👨‍👩‍👧', n.name + ' (' + (n.relationship||'NOK') + ')', n.crewName + (n.mobile ? ' · ' + n.mobile : ''), 'nok', (n.mobile2||'') + ' ' + (n.email||'') + ' ' + (n.address||''));
+    });
+
+    // ── 30. LETTERHEAD & DOCUMENT VAULT ──────────────────────
+    if (DB.letterheadVault && DB.letterheadVault.files) {
+      (DB.letterheadVault.files || []).forEach(function(f) {
+        hit('Letterhead Vault', '🔒', f.name, 'Letterhead & Stamps Vault' + (f.uploadedBy ? ' · By ' + f.uploadedBy : ''), 'letterhead-vault', f.type||'');
       });
-    });
+    }
 
-    // ── VISITS ──────────────────────────────────────────
-    (DB.visits||[]).forEach(function(v) {
-      var persons=v.persons?v.persons.map(function(p){return p.name;}).join(', '):(v.tech||'');
-      hit('Site Visit','📍', v.pur||'Visit', vname(v.vessel)+(v.date?' · '+fmtDate(v.date):'')+(persons?' · '+persons:''), 'visit', persons+' '+(v.role||''));
-    });
-
-    // ── MATERIALS PROVIDED ──────────────────────────────
-    (DB.materials||[]).forEach(function(m) {
-      var items=m.items?m.items.map(function(i){return i.item;}).join(', '):(m.item||'');
-      hit('Material Out','📦', m.challanNo||'Challan', vname(m.vessel)+(m.date?' · '+fmtDate(m.date):'')+(items?' · '+items:''), 'mat-provided', items+' '+(m.supplier||'')+' '+(m.rcvby||''));
-    });
-
-    // ── MATERIAL REQUESTS ────────────────────────────────
-    (DB.requests||[]).forEach(function(r) {
-      hit('Mat Request','🛒', (r.ref||'Req')+': '+(r.item||''), vname(r.vessel)+' · '+(r.urg||'')+(r.status?' · '+r.status:''), 'mat-request', (r.reqby||'')+' '+(r.status||''));
-    });
-
-    // ── WORK ORDERS ──────────────────────────────────────
-    (DB.workOrders||[]).forEach(function(wo) {
-      hit('Work Order','📋', wo.title, vname(wo.vessel)+(wo.charterer?' · '+wo.charterer:'')+(wo.status?' · '+wo.status:''), 'workorders', (wo.assignedTo||'')+' '+(wo.desc||''));
-    });
-
-    // ── TASK LIST ────────────────────────────────────────
-    (DB.taskList||[]).forEach(function(t) {
-      hit('Task','✅', t.title, (t.assignedTo||'')+(t.due?' · Due '+fmtDate(t.due):'')+(t.status?' · '+t.status:''), 'tasklist', (t.desc||'')+' '+(t.cat||''));
-    });
-
-    // ── VENDORS ──────────────────────────────────────────
-    (DB.vendors||[]).forEach(function(v) {
-      hit('Vendor','🏪', v.name, (v.cat||'')+(v.city?' · '+v.city:'')+(v.phone?' · '+v.phone:''), 'vendors', (v.contact||'')+' '+(v.email||'')+' '+(v.gst||'')+' '+(v.notes||''));
-    });
-
-    // ── PURCHASE ORDERS ──────────────────────────────────
-    (DB.purchaseOrders||[]).forEach(function(p) {
-      hit('Purchase Order','📄', p.no||'PO', vname(p.vessel)+(p.supplier?' · '+p.supplier:'')+(p.status?' · '+p.status:''), 'po-module', (p.itemsSummary||'')+' '+(p.rem||''));
-    });
-
-    // ── SALARY ───────────────────────────────────────────
-    (DB.salaries||[]).forEach(function(s) {
-      if((s.crewName||'').toLowerCase().indexOf(q)!==-1||(s.month||'').indexOf(q)!==-1) {
-        results.push({module:'Salary',icon:'💰',title:s.crewName+' · '+s.month,subtitle:vname(s.vessel)+' · ₹'+fmt(s.net)+' net · '+(s.mode||''),page:'salary'});
-      }
-    });
-
-    // ── COMPANIES ────────────────────────────────────────
-    (DB.companies||[]).forEach(function(c) {
-      hit('Company','🏢', c.name, (c.email||'')+(c.phone?' · '+c.phone:''), 'companies', (c.address||'')+' '+(c.gst||''));
-    });
-
-    // ── USERS ────────────────────────────────────────────
-    (DB.users||[]).forEach(function(u) {
-      hit('Staff User','👥', u.name, '@'+u.username+(u.desig?' · '+u.desig:''), 'users', (u.email||'')+' '+(u.mob||''));
-    });
-
-    // ── SPARES / INVENTORY ───────────────────────────────
-    (DB.spares||[]).forEach(function(s) {
-      hit('Spare/Stock','📦', s.name, vname(s.vessel)+(s.partno?' · '+s.partno:'')+(s.cat?' · '+s.cat:''), 'spares', (s.supplier||'')+' '+(s.invNo||''));
-    });
-
-    // ── DRYDOCK ──────────────────────────────────────────
-    (DB.drydocks||[]).forEach(function(d) {
-      var rm = (d.removedItems||[]).map(function(it){return (it.name||'')+' '+(it.serial||'');}).join(' ');
-      hit('Drydock','⚓', (d.yard||'Drydock')+' — '+vname(d.vessel), (d.type||'')+(d.dockIn?' · '+fmtDate(d.dockIn):''), 'drydock', (d.reason||'')+' '+(d.classSociety||'')+' '+rm);
-    });
-
-    // ── RENDER RESULTS ───────────────────────────────────
+    // ── RENDER RESULTS ───────────────────────────────────────
     if (summary) {
       summary.textContent = results.length
-        ? results.length + ' result' + (results.length>1?'s':'') + ' for "' + q + '"'
+        ? results.length + ' result' + (results.length > 1 ? 's' : '') + ' for "' + q + '"'
         : 'No results for "' + q + '"';
     }
 
     var noResHtml =
-      '<div style="padding:30px;text-align:center">' +
-      '<div style="font-size:28px;margin-bottom:8px">🔍</div>' +
-      '<div style="font-size:12px;color:var(--t1);font-weight:600">No results for "'+q+'"</div>' +
-      '<div style="font-size:10px;color:var(--t3);margin-top:4px">Try a vessel name, crew name, certificate, task, vendor, challan number...</div>' +
+      '<div style="padding:32px;text-align:center">' +
+      '<div style="font-size:32px;margin-bottom:8px">🔍</div>' +
+      '<div style="font-size:13px;color:var(--t1);font-weight:700">No results found for "' + q + '"</div>' +
+      '<div style="font-size:10.5px;color:var(--t3);margin-top:4px">Search across all 48 modules, vessels, crew, letter templates, invoices, DOR, fuel, and bank details.</div>' +
       '</div>';
 
     if (!results.length) {
@@ -26193,6 +26298,7 @@ function runGlobalSearch(q) {
       return;
     }
 
+    // Group by category
     var grouped = {};
     results.forEach(function(r) {
       if (!grouped[r.module]) grouped[r.module] = [];
@@ -26201,20 +26307,20 @@ function runGlobalSearch(q) {
 
     var html = '';
     Object.keys(grouped).forEach(function(mod) {
-      html += '<div style="padding:4px 10px 2px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3)">'+mod+'</div>';
-      grouped[mod].slice(0,8).forEach(function(r) {
+      html += '<div style="padding:6px 12px 2px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent)">' + mod + ' (' + grouped[mod].length + ')</div>';
+      grouped[mod].slice(0, 10).forEach(function(r) {
         html +=
-          '<div onclick="jumpToPage(\''+r.page+'\')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .1s;margin:1px 4px" onmouseover="this.style.background=\'var(--s3)\'" onmouseout="this.style.background=\'\'">' +
-          '<span style="font-size:16px;flex-shrink:0">'+r.icon+'</span>' +
+          '<div onclick="jumpToPage(\x27' + r.page + '\x27)" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .1s;margin:2px 4px" onmouseover="this.style.background=\x27var(--s3)\x27" onmouseout="this.style.background=\x27\x27">' +
+          '<span style="font-size:18px;flex-shrink:0">' + r.icon + '</span>' +
           '<div style="min-width:0;flex:1">' +
-          '<div style="font-size:11px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.title+'</div>' +
-          '<div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.subtitle+'</div>' +
+          '<div style="font-size:11.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.title + '</div>' +
+          '<div style="font-size:9.5px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.subtitle + '</div>' +
           '</div>' +
-          '<div style="font-size:9px;color:var(--accent);flex-shrink:0;font-weight:600">→ '+r.module+'</div>' +
+          '<div style="font-size:9.5px;color:var(--accent);flex-shrink:0;font-weight:700">→ Open</div>' +
           '</div>';
       });
-      if (grouped[mod].length > 8) {
-        html += '<div style="padding:4px 12px 6px;font-size:9px;color:var(--t3)">+ '+(grouped[mod].length-8)+' more '+mod+' records</div>';
+      if (grouped[mod].length > 10) {
+        html += '<div style="padding:4px 14px 6px;font-size:9px;color:var(--t3)">+ ' + (grouped[mod].length - 10) + ' more ' + mod + ' matches</div>';
       }
     });
 
@@ -26225,1055 +26331,28 @@ function runGlobalSearch(q) {
 }
 
 function jumpToPage(page) {
-  if (typeof closeSearchPanel === 'function') closeSearchPanel();
   if (typeof closeGlobalSearch === 'function') closeGlobalSearch();
-
-  // STRICT CONFIDENTIALITY GUARD
-  var confidentialPages = ['financials', 'monthly-report', 'vendor-banks', 'passwords', 'users', 'backup', 'companies', 'po-module', 'salary', 'godpanel', 'activity', 'quotations', 'invoices'];
-  var isMasterOrAdmin = CU && (CU.role === 'master' || CU.role === 'admin');
-  if (confidentialPages.indexOf(page) >= 0 && !isMasterOrAdmin) {
-    if (typeof toast === 'function') toast('🔒 Confidential Section — Access Restricted to Admin / Master', 'var(--err)');
-    return;
-  }
-
-  var nav = document.querySelector('[data-page="'+page+'"]');
-  if (nav) nav.click();
-}
-
-
-/* ── LOGIN HISTORY ─────────────────────────────────────────── */
-function renderLoginHistory() {
-  var el = document.getElementById('ms-login-history');
-  if (!el) return;
-  var history = (DB.loginHistory || []).slice(0, 100);
-  if (!history.length) { el.innerHTML = '<div style="font-size:11px;color:var(--t3);padding:12px">No login history yet.</div>'; return; }
-  el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:11px">' +
-    '<thead><tr style="background:var(--bg2)"><th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3)">USER</th><th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3)">ROLE</th><th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3)">ACTION</th><th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3)">TIME</th></tr></thead><tbody>' +
-    history.map(function(h) {
-      var color = h.action === 'login' ? 'var(--ok)' : 'var(--t3)';
-      var roleChip = h.role === 'master' ? 'role-chip-master' : h.role === 'admin' ? 'role-chip-admin' : 'role-chip-staff';
-      return '<tr style="border-bottom:1px solid var(--b1)">' +
-        '<td style="padding:6px 10px;font-weight:600">' + h.userName + '</td>' +
-        '<td style="padding:6px 10px"><span class="' + roleChip + '">' + h.role + '</span></td>' +
-        '<td style="padding:6px 10px;color:' + color + ';font-weight:600">' + (h.action === 'login' ? '→ Signed In' : '← Signed Out') + '</td>' +
-        '<td style="padding:6px 10px;color:var(--t3)">' + h.ts + '</td>' +
-        '</tr>';
-    }).join('') + '</tbody></table>';
-}
-
-/* ── ADMIN ACTIVITY (filtered audit log) ─────────────────────── */
-function renderAdminActivity() {
-  var el = document.getElementById('ms-admin-activity');
-  if (!el) return;
-  var allLogs = DB.log || [];
-  // Filter to show admin/master actions only with user attribution
-  var adminLogs = allLogs.filter(function(l){ return l.by && l.by !== 'System'; }).slice(0, 200);
-  if (!adminLogs.length) { el.innerHTML = '<div style="font-size:11px;color:var(--t3);padding:12px">No activity recorded yet.</div>'; return; }
-  el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:11px">' +
-    '<thead><tr style="background:var(--bg2)"><th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3)">ACTION</th><th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3)">BY</th><th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3)">TIME</th></tr></thead><tbody>' +
-    adminLogs.map(function(l) {
-      return '<tr style="border-bottom:1px solid var(--b1)">' +
-        '<td style="padding:5px 10px;color:var(--t1)">' + (l.msg || '') + '</td>' +
-        '<td style="padding:5px 10px;font-weight:600;color:var(--accent)">' + (l.by || '') + '</td>' +
-        '<td style="padding:5px 10px;color:var(--t3);font-size:10px">' + (l.ts || '') + '</td>' +
-        '</tr>';
-    }).join('') + '</tbody></table>';
-}
-
-/* ── SYSTEM ANNOUNCEMENT ────────────────────────────────────── */
-function saveAnnouncement() {
-  if (!CU || CU.role !== 'master') { uiAlert('Master Admin only'); return; }
-  DB.masterConfig = DB.masterConfig || {};
-  var text = val('ann-text').trim();
-  DB.masterConfig.announcement = {
-    text: text,
-    active: text.length > 0,
-    by: CU.name,
-    ts: new Date().toLocaleString('en-IN')
-  };
-  saveDB();
-  audit('Master ' + (text ? 'set' : 'cleared') + ' system announcement: ' + text, 'var(--accent)');
-  toast(text ? 'Announcement set — all users will see it on login' : 'Announcement cleared');
-}
-
-function renderAnnouncementField() {
-  var el = document.getElementById('ann-text');
-  if (!el) return;
-  var ann = DB.masterConfig && DB.masterConfig.announcement;
-  el.value = (ann && ann.active && ann.text) ? ann.text : '';
-}
-
-/* ── EXPORT LOCK MANAGEMENT ─────────────────────────────────── */
-function renderExportLockSettings() {
-  var el = document.getElementById('ms-export-lock');
-  if (!el) return;
-  var locked = (DB.masterConfig && DB.masterConfig.exportLocked) || [];
-  var allUsers = ADMINS.concat(DB.dynamicAdmins || []).concat(DB.users || []);
-  el.innerHTML = '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">Uncheck to allow export. Staff can never export regardless.</div>' +
-    allUsers.map(function(u) {
-      var isLocked = locked === true || (Array.isArray(locked) && locked.indexOf(u.id) !== -1);
-      var chipClass = u.role === 'admin' ? 'role-chip-admin' : 'role-chip-staff';
-      return '<label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--b1);cursor:pointer">' +
-        '<input type="checkbox" ' + (!isLocked ? 'checked' : '') + ' onchange="toggleExportLock(\'' + u.id + '\',this.checked)" style="accent-color:var(--accent)"/>' +
-        '<span style="flex:1;font-size:11px">' + u.name + ' <span class="' + chipClass + '" style="margin-left:4px">' + u.role + '</span></span>' +
-        '<span style="font-size:9px;color:' + (isLocked ? 'var(--err)' : 'var(--ok)') + '">' + (isLocked ? '🔒 Export Locked' : '✓ Can Export') + '</span>' +
-        '</label>';
-    }).join('');
-}
-
-function toggleExportLock(userId, canExport) {
-  DB.masterConfig = DB.masterConfig || {};
-  var locked = DB.masterConfig.exportLocked || [];
-  if (!Array.isArray(locked)) locked = [];
-  if (canExport) {
-    locked = locked.filter(function(id){ return id !== userId; });
+  if (typeof closeSearchPanel === 'function') closeSearchPanel();
+  if (typeof go === 'function') {
+    go(page);
   } else {
-    if (locked.indexOf(userId) === -1) locked.push(userId);
-  }
-  DB.masterConfig.exportLocked = locked;
-  saveDB();
-  renderExportLockSettings();
-  audit('Master ' + (canExport ? 'enabled' : 'locked') + ' export for user ID: ' + userId, 'var(--warn)');
-  toast(canExport ? 'Export enabled for user' : 'Export locked for user', canExport ? 'var(--ok)' : 'var(--warn)');
-}
-
-/* ── STAFF DIVISION DASHBOARD ───────────────────────────────── */
-function renderStaffDashboard() {
-  var db = document.getElementById('p-dashboard');
-  if (!db || !CU || CU.role !== 'staff') return;
-
-  var compName = (DB.companies && DB.companies[0]) ? DB.companies[0].name : 'TugWatch Marine';
-  var userPerms = Array.isArray(CU.permissions) ? CU.permissions : [];
-
-  var allModules = [
-    { page: 'vessels', label: 'Fleet Vessels', icon: '🚢' },
-    { page: 'crew', label: 'Crew Roster', icon: '👥' },
-    { page: 'certificates', label: 'Certificates & Expiries', icon: '📜' },
-    { page: 'maintenance', label: 'Maintenance Logs', icon: '🔧' },
-    { page: 'voyage', label: 'Voyage Logs', icon: '⚓' },
-    { page: 'fuel', label: 'HSD Fuel Logs', icon: '⛽' },
-    { page: 'vault', label: 'Document Vault', icon: '📁' },
-    { page: 'payment-advices', label: 'Payment Advices', icon: '💳' },
-    { page: 'bank-statements', label: 'Bank Statements', icon: '🏦' },
-    { page: 'salary', label: 'Salary Roster', icon: '💰' },
-    { page: 'dor', label: 'Daily Ops Report (DOR)', icon: '📋' },
-    { page: 'workorders', label: 'Work Orders', icon: '📝' },
-    { page: 'visit', label: 'Site Visits', icon: '📌' },
-    { page: 'tides', label: 'Tide Tables', icon: '🌊' }
-  ];
-
-  var moduleGridHtml = allModules.map(function(m) {
-    var hasAccess = canAccessPage(m.page);
-    if (hasAccess) {
-      return '<div onclick="document.querySelector(\'[data-page=' + m.page + ']\').click()" style="background:var(--s2);border:1.5px solid var(--accent);border-radius:10px;padding:12px;cursor:pointer;transition:transform .15s" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
-        '<div style="font-size:20px;margin-bottom:4px">' + m.icon + '</div>' +
-        '<div style="font-size:12px;font-weight:800;color:var(--t1)">' + m.label + '</div>' +
-        '<div style="font-size:9px;color:#10b981;font-weight:700;margin-top:4px">✓ Granted by Admin</div>' +
-      '</div>';
-    } else {
-      return '<div style="background:var(--s3);border:1px dashed var(--b2);border-radius:10px;padding:12px;opacity:0.65;cursor:not-allowed">' +
-        '<div style="font-size:20px;margin-bottom:4px;filter:grayscale(1)">' + m.icon + '</div>' +
-        '<div style="font-size:12px;font-weight:700;color:var(--t3)">' + m.label + '</div>' +
-        '<div style="font-size:9px;color:var(--t4);font-weight:600;margin-top:4px">🔒 Restricted by Admin</div>' +
-      '</div>';
-    }
-  }).join('');
-
-  db.innerHTML = '' +
-    '<div style="background:linear-gradient(135deg,rgba(16,185,129,0.12) 0%,rgba(14,165,233,0.18) 100%);border:1px solid rgba(16,185,129,0.3);padding:18px 24px;border-radius:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">' +
-      '<div>' +
-        '<div style="display:inline-block;padding:3px 10px;background:#10b981;color:#fff;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:1px;margin-bottom:6px">👥 STAFF DIVISION DASHBOARD</div>' +
-        '<div style="font-size:22px;font-weight:900;color:var(--t1)">Welcome back, ' + esc(CU.name) + '!</div>' +
-        '<div style="font-size:11px;color:var(--t2);margin-top:2px">Staff Access Portal &amp; Operations Center · ' + esc(compName) + '</div>' +
-      '</div>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-        '<button class="btn btn-primary btn-sm" onclick="openModal(\'m-doc-submit\', event)">📄 Submit DC / Doc</button>' +
-        '<button class="btn btn-outline btn-sm" onclick="openNewExpense()">🧾 Claim Expense</button>' +
-        '<button class="btn btn-outline btn-sm" onclick="showPage(\'dor\')">📋 DOR Entry</button>' +
-        '<button class="btn btn-ghost btn-sm" onclick="openModal(\'m-mat-req\', event)">📦 Request Item</button>' +
-      '</div>' +
-    '</div>' +
-
-    // Announcement banner
-    (function(){
-      var ann = DB.masterConfig && DB.masterConfig.announcement;
-      if (!ann || !ann.active || !ann.text) return '';
-      return '<div style="background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(217,119,6,0.25));border:1px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;font-weight:700;color:#d97706">📢 ' + esc(ann.text) + '</div>';
-    })() +
-
-    // Admin-Granted Modules Access Grid
-    '<div class="data-card" style="margin-bottom:16px;padding:16px">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
-        '<div style="font-size:14px;font-weight:800;color:var(--t1)">🔑 My Accessible System Modules</div>' +
-        '<div style="font-size:10px;color:var(--t3)">Access privileges granted &amp; managed by Fleet Admin</div>' +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">' +
-        moduleGridHtml +
-      '</div>' +
-    '</div>' +
-
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">' +
-      // My Tasks
-      '<div>' +
-        '<div class="data-card" style="margin-bottom:14px"><div class="data-card-hdr"><div class="data-card-title">📋 My Assigned Tasks</div></div>' +
-        (function(){
-          var myTasks = (DB.taskList||[]).filter(function(t){ return t.assignedId===CU.id||t.assignedTo===CU.name; });
-          var open = myTasks.filter(function(t){ return t.status !== 'Done'; });
-          if (!open.length) return '<div style="padding:16px;font-size:11px;color:var(--t3)">No pending tasks assigned to you.</div>';
-          return '<div style="padding:8px 12px">' + open.map(function(t){
-            var overdue = t.due && t.due < today();
-            return '<div style="padding:8px 0;border-bottom:1px solid var(--b1)">' +
-              '<div style="font-size:12px;font-weight:700;color:var(--t1)">' + esc(t.title) + '</div>' +
-              '<div style="font-size:10px;color:var(--t3);margin-top:2px">Due: <strong style="color:' + (overdue?'var(--err)':'var(--t2)') + '">' + (t.due ? fmtDate(t.due) : 'No deadline') + '</strong> · <span class="chip ' + (t.status==='In Progress'?'chip-accent':'chip-warn') + '">' + esc(t.status) + '</span></div>' +
-              '<div style="margin-top:6px;display:flex;gap:6px">' +
-                '<button class="btn btn-outline btn-sm" onclick="openTaskUpdate(\'' + t.id + '\')">Update Status</button>' +
-              '</div>' +
-            '</div>';
-          }).join('') + '</div>';
-        })() + '</div>' +
-      '</div>' +
-
-      // My Submitted Expense Claims & Material Requests
-      '<div>' +
-        '<div class="data-card" style="margin-bottom:14px"><div class="data-card-hdr"><div class="data-card-title">🧾 My Expense Claims &amp; Material Requests</div></div>' +
-        (function(){
-          var myExps = (DB.expenses||[]).filter(function(x){ 
-            return (x.paidBy && x.paidBy.toLowerCase() === (CU.name||'').toLowerCase()) || x._by === CU.name || x.crewName === CU.name; 
-          }).slice(0, 4);
-          var myReqs = (DB.requests||[]).filter(function(r){
-            return r._by === CU.name || (r.reqby && r.reqby.toLowerCase() === (CU.name||'').toLowerCase());
-          }).slice(0, 4);
-          
-          if (!myExps.length && !myReqs.length) {
-            return '<div style="padding:16px;font-size:11px;color:var(--t3)">No recent expenses or material requests submitted yet.</div>';
-          }
-          var html = '<div style="padding:8px 12px">';
-          if (myExps.length) {
-            html += '<div style="font-size:10px;font-weight:800;color:var(--accent);margin-bottom:6px">EXPENSE CLAIMS</div>';
-            html += myExps.map(function(x){
-              return '<div style="padding:6px 0;border-bottom:1px solid var(--b1)">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center">' +
-                  '<span style="font-weight:700;font-size:11px;color:var(--t1)">' + esc(x.cat||'Expense') + ' (' + (x.vessel==='office'?'Office':vname(x.vessel)) + ')</span>' +
-                  '<span style="font-weight:800;color:var(--accent);font-size:11px">₹' + fmt(x.total||x.amount||0) + '</span>' +
-                '</div>' +
-                '<div style="font-size:9.5px;color:var(--t3);margin-top:2px">' + fmtDate(x.date) + ' · ' + esc(x.desc||'') + ' · <span class="chip chip-accent">' + esc(x.status||'Approved') + '</span></div>' +
-              '</div>';
-            }).join('');
-          }
-          if (myReqs.length) {
-            html += '<div style="font-size:10px;font-weight:800;color:var(--warn);margin:' + (myExps.length?'10px':'0') + ' 0 6px">MATERIAL REQUIREMENTS</div>';
-            html += myReqs.map(function(r){
-              return '<div style="padding:6px 0;border-bottom:1px solid var(--b1)">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center">' +
-                  '<span style="font-weight:700;font-size:11px;color:var(--t1)">' + esc(r.ref||'REQ') + ' — ' + esc(r.item) + ' (' + vname(r.vessel) + ')</span>' +
-                  '<span class="chip ' + (r.status==='Fulfilled'?'chip-ok':r.status==='Approved'?'chip-accent':'chip-warn') + '" style="font-size:9px">' + esc(r.status||'Pending') + '</span>' +
-                '</div>' +
-                '<div style="font-size:9.5px;color:var(--t3);margin-top:2px">Qty: ' + (r.qty||1) + ' ' + (r.unit||'Nos') + ' · Urgency: ' + esc(r.urg||'Normal') + '</div>' +
-              '</div>';
-            }).join('');
-          }
-          html += '</div>';
-          return html;
-        })() + '</div>' +
-      '</div>' +
-    '</div>';
-}
-
-/* ── TASK UPDATE (staff can update their own tasks) ─────────── */
-
-/* ── BACKUP & DATA SAFETY SUITE ──────────────────────────────── */
-function openBackupManager() {
-  if (!CU || (CU.role !== 'master' && CU.role !== 'admin')) {
-    toast('Master / Admin access required for Backup Manager', 'var(--err)');
-    return;
-  }
-  loadAutoSnapshotStatus();
-  var fbBadge = document.getElementById('bk-fb-badge');
-  if (fbBadge) {
-    if (FB_READY && FB_DB) {
-      fbBadge.className = 'badge badge-ok';
-      fbBadge.textContent = 'Connected ✓';
-    } else {
-      fbBadge.className = 'badge badge-warn';
-      fbBadge.textContent = 'Offline / Local';
-    }
-  }
-  _doOpenModal('m-backup-manager');
-}
-
-function loadAutoSnapshotStatus() {
-  var el = document.getElementById('bk-auto-status');
-  if (!el) return;
-  try {
-    var raw = localStorage.getItem('tw_autosave_latest');
-    if (!raw) {
-      el.innerHTML = '<span style="color:var(--t3)">No auto-snapshot found in browser memory yet. (It will auto-save on your next edit).</span>';
-      return;
-    }
-    var snap = JSON.parse(raw);
-    el.innerHTML = '<strong>Latest Auto-Snapshot</strong>: ' + (snap.time || 'Recent') + '<br/>' +
-      '<span style="color:var(--accent)">📊 ' + (snap.vessels||0) + ' Vessels · ' + (snap.crew||0) + ' Crew · ' + (snap.users||0) + ' Staff Users · ' + (snap.admins||0) + ' Admins</span>';
-  } catch(e) {
-    el.innerHTML = '<span style="color:var(--err)">Error reading auto-snapshot.</span>';
+    var nav = document.querySelector('[data-page="' + page + '"]');
+    if (nav) nav.click();
   }
 }
 
-function restoreFromAutoSnapshot() {
-  try {
-    var raw = localStorage.getItem('tw_autosave_latest');
-    if (!raw) {
-      uiAlert('No auto-snapshot available to restore.');
-      return;
-    }
-    var snap = JSON.parse(raw);
-    if (!snap.data) {
-      uiAlert('Snapshot data is empty.');
-      return;
-    }
-    applyParsedBackupData(snap.data, 'merge', 'Auto-Snapshot (' + (snap.time||'recent') + ')');
-  } catch(e) {
-    uiAlert('Failed to restore auto-snapshot: ' + e.message);
-  }
-}
-
-function triggerBackupFilePicker(mode) {
-  var input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json,application/json';
-  input.onchange = function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        var parsed = JSON.parse(ev.target.result);
-        applyParsedBackupData(parsed, mode, file.name);
-      } catch(err) {
-        uiAlert('Invalid backup file. Could not parse JSON content.');
-      }
-    };
-    reader.readAsText(file);
-  };
-  document.body.appendChild(input);
-  input.click();
-  document.body.removeChild(input);
-}
-
-function importPastedBackup(mode) {
-  var raw = (val('bk-paste-json') || '').trim();
-  if (!raw) {
-    uiAlert('Please paste valid JSON backup text into the box first.');
-    return;
-  }
-  try {
-    var parsed = JSON.parse(raw);
-    applyParsedBackupData(parsed, mode, 'Pasted JSON');
-  } catch(e) {
-    uiAlert('Invalid JSON format: ' + e.message);
-  }
-}
-
-function applyParsedBackupData(parsed, mode, sourceLabel) {
-  if (!parsed || typeof parsed !== 'object') {
-    uiAlert('Invalid backup data format.');
-    return;
-  }
-  
-  if (mode === 'overwrite') {
-    confirmIrreversible('OVERWRITE ALL DATA WITH BACKUP (' + (sourceLabel||'Backup Data') + ')', function() {
-      Object.keys(parsed).forEach(function(k) {
-        DB[k] = parsed[k];
-      });
-      sanitizeDB();
-      saveDB();
-      audit('Master restored FULL data overwrite from ' + (sourceLabel||'backup'), 'var(--warn)');
-      toast('Full backup restored successfully ✓. Reloading...', 'var(--ok)');
-      setTimeout(function(){ location.reload(); }, 1200);
-    });
-  } else {
-    // Merge mode (Safe): preserves newly created records
-    var mergedCount = 0;
-    Object.keys(parsed).forEach(function(key) {
-      if (Array.isArray(parsed[key])) {
-        var backupArr = parsed[key];
-        var currentArr = Array.isArray(DB[key]) ? DB[key] : [];
-        var itemMap = {};
-        
-        currentArr.forEach(function(item) {
-          if (item && typeof item === 'object') {
-            var k = item.id || (item.username ? String(item.username).toUpperCase() : null) || JSON.stringify(item);
-            itemMap[k] = item;
-          }
-        });
-        
-        backupArr.forEach(function(item) {
-          if (item && typeof item === 'object') {
-            var k = item.id || (item.username ? String(item.username).toUpperCase() : null) || JSON.stringify(item);
-            if (!itemMap[k]) {
-              itemMap[k] = item;
-              mergedCount++;
-            } else {
-              itemMap[k] = Object.assign({}, itemMap[k], item);
-            }
-          }
-        });
-        
-        DB[key] = Object.values(itemMap);
-      } else if (parsed[key] && typeof parsed[key] === 'object') {
-        DB[key] = Object.assign({}, DB[key] || {}, parsed[key]);
-      } else if (parsed[key] !== undefined && parsed[key] !== null) {
-        if (DB[key] === undefined || DB[key] === null) {
-          DB[key] = parsed[key];
-        }
-      }
-    });
-    
-    sanitizeDB();
-    saveDB();
-    audit('Master merged backup data from ' + (sourceLabel||'backup'), 'var(--ok)');
-    toast('Safe merge complete! Preserved local & backup records. Reloading...', 'var(--ok)');
-    setTimeout(function(){ location.reload(); }, 1200);
-  }
-}
-
-function exportAllData() {
-  var nowStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  var filename = 'TugWatch_FullBackup_' + nowStr + '.json';
-  var blob = new Blob([JSON.stringify(DB, null, 2)], {type:'application/json'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  audit('Exported full database backup: ' + filename, 'var(--ok)');
-  toast('Database backup downloaded: ' + filename, 'var(--ok)');
-}
-
-function restoreFromBackup() {
-  openBackupManager();
-}
-
-
-
-function clearAllData() {
-  if (!CU || CU.role !== 'master') { uiAlert('Master Admin only'); return; }
-  confirmIrreversible('ALL DATA', function() {
-    Object.keys(DB).forEach(function(k) {
-      if (Array.isArray(DB[k])) DB[k]=[];
-      else if (typeof DB[k]==='object' && DB[k]) DB[k]={};
-    });
-    DB.tideLocs=['Sikka Port','Bedi Port','Rozi Port','Kandla Port','Navlakhi Port','Mundra Port','Sanghi Port'];
-    DB.companies=[{id:'c1',name:'ACE Marine',address:'46, HAPA Industrial Estate, Hapa-Jamnagar – 361 120',email:'jamnagar@acemarine.in',phone:'+91 93289 98664',website:'',logo:'',active:true}];
-    saveDB();
-    audit('Master CLEARED ALL DATA', 'var(--err)');
-    toast('Data cleared. Reloading...', 'var(--err)');
-    setTimeout(function(){ location.reload(); }, 1500);
-  });
-}
-
-/* ══════════════════════════════════════════════════════════════
-   TEMPORARY MASTER ACCESS
-══════════════════════════════════════════════════════════════ */
-function isTempMaster() {
-  if (!CU || (CU.role !== 'admin' && CU.role !== 'master')) return false;
-  if (CU.role === 'master') return true;
-  var now = Date.now();
-  return (DB.tempMasters||[]).some(function(tm) {
-    var tmFrom = tm.from ? new Date(tm.from).getTime() : 0;
-    var tmUntil = tm.until ? new Date(tm.until).getTime() : 0;
-    return (tm.adminId === CU.id || (tm.user && (tm.user === CU.username || tm.user === CU.id))) &&
-      tmFrom <= now && tmUntil >= now;
-  });
-}
-
-function getTempMasterRecord() {
-  if (!CU) return null;
-  var now = Date.now();
-  return (DB.tempMasters||[]).find(function(tm) {
-    return tm.adminId === CU.id &&
-      new Date(tm.from).getTime() <= now &&
-      new Date(tm.until).getTime() >= now;
-  }) || null;
-}
-
-function renderTempMasters() {
-  // Fill admin dropdown
-  var sel = document.getElementById('tm-admin-sel');
-  if (sel) {
-    sel.innerHTML = '<option value="">— Select Admin —</option>' +
-      ADMINS.concat(DB.dynamicAdmins||[]).map(function(a) {
-        return '<option value="'+a.id+'">'+a.name+' ('+a.username+')</option>';
-      }).join('');
-  }
-  // Default datetimes
-  var fromEl = document.getElementById('tm-from');
-  var untilEl = document.getElementById('tm-until');
-  if (fromEl && !fromEl.value) fromEl.value = new Date().toISOString().slice(0,16);
-  if (untilEl && !untilEl.value) {
-    untilEl.value = new Date(Date.now()+24*3600000).toISOString().slice(0,16);
-  }
-  // Render list
-  var listEl = document.getElementById('ms-temp-master-list');
-  if (!listEl) return;
-  DB.tempMasters = DB.tempMasters || [];
-  var now = Date.now();
-  if (!DB.tempMasters.length) {
-    listEl.innerHTML = '<div class="empty">No temporary master grants recorded.</div>';
-    return;
-  }
-  listEl.innerHTML = DB.tempMasters.map(function(tm, i) {
-    var active  = new Date(tm.from).getTime() <= now && new Date(tm.until).getTime() >= now;
-    var expired = new Date(tm.until).getTime() < now;
-    var chip = active ? 'chip-warn' : expired ? 'chip-muted' : 'chip-ok';
-    var label = active ? '🔑 ACTIVE' : expired ? 'Expired' : 'Pending';
-    var hoursLeft = active ? Math.ceil((new Date(tm.until).getTime()-now)/3600000) : null;
-    return '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:10px;background:var(--s3);border-radius:8px;border:1px solid '+(active?'rgba(245,158,11,.3)':'var(--b1)')+';margin-bottom:6px">' +
-      '<div>' +
-        '<div style="font-weight:700;font-size:11px">'+tm.adminName+'</div>' +
-        '<div style="font-size:9px;color:var(--t3)">'+new Date(tm.from).toLocaleString('en-IN')+' → '+new Date(tm.until).toLocaleString('en-IN')+'</div>' +
-        (tm.reason ? '<div style="font-size:9px;color:var(--t2);margin-top:2px">'+tm.reason+'</div>' : '') +
-        '<div style="font-size:9px;color:var(--t4)">Granted by '+tm.grantedBy+' · '+tm.grantedOn+'</div>' +
-      '</div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
-        '<span class="chip '+chip+'" style="font-size:9px">'+label+'</span>' +
-        (hoursLeft !== null ? '<span style="font-size:9px;color:var(--warn)">'+hoursLeft+'h left</span>' : '') +
-        '<button class="btn btn-danger btn-sm" onclick="revokeTempMaster('+i+')">Revoke</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-function grantTempMaster() {
-  var adminId = document.getElementById('tm-admin-sel') ? document.getElementById('tm-admin-sel').value : '';
-  var from    = val('tm-from');
-  var until   = val('tm-until');
-  var reason  = val('tm-reason').trim();
-  if (!adminId) { uiAlert('Select an admin to elevate'); return; }
-  if (!until)   { uiAlert('Set an expiry date/time'); return; }
-  if (!from) from = new Date().toISOString().slice(0,16);
-  if (new Date(until) <= new Date(from)) { uiAlert('Expiry must be after start'); return; }
-  var admin = ADMINS.concat(DB.dynamicAdmins||[]).find(function(a){ return a.id===adminId; });
-  if (!admin) return;
-  DB.tempMasters = (DB.tempMasters||[]).filter(function(tm){ return tm.adminId !== adminId; });
-  DB.tempMasters.push({
-    id:uid(), adminId:adminId, adminName:admin.name,
-    from:from, until:until, reason:reason,
-    grantedBy:CU.name, grantedOn:new Date().toLocaleString('en-IN')
-  });
-  saveDB(); renderTempMasters();
-  pushNotification('🔑 Temporary master access granted to '+admin.name+' until '+new Date(until).toLocaleString('en-IN'), 'warning', 'admin');
-  audit('TEMP MASTER GRANTED: '+admin.name+' until '+until+'  ('+reason+')', 'var(--warn)');
-  toast('Temp master access granted to '+admin.name+'!', 'var(--warn)');
-  clearFields(['tm-reason']);
-}
-
-function revokeTempMaster(i) {
-  var tm = (DB.tempMasters||[])[i]; if (!tm) return;
-  if (!confirm('Revoke temp master from '+tm.adminName+'?')) return;
-  DB.tempMasters.splice(i,1);
-  saveDB(); renderTempMasters();
-  audit('TEMP MASTER REVOKED: '+tm.adminName, 'var(--err)');
-  toast('Access revoked from '+tm.adminName);
-}
-
-function checkTempMasterExpiry() {
-  var now = Date.now();
-  DB.tempMasters = (DB.tempMasters||[]).filter(function(tm){
-    return new Date(tm.until).getTime() > now - 7*86400000;
-  });
-  if (CU && CU.role === 'admin') {
-    var tm = getTempMasterRecord();
-    if (tm) {
-      var rem = Math.ceil((new Date(tm.until).getTime()-now)/3600000);
-      if (rem <= 2) {
-        pushNotification('Your temporary master access expires in '+rem+'h. Contact master admin if extension needed.', 'warning', 'admin');
-      }
-    }
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   PATCH: enforcePermissions — respect temp master + admin page perms
-══════════════════════════════════════════════════════════════ */
-var _origEnforcePerms = enforcePermissions;
-enforcePermissions = function() {
-  if (!CU) return;
-  // temp master or real master = full access
-  if (CU.role === 'master' || isTempMaster()) {
-    document.querySelectorAll('.nav-item[data-page]').forEach(function(el){ el.style.display=''; });
-    document.querySelectorAll('.master-only, .admin-only').forEach(function(el){ el.style.display=''; });
-    // Show temp master timer badge
-    if (isTempMaster()) {
-      var tm = getTempMasterRecord();
-      var roleEl = document.querySelector('.user-role');
-      if (roleEl && tm) roleEl.textContent = '⚡ Temp Master';
-    }
-    return;
-  }
-  // admin — apply per-admin page restrictions
-  if (CU.role === 'admin') {
-    var perms = (DB.masterConfig && DB.masterConfig.adminPagePerms && DB.masterConfig.adminPagePerms[CU.id]);
-    if (!perms || perms === 'all') {
-      document.querySelectorAll('.nav-item[data-page]').forEach(function(el){ el.style.display=''; });
-    } else {
-      document.querySelectorAll('.nav-item[data-page]').forEach(function(el) {
-        el.style.display = (Array.isArray(perms) && perms.indexOf(el.getAttribute('data-page')) !== -1) ? '' : 'none';
-      });
-    }
-    return;
-  }
-  // staff — original logic
-  _origEnforcePerms();
-};
-
-/* ══════════════════════════════════════════════════════════════
-   PATCH: canAccessPage — respect temp master + admin page perms
-══════════════════════════════════════════════════════════════ */
-var _origCAP = canAccessPage;
-canAccessPage = function(page) {
-  if (!CU) return false;
-  if (CU.role === 'master' || isTempMaster()) return true;
-  if (CU.role === 'admin') {
-    var perms = (DB.masterConfig && DB.masterConfig.adminPagePerms && DB.masterConfig.adminPagePerms[CU.id]);
-    if (!perms || perms === 'all') return true;
-    return Array.isArray(perms) && perms.indexOf(page) !== -1;
-  }
-  return _origCAP(page);
-};
-
-/* ══════════════════════════════════════════════════════════════
-   PATCH: doLogin — apply saved branding + check temp expiry
-══════════════════════════════════════════════════════════════ */
-
-/* Apply branding before login (from localStorage) */
-document.addEventListener('DOMContentLoaded', function() {
-  try {
-    var raw = localStorage.getItem(typeof LS_KEY !== 'undefined' ? LS_KEY : 'tugwatch_db_v1');
-    if (raw) {
-      var d = JSON.parse(raw);
-      if (d && d.masterConfig && d.masterConfig.branding) applyBrandingToDom(d.masterConfig.branding);
-    }
-  } catch(e) {}
-  // Hide master settings button until login
-  var msBtn = document.getElementById('master-settings-btn');
-  if (msBtn) msBtn.style.display = 'none';
-});
-
-/* Temp master countdown in topbar */
-setInterval(function() {
-  var ind = document.getElementById('tm-countdown');
-  if (CU && isTempMaster()) {
-    var tm = getTempMasterRecord();
-    if (!tm) return;
-    var rem = Math.ceil((new Date(tm.until).getTime()-Date.now())/60000);
-    if (!ind) {
-      ind = document.createElement('div');
-      ind.id = 'tm-countdown';
-      ind.style.cssText = 'font-size:10px;color:var(--warn);font-weight:700;padding:3px 10px;border:1px solid rgba(245,158,11,.3);border-radius:20px;background:rgba(245,158,11,.1)';
-      var ta = document.getElementById('topbar-actions');
-      if (ta) ta.insertBefore(ind, ta.firstChild);
-    }
-    ind.textContent = '🔑 Temp Master · '+rem+'m left';
-  } else if (ind) { ind.remove(); }
-}, 30000);
-
-
-
-/* ══════════════════════════════════════════════════════════════
-   GLOBAL SEARCH ENGINE — searches every record in every module
-   Ctrl+K to open, Esc to close, type to search, click to jump
-══════════════════════════════════════════════════════════════ */
-
-var _searchTimeout = null;
-var _searchActive = false;
-
-function toggleGlobalSearch() {
-  var wrap = document.getElementById('global-search-wrap');
-  var inp  = document.getElementById('global-search-input');
-  var btn  = document.getElementById('search-toggle-btn');
-  if (!wrap) return;
-  _searchActive = !_searchActive;
-  wrap.style.display = _searchActive ? 'flex' : 'none';
-  wrap.style.alignItems = 'center';
-  if (_searchActive && inp) {
-    inp.value = '';
-    inp.focus();
-    document.getElementById('global-search-results').style.display = 'block';
-    document.getElementById('search-result-list').innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3);font-size:11px">Start typing to search across all records…</div>';
-    document.getElementById('search-result-summary').textContent = 'Ready to search';
-  } else {
-    closeGlobalSearch();
-  }
-}
-
-function closeGlobalSearch() {
-  _searchActive = false;
-  var wrap = document.getElementById('global-search-wrap');
-  var res  = document.getElementById('global-search-results');
-  var inp  = document.getElementById('global-search-input');
-  if (wrap) wrap.style.display = 'none';
-  if (res)  res.style.display  = 'none';
-  if (inp)  inp.value = '';
-}
-
-function runGlobalSearch(q) {
-  clearTimeout(_searchTimeout);
-  q = (q||'').trim().toLowerCase();
-  var resDiv   = document.getElementById('global-search-results');
-  var listDiv  = document.getElementById('search-result-list');
-  var summary  = document.getElementById('search-result-summary');
-  if (!resDiv || !listDiv) return;
-  // Hide the dropdown entirely when there's nothing typed (prevents the empty stuck box)
-  if (q.length === 0) {
-    resDiv.style.display = 'none';
-    return;
-  }
-  resDiv.style.display = 'block';
-  if (q.length < 2) {
-    listDiv.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3);font-size:11px">Type at least 2 characters…</div>';
-    if (summary) summary.textContent = 'Ready to search';
-    return;
-  }
-  _searchTimeout = setTimeout(function() {
-    var results = [];
-
-    /* helper */
-    function hit(module, icon, title, subtitle, page, extra) {
-      extra = extra || '';
-      if ((title+' '+subtitle+' '+extra).toLowerCase().includes(q)) {
-        results.push({module:module, icon:icon, title:title, subtitle:subtitle, page:page});
-      }
-    }
-
-    // ── VESSELS ─────────────────────────────────────────
-    (DB.vessels||[]).forEach(function(v) {
-      hit('Vessel','🚢', v.name, (v.type||'')+(v.cat?' · '+v.cat:'')+(v.imo?' · IMO '+v.imo:''), 'vessels', v.desc+' '+v.stationed);
-    });
-
-    // ── CERTIFICATES ────────────────────────────────────
-    (DB.certs||[]).forEach(function(c) {
-      hit('Certificate','📋', c.name, vname(c.vessel)+(c.auth?' · '+c.auth:'')+(c.expiry?' · exp '+fmtDate(c.expiry):''), 'certificates', c.auth);
-    });
-
-    // ── CREW ────────────────────────────────────────────
-    (DB.crew||[]).forEach(function(m) {
-      hit('Crew','👤', m.name, (m.role||'')+(m.vessel?' · '+vname(m.vessel):'')+(m.mob?' · '+m.mob:''), 'crew', m.indos+' '+m.cdc+' '+m.crewno);
-    });
-
-    // ── EX-CREW ─────────────────────────────────────────
-    (DB.exCrew||[]).forEach(function(e) {
-      hit('Ex-Crew','👤', e.name, (e.role||'')+(e.mob?' · '+e.mob:''), 'ex-crew', e.indos+' '+e.reason);
-    });
-
-    // ── MAINTENANCE ─────────────────────────────────────
-    (DB.maint||[]).forEach(function(m) {
-      hit('Maintenance','🔧', m.type+': '+m.desc, vname(m.vessel)+(m.next?' · Due '+fmtDate(m.next):''), 'maintenance', m.status);
-    });
-
-    // ── DEFICIENCY ──────────────────────────────────────
-    (DB.defs||[]).forEach(function(d) {
-      hit('Deficiency','⚠', d.desc, vname(d.vessel)+' · '+d.sev+(d.status?' · '+d.status:''), 'deficiency', d.src+' '+d.assign);
-    });
-
-    // ── VOYAGES ─────────────────────────────────────────
-    (DB.voyages||[]).forEach(function(v) {
-      hit('Voyage','⚓', (v.from||'?')+' → '+(v.to||'?'), vname(v.vessel)+(v.dep?' · '+fmtDate(v.dep):'')+(v.master?' · '+v.master:''), 'voyage', v.cargo+' '+v.master);
-    });
-
-    // ── HSD FUEL LOG ────────────────────────────────────
-    Object.keys(DB.hsd||{}).forEach(function(key) {
-      var entry=DB.hsd[key];
-      if(!entry||!entry.trips) return;
-      var date=entry.date||key.split('_')[0];
-      var vid=entry.vessel||key.split('_')[1];
-      entry.trips.forEach(function(t,ti) {
-        var text=(t.loc||'')+(t.job||'')+(t._by||'');
-        if(text.toLowerCase().includes(q)||vname(vid).toLowerCase().includes(q)||date.includes(q)) {
-          results.push({module:'HSD Log',icon:'⛽',title:'Trip '+(ti+1)+' · '+fmtDate(date),subtitle:vname(vid)+(t.loc?' · '+t.loc:'')+(t.hsd?' · '+t.hsd.cons+'L':''),page:'fuel'});
-        }
-      });
-    });
-
-    // ── VISITS ──────────────────────────────────────────
-    (DB.visits||[]).forEach(function(v) {
-      var persons=v.persons?v.persons.map(function(p){return p.name;}).join(', '):(v.tech||'');
-      hit('Site Visit','📍', v.pur||'Visit', vname(v.vessel)+(v.date?' · '+fmtDate(v.date):'')+(persons?' · '+persons:''), 'visit', persons+' '+v.role);
-    });
-
-    // ── MATERIALS PROVIDED ──────────────────────────────
-    (DB.materials||[]).forEach(function(m) {
-      var items=m.items?m.items.map(function(i){return i.item;}).join(', '):(m.item||'');
-      hit('Material Out','📦', m.challanNo||'Challan', vname(m.vessel)+(m.date?' · '+fmtDate(m.date):'')+(items?' · '+items:''), 'mat-provided', items+' '+m.supplier+' '+m.rcvby);
-    });
-
-    // ── MATERIAL REQUESTS ────────────────────────────────
-    (DB.requests||[]).forEach(function(r) {
-      hit('Mat Request','🛒', r.ref+': '+r.item, vname(r.vessel)+' · '+r.urg+(r.status?' · '+r.status:''), 'mat-request', r.reqby+' '+r.status);
-    });
-
-    // ── WORK ORDERS ──────────────────────────────────────
-    (DB.workOrders||[]).forEach(function(wo) {
-      hit('Work Order','📋', wo.title, vname(wo.vessel)+(wo.charterer?' · '+wo.charterer:'')+(wo.status?' · '+wo.status:''), 'workorders', wo.assignedTo+' '+wo.desc);
-    });
-
-    // ── TASK LIST ────────────────────────────────────────
-    (DB.taskList||[]).forEach(function(t) {
-      hit('Task','✅', t.title, (t.assignedTo||'')+(t.due?' · Due '+fmtDate(t.due):'')+(t.status?' · '+t.status:''), 'tasklist', t.desc+' '+t.cat);
-    });
-
-    // ── VENDORS ──────────────────────────────────────────
-    (DB.vendors||[]).forEach(function(v) {
-      hit('Vendor','🏪', v.name, (v.cat||'')+(v.city?' · '+v.city:'')+(v.phone?' · '+v.phone:''), 'vendors', v.contact+' '+v.email+' '+v.gst+' '+v.notes);
-    });
-
-    // ── PURCHASE ORDERS ──────────────────────────────────
-    (DB.purchaseOrders||[]).forEach(function(p) {
-      hit('Purchase Order','📄', p.no||'PO', vname(p.vessel)+(p.supplier?' · '+p.supplier:'')+(p.status?' · '+p.status:''), 'po-module', p.itemsSummary+' '+p.rem);
-    });
-
-    // ── SALARY ───────────────────────────────────────────
-    (DB.salaries||[]).forEach(function(s) {
-      if((s.crewName||'').toLowerCase().includes(q)||(s.month||'').includes(q)) {
-        results.push({module:'Salary',icon:'💰',title:s.crewName+' · '+s.month,subtitle:vname(s.vessel)+' · ₹'+fmt(s.net)+' net · '+s.mode,page:'salary'});
-      }
-    });
-
-    // ── COMPANIES ────────────────────────────────────────
-    (DB.companies||[]).forEach(function(c) {
-      hit('Company','🏢', c.name, (c.email||'')+(c.phone?' · '+c.phone:''), 'companies', c.address+' '+c.gst);
-    });
-
-    // ── USERS ────────────────────────────────────────────
-    (DB.users||[]).forEach(function(u) {
-      hit('Staff User','👥', u.name, '@'+u.username+(u.desig?' · '+u.desig:''), 'users', u.email+' '+u.mob);
-    });
-
-    // ── OFFICE STAFF ─────────────────────────────────────
-    (DB.officeStaff||[]).forEach(function(s) {
-      hit('Office Staff','🏬', s.name, (s.role||'')+(s.mob?' · '+s.mob:''), 'office-staff', s.email+' '+s.dept);
-    });
-
-    // ── BUNKER RECEIPTS ──────────────────────────────────
-    (DB.bunkerReceipts||[]).forEach(function(b) {
-      hit('Bunker Receipt','⛽', b.receiptNo||'Receipt', vname(b.vessel)+(b.supplier?' · '+b.supplier:'')+(b.qty?' · '+fmt(b.qty)+'L':''), 'bunker', b.grade+' '+b.driver+' '+b.vehicle);
-    });
-
-    // ── VEHICLES ─────────────────────────────────────────
-    (DB.vehicles||[]).forEach(function(v) {
-      hit('Vehicle','🚗', v.regNo, (v.type||'')+(v.model?' · '+v.model:'')+(v.driver?' · '+v.driver:''), 'vehicles', v.engine+' '+v.chassis);
-    });
-
-    // ── DOC SUBMISSIONS ──────────────────────────────────
-    (DB.docSubmissions||[]).forEach(function(d) {
-      hit('Doc Submission','📨', d.docType, d.authority+(d.purpose?' · '+d.purpose:'')+(d.ackNo?' · Ack:'+d.ackNo:''), 'doc-submissions', d.agent+' '+d.purpose+' '+vname(d.vessel));
-    });
-
-    // ── HIRING ───────────────────────────────────────────
-    (DB.hireRequests||[]).forEach(function(h) {
-      hit('Hiring','👤', h.name, (h.role||'')+(h.mob?' · '+h.mob:'')+(h.status?' · '+h.status:''), 'hiring', h.indos+' '+h.exp+' '+h.prevEmployer);
-    });
-
-    // ── TIDES ────────────────────────────────────────────
-    Object.keys(DB.tides||{}).forEach(function(loc) {
-      if(loc.toLowerCase().includes(q)) {
-        results.push({module:'Tides',icon:'🌊',title:'Tide data: '+loc,subtitle:(DB.tides[loc]||[]).length+' entries',page:'tides'});
-      }
-    });
-
-    // ── ACTIVITY LOG ─────────────────────────────────────
-    var logMatches=(DB.log||[]).filter(function(l){return(l.msg||'').toLowerCase().includes(q);}).slice(0,3);
-    logMatches.forEach(function(l) {
-      results.push({module:'Audit Log',icon:'📜',title:l.msg.substring(0,60),subtitle:'By: '+l.by+' · '+l.ts,page:'actlog'});
-    });
-
-    // ── VAULT FOLDERS ────────────────────────────────────
-    (DB.vaultFolders||[]).forEach(function(f) {
-      if((f.name||'').toLowerCase().includes(q)||(f.cat||'').toLowerCase().includes(q)) {
-        results.push({module:'Vault',icon:'📁',title:f.name,subtitle:vname(f.vessel)+' · '+(f.files||[]).length+' files',page:'vault'});
-      }
-    });
-
-    // ── LETTERS ──────────────────────────────────────────
-    (DB.letterFormats||[]).forEach(function(l) {
-      hit('Letters','✉', l.title, l.cat+(l.subcat?' / '+l.subcat:''), 'letters', l.content);
-    });
-
-
-    // ── INVOICES / CHALLANS ──────────────────────────────
-    (DB.invoices||[]).forEach(function(inv) {
-      hit('Invoice','🧾', inv.no, (inv.docType||'Invoice')+' · '+inv.clientName+(inv.date?' · '+fmtDate(inv.date):'')+(inv.total?' · ₹'+fmt(inv.total):''), 'invoices', inv.status+' '+inv.ref);
-    });
-
-    // ── JOBS / CHARTERS ──────────────────────────────────
-    (DB.jobs||[]).forEach(function(j) {
-      hit('Job/Charter','⚓', j.ref, j.vesselName+' · '+j.clientName+' · '+j.status+(j.value?' · ₹'+fmt(j.value):''), 'jobs', j.from+' '+j.to+' '+j.barge);
-    });
-
-    // ── INCIDENTS ────────────────────────────────────────
-    (DB.incidents||[]).forEach(function(inc) {
-      hit('Incident','⚠', inc.type+' — '+inc.severity, vname(inc.vessel)+(inc.date?' · '+fmtDate(inc.date):'')+(inc.status?' · '+inc.status:''), 'incidents', inc.desc+' '+inc.reporter+' '+inc.location);
-    });
-
-    // ── DRILL RECORDS ────────────────────────────────────
-    (DB.drillRecords||[]).forEach(function(d) {
-      hit('Drill','🔔', d.type, vname(d.vessel)+(d.date?' · '+fmtDate(d.date):'')+(d.result?' · '+d.result:''), 'drills', d.master+' '+d.obs);
-    });
-
-    // ── OIL RECORD BOOK ──────────────────────────────────
-    (DB.orbEntries||[]).forEach(function(e) {
-      hit('ORB Entry','🛢', 'Code '+e.code+' — '+e.operation.substring(0,40), vname(e.vessel)+(e.date?' · '+fmtDate(e.date):'')+(e.position?' · '+e.position:''), 'orb', e.officer+' '+e.tanks);
-    });
-
-        // ── OFFICIAL VTMS & PORT DIRECTORY ─────────────────
-    (getVTMSDirectory()||[]).forEach(function(p) {
-      hit('VTMS Station', '📡', p.name, p.authority + ' · VHF: ' + p.vhf + ' · ' + p.hotline, 'vtms', (p.emails||[]).join(' ') + ' ' + p.officer + ' ' + p.state + ' ' + p.notes);
-    });
-
-    // ── ADMINISTRATORS ──────────────────────────────────
-    ([resolveAdmin(MASTER)].concat(allAdmins())).forEach(function(a) {
-      hit('Admin Account', '🛡️', a.name, '@' + (a.username||'') + ' · ' + (a.desig||'Administrator'), 'users', a.role + ' ' + a.email);
-    });
-
-    // ── VTMS / PORT ENTRY ────────────────────────────────
-    (DB.vtmsLog||[]).forEach(function(v) {
-      hit('VTMS','⚓', v.type+' — '+v.port, vname(v.vessel)+(v.date?' · '+fmtDate(v.date):'')+(v.status?' · '+v.status:''), 'vtms', v.agent+' '+v.pilot+' '+v.purpose);
-    });
-
-    // ── CREW CONTRACTS ───────────────────────────────────
-    (DB.crewContracts||[]).forEach(function(c) {
-      hit('Contract','📄', c.crewName+' — '+c.rank, vname(c.vessel)+(c.joining?' · Joined '+fmtDate(c.joining):'')+(c.docno?' · '+c.docno:''), 'contracts', c.docno+' '+c.salary);
-    });
-
-    // ── LEAVE RECORDS ────────────────────────────────────
-    (DB.leaveRecords||[]).forEach(function(l) {
-      hit('Leave','📅', l.crewName+' — '+l.leaveType, fmtDate(l.from)+' to '+fmtDate(l.to)+(l.days?' ('+l.days+'d)':'')+(l.status?' · '+l.status:''), 'leave', l.reliefName+' '+l.approvedBy);
-    });
-
-    // ── NEXT OF KIN ──────────────────────────────────────
-    (DB.crewNOK||[]).forEach(function(n) {
-      hit('Next of Kin','👨‍👩‍👧', n.name+' ('+n.relationship+')', n.crewName+(n.mobile?' · '+n.mobile:'')+(n.address?' · '+n.address:''), 'nok', n.mobile2+' '+n.email+' '+n.crewName);
-    });
-
-    // ── CHECKLIST RECORDS ────────────────────────────────
-    (DB.checklistRecords||[]).forEach(function(r) {
-      hit('Checklist','✅', r.templateName, vname(r.vessel)+(r.date?' · '+fmtDate(r.date):'')+(r.master?' · '+r.master:''), 'checklist', r.remarks);
-    });
-
-    // ── VENDOR BANKS ─────────────────────────────────────
-    (DB.vendorBanks||[]).forEach(function(v) {
-      hit('Vendor Bank','🏦', v.name, v.bank+(v.acc?' · ****'+v.acc.slice(-4):'')+(v.mobile?' · '+v.mobile:''), 'vendor-banks', v.notes+' '+v.upi);
-    });
-
-    // ── SPARES / INVENTORY ───────────────────────────────
-    (DB.spares||[]).forEach(function(s) {
-      hit('Spare/Stock','📦', s.name, vname(s.vessel)+(s.partno?' · '+s.partno:'')+(s.cat?' · '+s.cat:''), 'spares', (s.supplier||'')+' '+(s.invNo||''));
-    });
-    // ── DRYDOCK ──────────────────────────────────────────
-    (DB.drydocks||[]).forEach(function(d) {
-      var rm = (d.removedItems||[]).map(function(it){return it.name+' '+(it.serial||'');}).join(' ');
-      hit('Drydock','⚓', (d.yard||'Drydock')+' — '+vname(d.vessel), (d.type||'')+(d.dockIn?' · '+fmtDate(d.dockIn):''), 'drydock', (d.reason||'')+' '+(d.classSociety||'')+' '+rm);
-    });
-    // ── EQUIPMENT IN/OUT ─────────────────────────────────
-    (DB.equipMoves||[]).forEach(function(m) {
-      var its = (typeof equipMoveItems==='function'?equipMoveItems(m):(m.items||[])).map(function(it){return it.item+' '+(it.serial||'');}).join(', ');
-      hit('Equipment','🔌', its||'Equipment', vname(m.vessel)+' · '+(m.direction||'')+(m.date?' · '+fmtDate(m.date):''), 'equip-register', m.location||'');
-    });
-    // ── PART SPECS ───────────────────────────────────────
-    (DB.partSpecs||[]).forEach(function(p) {
-      hit('Part Spec','⚙️', p.equipment+(p.part?' — '+p.part:''), vname(p.vessel)+(p.make?' · '+p.make:'')+(p.size?' · '+p.size:''), 'part-specs', (p.model||'')+' '+(p.partNo||''));
-    });
-    // ── DOCUMENTS (Document Center) ──────────────────────
-    if (typeof collectAllDocuments==='function') {
-      collectAllDocuments().forEach(function(doc) {
-        hit('Document','📄', doc.name, (doc.type||'')+(doc.vessel?' · '+vname(doc.vessel):''), 'doccenter', doc.fileName||'');
-      });
-    }
-    // ── PORTAL VAULT (name/url only — never expose password in search) ──
-    (DB.portalVault||[]).forEach(function(p) {
-      hit('Portal','🔐', p.name, (p.url||'')+(p.username?' · '+p.username:''), 'compliance', '');
-    });
-    // ── CLASS DIESEL REPORTS ─────────────────────────────
-    (DB.classDieselReports||[]).forEach(function(r) {
-      hit('Diesel Report','📑', r.title, (r.vessel?vname(r.vessel):'')+(r.period?' · '+r.period:''), 'compliance', '');
-    });
-
-    // ── RENDER RESULTS ───────────────────────────────────
-    summary.textContent = results.length
-      ? results.length + ' result' + (results.length>1?'s':'') + ' for "' + q + '"'
-      : 'No results for "' + q + '"';
-
-    if (!results.length) {
-      listDiv.innerHTML =
-        '<div style="padding:30px;text-align:center">' +
-        '<div style="font-size:28px;margin-bottom:8px">🔍</div>' +
-        '<div style="font-size:12px;color:var(--t1);font-weight:600">No results for "'+q+'"</div>' +
-        '<div style="font-size:10px;color:var(--t3);margin-top:4px">Try a vessel name, crew name, certificate, task, vendor, challan number...</div>' +
-        '</div>';
-      return;
-    }
-
-    // Group by module
-    var grouped = {};
-    results.forEach(function(r) {
-      if (!grouped[r.module]) grouped[r.module] = [];
-      grouped[r.module].push(r);
-    });
-
-    var html = '';
-    Object.keys(grouped).forEach(function(mod) {
-      html += '<div style="padding:4px 10px 2px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3)">'+mod+'</div>';
-      grouped[mod].slice(0,8).forEach(function(r) {
-        html +=
-          '<div onclick="jumpToPage(\''+r.page+'\')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .1s;margin:1px 4px" onmouseover="this.style.background=\'var(--s3)\'" onmouseout="this.style.background=\'\'">' +
-          '<span style="font-size:16px;flex-shrink:0">'+r.icon+'</span>' +
-          '<div style="min-width:0;flex:1">' +
-            '<div style="font-size:11px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.title+'</div>' +
-            '<div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.subtitle+'</div>' +
-          '</div>' +
-          '<div style="font-size:9px;color:var(--accent);flex-shrink:0;font-weight:600">→ '+r.module+'</div>' +
-          '</div>';
-      });
-      if (grouped[mod].length > 8) {
-        html += '<div style="padding:4px 12px 6px;font-size:9px;color:var(--t3)">+ '+(grouped[mod].length-8)+' more '+mod+' records</div>';
-      }
-    });
-    listDiv.innerHTML = html;
-
-  }, 0);
-}
-
-function jumpToPage(page) {
-  closeGlobalSearch();
-  var nav = document.querySelector('[data-page="'+page+'"]');
-  if (nav) nav.click();
-}
-
-/* Ctrl+K shortcut */
+/* Ctrl+K / Cmd+K Global Shortcut */
 document.addEventListener('keydown', function(e) {
-  if ((e.ctrlKey||e.metaKey) && e.key === 'k') {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
     e.preventDefault();
-    toggleGlobalSearch();
+    if (typeof openSearchPanel === 'function') openSearchPanel();
+    else if (typeof toggleGlobalSearch === 'function') toggleGlobalSearch();
   }
-  if (e.key === 'Escape') closeGlobalSearch();
-});
-
-/* Show search button after login */
-
-/* Click outside to close */
-document.addEventListener('click', function(e) {
-  var wrap = document.getElementById('global-search-wrap');
-  var res  = document.getElementById('global-search-results');
-  var btn  = document.getElementById('search-toggle-btn');
-  if (!wrap || !res) return;
-  if (!wrap.contains(e.target) && !res.contains(e.target) && e.target !== btn) {
-    if (_searchActive) closeGlobalSearch();
+  if (e.key === 'Escape') {
+    if (typeof closeGlobalSearch === 'function') closeGlobalSearch();
+    if (typeof closeSearchPanel === 'function') closeSearchPanel();
   }
 });
-
-
 
 
 /* ═══ DASHBOARD WIDGET SHOW/HIDE + RENDER ═══════════════════ */
