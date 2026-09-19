@@ -13459,7 +13459,9 @@ function saveHSD(){
   });
   DB.hsd[key].trips.push(trip);
   rpmPhotos=[];$('rpm-prev').innerHTML='';
-  saveDB();closeModal('m-hsd');renderHSD();updateBadges();
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('hsd');
+  closeModal('m-hsd');renderHSD();updateBadges();
   audit(`HSD: ${vname(vessel)} — M/E ${fmt(trip.me.cons)}L, DG ${fmt(trip.dg.cons)}L`,'var(--warn)');toast('HSD trip saved');
 }
 function renderHSD(){
@@ -13543,7 +13545,9 @@ function delHSDTrip(key,idx){
   if (!confirm('Delete this HSD trip entry? This cannot be undone.')) return;
   if(!DB.hsd[key])return;
   DB.hsd[key].trips.splice(idx,1);
-  saveDB();renderHSD();updateBadges();
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('hsd');
+  renderHSD();updateBadges();
   audit(`HSD trip removed`,'var(--err)');toast('Trip removed');
 }
 
@@ -24849,6 +24853,7 @@ function saveBunker() {
       rem:val('br-rem'), docFile:docName||'', docData:docData||''
     }));
     closeModal('m-bunker'); renderBunker(); updateBadges(); saveDB();
+    if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('bunkerReceipts');
     audit('Bunker: '+fmt(qty)+'L '+val('br-grade')+' received for '+vname(vessel)+' from '+supplier, 'var(--warn)');
     toast('Bunker receipt saved — '+fmt(qty)+'L');
     clearFields(['br-date','br-receipt-no','br-supplier','br-qty','br-rate','br-total','br-gst','br-vehicle','br-driver','br-rem']);
