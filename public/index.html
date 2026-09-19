@@ -3058,7 +3058,7 @@ html[data-theme="dark"] #l-pass::placeholder {
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Company
         </button>
       </div>
-      <div id="companies-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+      <div id="companies-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;align-items:stretch"></div>
     </div>
 
     <!-- SALARY MODULE -->
@@ -13646,11 +13646,12 @@ function renderCompanies() {
   DB.companies.forEach(function(co, idx) {
     var card = document.createElement('div');
     card.className = 'data-card';
-    card.style.cssText = 'padding:16px;cursor:default';
+    card.style.cssText = 'padding:18px;cursor:default;display:flex;flex-direction:column;justify-content:space-between;border-radius:12px;height:100%;box-sizing:border-box;min-height:330px;transition:box-shadow .2s ease';
     var logoHtml = co.logo
-      ? '<img src="'+co.logo+'" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid #e4e6eb;flex-shrink:0">'
-      : '<div style="width:36px;height:36px;background:#e7f3ff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏢</div>';
+      ? '<img src="'+co.logo+'" style="width:38px;height:38px;object-fit:contain;border-radius:8px;border:1px solid var(--b2);flex-shrink:0;background:#fff;padding:2px">'
+      : '<div style="width:38px;height:38px;background:var(--accent-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid var(--b2)">🏢</div>';
     var docBadge = (co.docs&&co.docs.length) ? ' · 📎'+co.docs.length+' doc'+(co.docs.length>1?'s':'') : '';
+    
     // Compliance status for mandatory docs
     var mdocs = co.mandatoryDocs || {};
     var complianceBadges = [
@@ -13659,67 +13660,82 @@ function renderCompanies() {
       { key:'pan',  label:'PAN Card' },
     ].map(function(d){
       var ok = !!(mdocs[d.key] && mdocs[d.key].data);
-      return '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:' +
-        (ok ? '#dcfce7;color:#15803d' : '#fef2f2;color:#dc2626') +
+      return '<span style="font-size:9.5px;font-weight:600;padding:2px 8px;border-radius:12px;background:' +
+        (ok ? '#dcfce7;color:#15803d;border:1px solid #bbf7d0' : '#fef2f2;color:#dc2626;border:1px solid #fecaca') +
         '">' + (ok ? '✓ ' : '✗ ') + d.label + '</span>';
     }).join('');
-    var vesselCount = DB.vessels.filter(function(v){ return v.company === co.id; }).length;
+    var vesselCount = DB.vessels ? DB.vessels.filter(function(v){ return v.company === co.id; }).length : 0;
+    var addrStr = co.address || co.addr || '';
+    
     card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px">
-          ${logoHtml}
-          <div>
-            <div style="font-size:14px;font-weight:700;color:var(--t1)">${co.name}</div>
-            <div style="font-size:10px;color:var(--t3);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
-              ${co.tag ? '<span style="background:var(--accent-dim);color:var(--accent);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:600">' + co.tag + '</span>' : ''}
-              ${co.entity ? '<span style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:600">' + co.entity + '</span>' : ''}
-              ${co.tradename ? '<span style="color:var(--t3);font-size:9px">aka ' + co.tradename + '</span>' : ''}
-              <span style="color:var(--t4);font-size:9px">${docBadge}</span>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px">
+          <div style="display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0">
+            ${logoHtml}
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14.5px;font-weight:700;color:var(--t1);line-height:1.3;word-break:break-word">${co.name}</div>
+              <div style="font-size:10px;color:var(--t3);margin-top:4px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+                ${co.tag ? '<span style="background:var(--accent-dim);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:600">' + co.tag + '</span>' : ''}
+                ${co.entity ? '<span style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:600">' + co.entity + '</span>' : ''}
+                ${co.tradename ? '<span style="color:var(--t3);font-size:9.5px">aka ' + co.tradename + '</span>' : ''}
+                <span style="color:var(--t4);font-size:9px">${docBadge}</span>
+              </div>
             </div>
           </div>
+          <div style="display:flex;gap:5px;flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" onclick="switchActiveCompany('${co.id}')" title="Set as active company for branding/letterhead" style="font-size:10px;padding:3px 7px">★ Set Active</button>
+            <button class="edit-btn" onclick="openCompanyEdit('${co.id}')" style="font-size:10px;padding:3px 7px">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="delCompany(${idx})" style="padding:3px 6px">
+              <svg viewBox="0 0 24 24" fill="none" style="width:10px;height:10px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+            </button>
+          </div>
         </div>
-        <div style="display:flex;gap:5px">
-          <button class="btn btn-ghost btn-sm" onclick="switchActiveCompany('${co.id}')" title="Set as active company for branding/letterhead">★ Set Active</button>
-          <button class="edit-btn" onclick="openCompanyEdit('${co.id}')">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="delCompany(${idx})">
-            <svg viewBox="0 0 24 24" fill="none" style="width:10px;height:10px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-          </button>
-        </div>
-      </div>
-      <div style="font-size:10px;color:var(--t3);line-height:1.7">
-        ${co.address||co.addr ? '<div>📍 '+(co.address||co.addr)+'</div>' : ''}
-        ${co.email   ? '<div>✉ '+co.email+'</div>'   : ''}
-        ${co.phone   ? '<div>📞 '+co.phone+'</div>'  : ''}
-        ${co.web     ? '<div>🌐 '+co.web+'</div>'    : ''}
-        ${co.gst     ? '<div>GST: '+co.gst+'</div>'  : ''}
-      </div>
-      <div style="margin-top:10px;font-size:9px;color:var(--t3)">${vesselCount} vessel(s) assigned</div>
-      <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">${complianceBadges}</div>
-      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-        ${(function(){
-          var mdocs = co.mandatoryDocs || {};
-          var totalDocs = (co.docs||[]).length +
-            (mdocs.gst ? 1 : 0) + (mdocs.msme ? 1 : 0) + (mdocs.pan ? 1 : 0);
 
-          if (CU && CU.role === 'staff') {
-            // Staff: only show vault button if explicitly granted access
-            var staffAccess = ((DB.companyVaultAccess||{})[co.id]||[]).indexOf(CU.id||CU.username) !== -1;
-            if (!staffAccess) {
-              return '<div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--t3);padding:4px 8px;background:var(--s3);border-radius:6px;border:1px solid var(--b2)">🔒 Documents — Access Restricted</div>';
+        <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:12px;background:var(--s2);padding:10px 12px;border-radius:8px;border:1px solid var(--b2);display:flex;flex-direction:column;gap:5px;min-height:92px;justify-content:center">
+          <div style="display:flex;align-items:flex-start;gap:6px">
+            <span style="flex-shrink:0;font-size:12px">📍</span>
+            <span style="color:var(--t2);word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px">${addrStr || '<span style="color:var(--t4);font-style:italic">No registered address</span>'}</span>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px">
+            ${co.email ? '<div style="display:flex;align-items:center;gap:4px"><span>✉</span><span style="color:var(--t1)">'+co.email+'</span></div>' : ''}
+            ${co.phone ? '<div style="display:flex;align-items:center;gap:4px"><span>📞</span><span style="color:var(--t1)">'+co.phone+'</span></div>' : ''}
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px">
+            ${co.gst ? '<div style="font-size:10px;font-family:var(--fm);background:var(--s3);padding:2px 6px;border-radius:4px;border:1px solid var(--b2);color:var(--t1)"><strong>GST:</strong> '+co.gst+'</div>' : ''}
+            ${co.pan ? '<div style="font-size:10px;font-family:var(--fm);background:var(--s3);padding:2px 6px;border-radius:4px;border:1px solid var(--b2);color:var(--t1)"><strong>PAN:</strong> '+co.pan+'</div>' : ''}
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:auto;padding-top:10px;border-top:1px solid var(--b2);display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:10px;color:var(--t3);font-weight:600">🚢 ${vesselCount} vessel(s) assigned</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">${complianceBadges}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px">
+          ${(function(){
+            var mdocs = co.mandatoryDocs || {};
+            var totalDocs = (co.docs||[]).length +
+              (mdocs.gst ? 1 : 0) + (mdocs.msme ? 1 : 0) + (mdocs.pan ? 1 : 0);
+
+            if (CU && CU.role === 'staff') {
+              var staffAccess = ((DB.companyVaultAccess||{})[co.id]||[]).indexOf(CU.id||CU.username) !== -1;
+              if (!staffAccess) {
+                return '<div style="display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--t3);padding:4px 8px;background:var(--s3);border-radius:6px;border:1px solid var(--b2)">🔒 Documents — Access Restricted</div>';
+              }
+              return '<button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:4px 8px" onclick="openCompanyVault(\''+co.id+'\')" title="View documents">📂 View Documents ('+totalDocs+')</button>';
             }
-            return '<button class="btn btn-outline btn-sm" style="font-size:9px" onclick="openCompanyVault(\''+co.id+'\')" title="View documents">📂 View Documents ('+totalDocs+')</button>';
-          }
 
-          // Admin/Master: always can access vault
-          var hasAccess = CU && (CU.role === 'master' || CU.role === 'admin');
-          if (hasAccess) {
-            return '<button class="btn btn-outline btn-sm" style="font-size:9px" onclick="openCompanyVault(\''+co.id+'\')" title="View secure document vault">🔓 Document Vault ('+totalDocs+' docs)</button>';
-          }
-          return '<div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--t3);padding:4px 8px;background:#f8f9fa;border-radius:6px;border:1px solid #e4e6eb">🔒 Vault — Access Restricted</div>';
-        })()}
-        ${CU && (CU.role === 'master' || CU.role === 'admin') ? '<button class="btn btn-ghost btn-sm" style="font-size:9px" onclick="manageVaultAccess(\''+co.id+'\')">⚙ Manage Staff Access</button>' : ''}
+            var hasAccess = CU && (CU.role === 'master' || CU.role === 'admin');
+            if (hasAccess) {
+              return '<button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:4px 8px;font-weight:600" onclick="openCompanyVault(\''+co.id+'\')" title="View secure document vault">🔓 Document Vault ('+totalDocs+' docs)</button>';
+            }
+            return '<div style="display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--t3);padding:4px 8px;background:var(--s3);border-radius:6px;border:1px solid var(--b2)">🔒 Vault — Access Restricted</div>';
+          })()}
+          ${CU && (CU.role === 'master' || CU.role === 'admin') ? '<button class="btn btn-ghost btn-sm" style="font-size:9.5px;padding:4px 8px" onclick="manageVaultAccess(\''+co.id+'\')">⚙ Manage Staff Access</button>' : ''}
+        </div>
       </div>`;
     grid.appendChild(card);
   });
