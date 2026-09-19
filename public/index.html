@@ -37338,6 +37338,164 @@ window.openVesselModal = openVesselModal;
 window.openExCrewModal = openExCrewModal;
 window.navigate = navigate;
 
+/* ══════════════════════════════════════════════════════════════
+   TALLY-STYLE FAST KEYBOARD NAVIGATION & AUTO-SELECT ENGINE
+══════════════════════════════════════════════════════════════ */
+(function initTallyKeyboardAndAutoSelectEngine() {
+  // 1. Auto-select text on focus across ALL input elements (Tab, Click, Enter)
+  document.addEventListener('focusin', function(e) {
+    var target = e.target;
+    if (!target) return;
+    var tag = target.tagName ? target.tagName.toLowerCase() : '';
+    
+    if (tag === 'input') {
+      var type = (target.type || 'text').toLowerCase();
+      var selectableTypes = ['text', 'number', 'search', 'tel', 'email', 'url', 'password'];
+      if (selectableTypes.indexOf(type) !== -1) {
+        setTimeout(function() {
+          if (document.activeElement === target && typeof target.select === 'function') {
+            try { target.select(); } catch(err){}
+          }
+        }, 30);
+      }
+    } else if (tag === 'textarea') {
+      if (target.value && target.value.length < 500) {
+        setTimeout(function() {
+          if (document.activeElement === target && typeof target.select === 'function') {
+            try { target.select(); } catch(err){}
+          }
+        }, 30);
+      }
+    }
+  }, true);
+
+  // 2. Prevent mouse click from canceling auto-select on initial focus
+  document.addEventListener('mousedown', function(e) {
+    var target = e.target;
+    if (target && target.tagName && target.tagName.toLowerCase() === 'input') {
+      if (document.activeElement !== target) {
+        target._justFocused = true;
+        setTimeout(function(){ target._justFocused = false; }, 300);
+      }
+    }
+  }, true);
+
+  document.addEventListener('mouseup', function(e) {
+    var target = e.target;
+    if (target && target.tagName && target.tagName.toLowerCase() === 'input') {
+      if (target._justFocused) {
+        target._justFocused = false;
+        setTimeout(function() {
+          if (typeof target.select === 'function') {
+            try { target.select(); } catch(err){}
+          }
+        }, 20);
+      }
+    }
+  }, true);
+
+  // Helper: Find all visible focusable elements inside the active container (Modal or Active Page)
+  function getFocusableElements(container) {
+    if (!container) container = document.querySelector('.overlay.on .modal') || document.querySelector('.page.on') || document.body;
+    var selector = 'input:not([type="hidden"]):not([disabled]):not([readonly]):not([style*="display:none"]):not([style*="display: none"]), ' +
+                   'select:not([disabled]):not([style*="display:none"]):not([style*="display: none"]), ' +
+                   'textarea:not([disabled]):not([readonly]):not([style*="display:none"]):not([style*="display: none"]), ' +
+                   'button.btn-primary:not([disabled]):not([style*="display:none"]):not([style*="display: none"])';
+    var all = Array.prototype.slice.call(container.querySelectorAll(selector));
+    return all.filter(function(el) {
+      return el.offsetParent !== null && window.getComputedStyle(el).visibility !== 'hidden';
+    });
+  }
+
+  // 3. Tally Enter / Shift+Enter Navigation & Ctrl+A Save
+  document.addEventListener('keydown', function(e) {
+    var activeEl = document.activeElement;
+    var activeModal = document.querySelector('.overlay.on');
+    var container = activeModal ? activeModal.querySelector('.modal') || activeModal : document.querySelector('.page.on');
+
+    // Tally Ctrl + A (or Cmd + A) — Quick Save / Accept Active Modal or Form
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+      // If inside an active modal with a primary save button, save it!
+      if (activeModal) {
+        var saveBtn = activeModal.querySelector('.modal-footer .btn-primary, button[onclick*="save"], button.btn-primary');
+        if (saveBtn) {
+          e.preventDefault();
+          saveBtn.click();
+          if (typeof toast === 'function') toast('Tally Accept (Ctrl+A): Saved ✓', 'var(--ok)');
+          return;
+        }
+      }
+    }
+
+    // Tally Esc — Close Active Modal
+    if (e.key === 'Escape') {
+      if (activeModal) {
+        var closeBtn = activeModal.querySelector('.modal-close, [data-close], .btn-ghost');
+        if (closeBtn) {
+          e.preventDefault();
+          closeBtn.click();
+          return;
+        }
+      }
+    }
+
+    // Tally Enter Navigation
+    if (e.key === 'Enter') {
+      if (!activeEl) return;
+      var tag = activeEl.tagName ? activeEl.tagName.toLowerCase() : '';
+      
+      // If on textarea, allow multiline unless Ctrl+Enter or Shift+Enter
+      if (tag === 'textarea' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        return; // normal newline in textarea
+      }
+
+      // If on submit / save button, let normal click happen
+      if (tag === 'button' || (tag === 'input' && (activeEl.type === 'submit' || activeEl.type === 'button'))) {
+        return;
+      }
+
+      // If in search input or login input with special handlers, let them handle
+      if (activeEl.id === 'lu-user' || activeEl.id === 'lu-pass' || activeEl.id === 'global-search-input') {
+        return;
+      }
+
+      if (container) {
+        var focusables = getFocusableElements(container);
+        var idx = focusables.indexOf(activeEl);
+
+        if (idx !== -1) {
+          e.preventDefault();
+          if (e.shiftKey) {
+            // Shift + Enter -> Move to Previous Field
+            var prevIdx = idx > 0 ? idx - 1 : focusables.length - 1;
+            var prevEl = focusables[prevIdx];
+            if (prevEl) {
+              prevEl.focus();
+              if (typeof prevEl.select === 'function') prevEl.select();
+            }
+          } else {
+            // Enter -> Move to Next Field (or if last field, focus primary save button)
+            var nextIdx = idx + 1;
+            if (nextIdx < focusables.length) {
+              var nextEl = focusables[nextIdx];
+              if (nextEl) {
+                nextEl.focus();
+                if (typeof nextEl.select === 'function') nextEl.select();
+              }
+            } else {
+              // Reached end of form -> focus save button
+              var primaryBtn = container.querySelector('.btn-primary, .modal-footer .btn-primary');
+              if (primaryBtn) primaryBtn.focus();
+            }
+          }
+        }
+      }
+    }
+  }, true);
+
+  console.log('TugWatch: Tally-Style Fast Keyboard Navigation & Auto-Select Engine initialized ✓');
+})();
+
 </script>
 
 <!-- MOBILE SPEED-DIAL RADIAL FAB CONTAINER -->
