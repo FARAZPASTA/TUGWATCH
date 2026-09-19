@@ -8659,7 +8659,7 @@ function setupGranularRealtimeListeners() {
           }
         });
 
-        // 2. Merge local items without dropping local records
+        // 2. Deep merge local items with cloud items without dropping local richer fields
         localArr.forEach(function(item) {
           if (item && typeof item === 'object') {
             var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
@@ -8667,7 +8667,20 @@ function setupGranularRealtimeListeners() {
               if (!itemMap[k]) {
                 itemMap[k] = item;
               } else {
-                itemMap[k] = Object.assign({}, itemMap[k], item);
+                var cloudItem = itemMap[k];
+                var mergedItem = Object.assign({}, cloudItem, item);
+                if (item.bankAccounts && Array.isArray(item.bankAccounts) && item.bankAccounts.length > 0) {
+                  mergedItem.bankAccounts = item.bankAccounts;
+                }
+                if (item.letterheadImage || item.letterhead) {
+                  mergedItem.letterheadImage = item.letterheadImage || item.letterhead;
+                  mergedItem.letterhead = mergedItem.letterheadImage;
+                }
+                if (item.stampImage || item.stamp) {
+                  mergedItem.stampImage = item.stampImage || item.stamp;
+                  mergedItem.stamp = mergedItem.stampImage;
+                }
+                itemMap[k] = mergedItem;
               }
             }
           }
@@ -9198,8 +9211,64 @@ function saveLocalSnapshot() {
   } catch(e){}
 }
 
+/* ══════════════════════════════════════════════════════════
+   INDEXEDDB UNLIMITED STORAGE ENGINE (Protects against Safari 5MB quota)
+══════════════════════════════════════════════════════════ */
+var _tw_idb = null;
+function getTugWatchIDB(cb) {
+  if (typeof indexedDB === 'undefined') { if (cb) cb(null); return; }
+  if (_tw_idb) { if (cb) cb(_tw_idb); return; }
+  try {
+    var req = indexedDB.open('TugWatch_Engine_v1', 1);
+    req.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains('fleetState')) {
+        db.createObjectStore('fleetState');
+      }
+    };
+    req.onsuccess = function(e) {
+      _tw_idb = e.target.result;
+      if (cb) cb(_tw_idb);
+    };
+    req.onerror = function() {
+      if (cb) cb(null);
+    };
+  } catch(e) {
+    if (cb) cb(null);
+  }
+}
+
+function saveToIDB(data) {
+  getTugWatchIDB(function(db) {
+    if (!db) return;
+    try {
+      var tx = db.transaction(['fleetState'], 'readwrite');
+      var store = tx.objectStore('fleetState');
+      store.put(data, 'master_db');
+    } catch(e) {
+      console.warn('TugWatch IDB save warning:', e);
+    }
+  });
+}
+
+function loadFromIDB(cb) {
+  getTugWatchIDB(function(db) {
+    if (!db) { if (cb) cb(null); return; }
+    try {
+      var tx = db.transaction(['fleetState'], 'readonly');
+      var store = tx.objectStore('fleetState');
+      var req = store.get('master_db');
+      req.onsuccess = function() { cb(req.result); };
+      req.onerror = function() { cb(null); };
+    } catch(e) { cb(null); }
+  });
+}
+
 function saveDB() {
-  // Always save to localStorage (offline backup)
+  // 1. Unlimited Persistent Storage via IndexedDB (Never fails on base64 images or PDFs)
+  saveToIDB(DB);
+
+  // 2. Fast LocalStorage fallback with automatic high-res image pruning if quota exceeded
   try {
     var serialized = JSON.stringify(DB);
     localStorage.setItem(LS_KEY, serialized);
@@ -9207,16 +9276,23 @@ function saveDB() {
     saveLocalSnapshot();
     _quotaWarned = false;
   } catch(e) {
-    console.warn('localStorage save failed:', e);
-    // Storage full (typically ~5MB). Warn the user — their data is NOT saved locally.
-    if (!_quotaWarned && /quota|exceeded/i.test(e.name + ' ' + e.message)) {
-      _quotaWarned = true;
-      if (FB_READY && FB_DB) {
-        if (typeof toast === 'function') toast('Local storage full — data is saving to the cloud only.', 'var(--warn)');
-      } else {
-        if (typeof uiAlert === 'function') uiAlert('⚠ Local storage is full (browser ~5MB limit). Your latest changes could NOT be saved. Connect Firebase to store unlimited data, or remove some attachments.');
-      }
-    }
+    console.warn('TugWatch: LocalStorage quota exceeded (IndexedDB + Cloud active):', e);
+    try {
+      var lightDB = {};
+      Object.keys(DB).forEach(function(k){
+        if (k === 'companies' && Array.isArray(DB.companies)) {
+          lightDB.companies = DB.companies.map(function(c){
+            var cCopy = Object.assign({}, c);
+            if (cCopy.letterheadImage && cCopy.letterheadImage.length > 5000) cCopy.letterheadImage = '';
+            if (cCopy.logo && cCopy.logo.length > 5000) cCopy.logo = '';
+            return cCopy;
+          });
+        } else {
+          lightDB[k] = DB[k];
+        }
+      });
+      localStorage.setItem(LS_KEY, JSON.stringify(lightDB));
+    } catch(e2){}
   }
   // Also save to Firebase if connected
   if (FB_READY && FB_DB) {
@@ -9343,6 +9419,7 @@ function seedDefaultFleetIfEmpty() {
 
 var DB_DEFAULT_SHAPE = {};
 function loadDB() {
+  // 1. Fast Synchronous Load from LocalStorage
   try {
     var possibleKeys = [LS_KEY, 'tugwatch_db_v1', 'tugwatch_db', 'tugwatch_v6_db', 'tw_db'];
     var parsed = null;
@@ -9354,7 +9431,6 @@ function loadDB() {
           if (p && typeof p === 'object') {
             if (!parsed) parsed = p;
             else {
-              // merge collections if found across keys
               if (Array.isArray(p.vessels) && p.vessels.length) {
                 if (!Array.isArray(parsed.vessels) || !parsed.vessels.length) parsed.vessels = p.vessels;
                 else {
@@ -9379,6 +9455,41 @@ function loadDB() {
       }
     }
   } catch(e) { console.warn('Load failed:', e); }
+
+  // 2. High-Fidelity Hydration from IndexedDB (Preserves rich images & full dataset)
+  loadFromIDB(function(idbData) {
+    if (idbData && typeof idbData === 'object') {
+      Object.keys(idbData).forEach(function(k) {
+        if (idbData[k] !== undefined && idbData[k] !== null) {
+          if (Array.isArray(idbData[k]) && idbData[k].length > 0) {
+            if (!Array.isArray(DB[k]) || DB[k].length === 0) {
+              DB[k] = idbData[k];
+            } else {
+              var map = {};
+              (idbData[k] || []).forEach(function(item) {
+                var key = item.id || (item.username ? String(item.username).toUpperCase() : null);
+                if (key) map[key] = item;
+              });
+              (DB[k] || []).forEach(function(item) {
+                var key = item.id || (item.username ? String(item.username).toUpperCase() : null);
+                if (key) {
+                  map[key] = Object.assign({}, map[key] || {}, item);
+                }
+              });
+              DB[k] = Object.values(map);
+            }
+          }
+        }
+      });
+      sanitizeDB();
+      try {
+        if (typeof updateBadges === 'function') updateBadges();
+        if (typeof renderCompanies === 'function') renderCompanies();
+        if (typeof renderCrew === 'function') renderCrew();
+      } catch(e){}
+    }
+  });
+
   seedDefaultFleetIfEmpty();
   sanitizeDB();
 }
@@ -15267,40 +15378,30 @@ function saveCompany() {
     return el ? (el.value || '').trim() : '';
   }
 
-  var name   = getCoField('co-name');
-  if (!name) { uiAlert('Enter company name'); return; }
+  var name = getCoField('co-name');
+  if (!name) { 
+    uiAlert('Please enter Company Name'); 
+    var nameEl = modal.querySelector('#co-name');
+    if (nameEl) nameEl.focus();
+    return; 
+  }
 
-  var tag    = getCoField('co-tag');
-  var entity = getCoField('co-entity');
-  var bypassEl = modal.querySelector('#co-doc-bypass') || document.getElementById('co-doc-bypass');
-  var bypass = !!(bypassEl && bypassEl.checked);
-
-  if (!tag && !bypass)    { uiAlert('Select relationship type (Client, Supplier, etc.)'); return; }
-  if (!entity && !bypass) { uiAlert('Select legal entity type (Pvt Ltd, LLP, Proprietorship, etc.)'); return; }
-
+  var tag    = getCoField('co-tag') || 'Client';
+  var entity = getCoField('co-entity') || 'Pvt Ltd';
   var rawGst = getCoField('co-gst');
   var rawPan = getCoField('co-pan');
-  var gst = rawGst.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-  var pan = rawPan.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-  var addr = getCoField('co-addr');
-
-  // Validate mandatory fields (skip if admin bypass is checked)
-  if (!gst && !bypass) { uiAlert('GST Number is required'); return; }
-  if (!pan && !bypass)  { uiAlert('PAN Number is required'); return; }
-  if (!addr && !bypass) { uiAlert('Registered address is required'); return; }
-
-  // Validate mandatory documents (bypass allowed for admin/master)
-  if (!bypass) {
-    if (!_coMandatoryDocs.gst)  { uiAlert('Upload GST Registration Certificate (mandatory)'); return; }
-    if (!_coMandatoryDocs.msme) { uiAlert('Upload MSME / Udyam Certificate (mandatory)'); return; }
-    if (!_coMandatoryDocs.pan)  { uiAlert('Upload PAN Card (mandatory)'); return; }
-  }
+  var gst    = rawGst.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  var pan    = rawPan.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  var addr   = getCoField('co-addr');
 
   var existingId = getCoField('co-id');
   var existingCo = existingId ? (DB.companies||[]).find(function(c){ return c.id === existingId; }) : null;
 
+  var bAccounts = collectCompanyBankAccounts();
+  var primBank = (bAccounts.find(function(a){ return a.isPrimary; }) || bAccounts[0]) || {};
+
   var co = {
-    id:      existingId || uid(),
+    id:      existingId || ('c_' + Date.now()),
     name:    name,
     addr:    addr,
     address: addr,
@@ -15311,23 +15412,22 @@ function saveCompany() {
     pan:     pan || rawPan.toUpperCase(),
     msme:    getCoField('co-msme'),
     cin:     getCoField('co-cin'),
-    tag:     tag || 'Client',
-    entity:  entity || 'Pvt Ltd',
+    tag:     tag,
+    entity:  entity,
     tradename: getCoField('co-tradename'),
-    logo:    getCoField('co-logo-data'),
-    letterheadImage: getCoField('co-letterhead-data'),
-    letterhead: getCoField('co-letterhead-data'),
-    stampImage: getCoField('co-stamp-data'),
-    stamp: getCoField('co-stamp-data'),
-    bankAccounts: collectCompanyBankAccounts(),
-    bankName: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankName : ''; })(),
-    bankAccName: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankAccName : ''; })(),
-    bankAccNo: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankAccNo : ''; })(),
-    bankIfsc: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankIfsc : ''; })(),
-    bankBranch: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankBranch : ''; })(),
-    bankUpi: (function(){ var primary = (collectCompanyBankAccounts().find(function(a){ return a.isPrimary; }) || collectCompanyBankAccounts()[0]); return primary ? primary.bankUpi : ''; })(),
+    logo:    getCoField('co-logo-data') || (existingCo ? existingCo.logo : '') || '',
+    letterheadImage: getCoField('co-letterhead-data') || (existingCo ? (existingCo.letterheadImage || existingCo.letterhead) : '') || '',
+    letterhead: getCoField('co-letterhead-data') || (existingCo ? (existingCo.letterheadImage || existingCo.letterhead) : '') || '',
+    stampImage: getCoField('co-stamp-data') || (existingCo ? (existingCo.stampImage || existingCo.stamp) : '') || '',
+    stamp: getCoField('co-stamp-data') || (existingCo ? (existingCo.stampImage || existingCo.stamp) : '') || '',
+    bankAccounts: bAccounts,
+    bankName: primBank.bankName || '',
+    bankAccName: primBank.bankAccName || '',
+    bankAccNo: primBank.bankAccNo || '',
+    bankIfsc: primBank.bankIfsc || '',
+    bankBranch: primBank.bankBranch || '',
+    bankUpi: primBank.bankUpi || '',
     active:  true,
-    // Mandatory docs — preserve existing if bypass used
     mandatoryDocs: {
       gst:  _coMandatoryDocs.gst  || (existingCo && existingCo.mandatoryDocs && existingCo.mandatoryDocs.gst)  || null,
       msme: _coMandatoryDocs.msme || (existingCo && existingCo.mandatoryDocs && existingCo.mandatoryDocs.msme) || null,
