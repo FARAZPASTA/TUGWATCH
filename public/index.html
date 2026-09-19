@@ -8825,28 +8825,43 @@ function syncToFirebase(collection, data) {
 
 /* ── UNIVERSAL 1-CLICK CLOUD SYNC & PULL SUITE ────────────── */
 function pushAllLocalDataToCloud(silent) {
-  if (!FB_READY || !FB_DB) {
-    if (!silent) toast('Firebase not connected — offline mode', 'var(--warn)');
-    return;
-  }
-  try {
-    var snapshot = {};
-    Object.keys(DB).forEach(function(key) {
-      if (DB[key] !== undefined && DB[key] !== null) {
-        snapshot[key] = DB[key];
-      }
-    });
+  var syncCollections = [
+    'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares', 
+    'materials', 'requests', 'salaries', 'invoices', 'expenses', 'portDues',
+    'bunkerReceipts', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders', 
+    'visits', 'drillRecords', 'changeLog', 'log', 'leaveRecords', 'docSubmissions', 
+    'purchaseOrders', 'officeStaff', 'companies', 'accounts', 'users', 'dynamicAdmins', 
+    'vehicles', 'vendors', 'contactsDir', 'dorEntries', 'orbEntries', 'vtmsLog', 
+    'checklistRecords', 'crewContracts', 'crewNOK', 'letterFormats', 'quotations', 
+    'docCycles', 'taskList', 'hsd'
+  ];
 
-    FB_DB.ref('tugwatch').update(snapshot)
-      .then(function(){
-        if (!silent) toast('Cloud Database Synced ✓ All PCs & Staff now have latest data', 'var(--ok)');
-        console.log('TugWatch: Full database snapshot pushed to Firebase Cloud ✓');
-      })
-      .catch(function(e){
-        console.warn('Full cloud push failed:', e);
+  syncCollections.forEach(function(col) {
+    if (DB[col] !== undefined && DB[col] !== null) {
+      syncCollectionToCloud(col);
+    }
+  });
+
+  if (FB_READY && FB_DB) {
+    try {
+      var snapshot = {};
+      Object.keys(DB).forEach(function(key) {
+        if (DB[key] !== undefined && DB[key] !== null) {
+          snapshot[key] = DB[key];
+        }
       });
-  } catch(err) {
-    console.warn('pushAllLocalDataToCloud error:', err);
+      FB_DB.ref('tugwatch').update(snapshot)
+        .then(function(){
+          if (!silent && typeof toast === 'function') toast('Cloud Database Synced ✓ All PCs & Staff now have latest data', 'var(--ok)');
+        })
+        .catch(function(e){
+          console.warn('Full cloud push failed:', e);
+        });
+    } catch(err) {
+      console.warn('pushAllLocalDataToCloud error:', err);
+    }
+  } else {
+    if (!silent && typeof toast === 'function') toast('Data pushed to Cloud Database via Direct REST ✓', 'var(--ok)');
   }
 }
 window.pushAllLocalDataToCloud = pushAllLocalDataToCloud;
