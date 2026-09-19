@@ -8391,6 +8391,11 @@ function delItem(arr, idx, renderFn, msg) {
   freeCloudFiles(arr[idx]);
   arr.splice(idx, 1);
   saveDB();
+  try {
+    var colName = null;
+    Object.keys(DB).forEach(function(k){ if (DB[k] === arr) colName = k; });
+    if (colName && typeof syncCollectionToCloud === 'function') syncCollectionToCloud(colName);
+  } catch(e){}
   renderFn();
   updateBadges();
   audit('Deleted item: ' + msg, 'var(--warn)');
@@ -24198,6 +24203,8 @@ function saveEdit() {
       diffRecord(module, _rec.id||idx, _label, _before, _rec, _trackFields[module]);
     }
   } catch(e){ console.warn('changelog:', e); }
+  saveDB();
+  if (_coll && typeof syncCollectionToCloud === 'function') syncCollectionToCloud(_coll);
   updateBadges();
   audit(`Edited ${module} record — by ${CU?CU.name:''}`, 'var(--accent)');
   toast('Record updated ✓', 'var(--ok)');
