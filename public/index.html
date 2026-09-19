@@ -8624,7 +8624,12 @@ function downloadFullDatabaseBackup() {
    ══════════════════════════════════════════════════════════ */
 function setupGranularRealtimeListeners() {
   if (!FB_READY || !FB_DB) return;
-  // Complete list of all 60+ system collections for 100% full multi-PC realtime replication
+  // Detach prior listeners to avoid duplicate callbacks
+  if (Array.isArray(FB_LISTENERS)) {
+    FB_LISTENERS.forEach(function(ref) { try { ref.off(); } catch(e){} });
+    FB_LISTENERS = [];
+  }
+  // Complete list of all 75+ system collections for 100% full multi-PC realtime replication
   var syncCollections = [
     // Fleet & Maritime Assets
     'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares',
@@ -8632,21 +8637,21 @@ function setupGranularRealtimeListeners() {
     'bunkerReceipts', 'hsd', 'runningHoursConfig',
     // Materials & Procurement
     'materials', 'requests', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders',
-    'purchaseOrders', 'vesselPOs', 'vendors', 'equipChanges',
+    'purchaseOrders', 'vesselPOs', 'vendors', 'purchases', 'equipChanges',
     // Accounts & Finance
     'companies', 'accounts', 'users', 'dynamicAdmins', 'salaries', 'salary_settings',
-    'paymentAdvices', 'invoices', 'expenses', 'portDues', 'quotations', 'quotationFormats',
+    'paymentAdvices', 'bankStatements', 'invoices', 'expenses', 'portDues', 'quotations', 'quotationFormats',
     // Marine Logs & Compliance
     'dorEntries', 'orbEntries', 'vtmsLog', 'vtmsDirectory', 'checklistRecords', 'checklistTemplates',
     'docSubmissions', 'docCycles', 'drydocks', 'plasticLog', 'classDieselReports', 'portalVault',
-    'complianceUploads', 'complianceReminders', 'letterFormats',
+    'complianceUploads', 'complianceReminders', 'letterFormats', 'incidents',
     // Crew HR & Management
     'crewContracts', 'contractTemplates', 'crewNOK', 'crewMovements', 'exCrew',
-    'leaveRecords', 'leaveBalance', 'officeStaff', 'hireRequests',
+    'leaveRecords', 'leaveBalance', 'officeStaff', 'prevOfficeStaff', 'hireRequests',
     // Logistics, Transport & Contacts
-    'vehicles', 'visits', 'visitTemplates', 'contactsDir', 'voyageContacts',
+    'vehicles', 'visits', 'visitTemplates', 'contactsDir', 'voyageContacts', 'tempMasters',
     // Safety, Alerts & System
-    'drillRecords', 'changeLog', 'log', 'taskList', 'vaultFolders', 'tides', 'tideCharts',
+    'drillRecords', 'changeLog', 'log', 'taskList', 'vaultFolders', 'companyVaultLog', 'tides', 'tideCharts',
     'tideLocs', 'alertContacts', 'notifications', 'activityLog', 'loginHistory', 'threads',
     'signOnLog', 'disabledAdmins', 'adminOverrides', 'adminRequests'
   ];
@@ -8659,7 +8664,7 @@ function setupGranularRealtimeListeners() {
       
       if (col === 'hsd') {
         if (typeof data === 'object' && !Array.isArray(data)) {
-          DB.hsd = Object.assign({}, DB.hsd || {}, data);
+          DB.hsd = data;
         }
       } else if (col === 'accounts' || col === 'users') {
         var userArr = safeArrayExtract(data);
@@ -8668,46 +8673,16 @@ function setupGranularRealtimeListeners() {
           if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
         }
       } else if (Array.isArray(DB[col]) || Array.isArray(data)) {
+        // Authoritative cloud update: perfectly reflects additions, edits, and deletions across all PCs
         var cloudArr = safeArrayExtract(data);
-        var localArr = safeArrayExtract(DB[col]);
-        var itemMap = {};
-
-        // 1. Cloud items are authoritative (live updates from other PCs)
-        cloudArr.forEach(function(item) {
-          if (item && typeof item === 'object') {
-            var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-            if (k) itemMap[k] = item;
-          }
-        });
-
-        // 2. Preserve only brand-new offline local items not yet in the cloud
-        localArr.forEach(function(item) {
-          if (item && typeof item === 'object') {
-            var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-            if (k && !itemMap[k]) {
-              itemMap[k] = item;
-            }
-          }
-        });
-
-        var merged = Object.values(itemMap);
-        if (merged.length > 0 || (Array.isArray(data) && data.length === 0)) {
-          DB[col] = merged;
-          // If local had items not yet in cloud, push merged array to cloud immediately
-          if (localArr.length > 0 && merged.length > cloudArr.length) {
-            try {
-              if (FB_READY && FB_DB) FB_DB.ref('tugwatch/' + col).set(merged);
-              fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + col + '.json', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(merged)
-              }).catch(function(){});
-            } catch(e) {}
-          }
-        }
-      } else if (typeof data === 'object') {
+        DB[col] = cloudArr;
+      } else if (typeof data === 'object' && data !== null) {
         DB[col] = data;
       }
+      
+      // Persist to IndexedDB & local cache
+      if (typeof saveToIDB === 'function') saveToIDB(DB);
+      try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch(e){}
       
       sanitizeDB();
       try {
@@ -8882,13 +8857,21 @@ function syncToFirebase(collection, data) {
 function pushAllLocalDataToCloud(silent) {
   var syncCollections = [
     'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares', 
-    'materials', 'requests', 'salaries', 'invoices', 'expenses', 'portDues',
-    'bunkerReceipts', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders', 
-    'visits', 'drillRecords', 'changeLog', 'log', 'leaveRecords', 'docSubmissions', 
-    'purchaseOrders', 'officeStaff', 'companies', 'accounts', 'users', 'dynamicAdmins', 
-    'vehicles', 'vendors', 'contactsDir', 'dorEntries', 'orbEntries', 'vtmsLog', 
-    'checklistRecords', 'crewContracts', 'crewNOK', 'letterFormats', 'quotations', 
-    'docCycles', 'taskList', 'hsd'
+    'materials', 'requests', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders', 
+    'purchaseOrders', 'vesselPOs', 'vendors', 'purchases', 'equipChanges',
+    'companies', 'accounts', 'users', 'dynamicAdmins', 'salaries', 'salary_settings', 
+    'paymentAdvices', 'bankStatements', 'invoices', 'expenses', 'portDues', 'quotations', 
+    'quotationFormats', 'dorEntries', 'orbEntries', 'vtmsLog', 'vtmsDirectory', 
+    'checklistRecords', 'checklistTemplates', 'docSubmissions', 'docCycles', 'drydocks', 
+    'plasticLog', 'classDieselReports', 'portalVault', 'complianceUploads', 'complianceReminders', 
+    'letterFormats', 'incidents', 'crewContracts', 'contractTemplates', 'crewNOK', 
+    'crewMovements', 'exCrew', 'leaveRecords', 'leaveBalance', 'officeStaff', 
+    'prevOfficeStaff', 'hireRequests', 'vehicles', 'visits', 'visitTemplates', 
+    'contactsDir', 'voyageContacts', 'tempMasters', 'drillRecords', 'changeLog', 
+    'log', 'taskList', 'vaultFolders', 'companyVaultLog', 'tides', 'tideCharts', 
+    'tideLocs', 'alertContacts', 'notifications', 'activityLog', 'loginHistory', 
+    'threads', 'signOnLog', 'disabledAdmins', 'adminOverrides', 'adminRequests', 
+    'bunkerReceipts', 'runningHoursConfig', 'hsd'
   ];
 
   syncCollections.forEach(function(col) {
@@ -9028,59 +9011,24 @@ function loadFromFirebase(callback) {
         var arrayCollections = [
           'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares',
           'bunkerReceipts', 'materials', 'requests', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders',
-          'purchaseOrders', 'vesselPOs', 'vendors', 'equipChanges',
-          'companies', 'accounts', 'users', 'dynamicAdmins', 'salaries', 'salary_settings',
-          'paymentAdvices', 'invoices', 'expenses', 'portDues', 'quotations', 'quotationFormats',
+          'purchaseOrders', 'vesselPOs', 'vendors', 'purchases', 'equipChanges', 'salaries', 'salary_settings',
+          'paymentAdvices', 'bankStatements', 'invoices', 'expenses', 'portDues', 'quotations', 'quotationFormats',
           'dorEntries', 'orbEntries', 'vtmsLog', 'vtmsDirectory', 'checklistRecords', 'checklistTemplates',
           'docSubmissions', 'docCycles', 'drydocks', 'plasticLog', 'classDieselReports', 'portalVault',
-          'complianceUploads', 'complianceReminders', 'letterFormats',
+          'complianceUploads', 'complianceReminders', 'letterFormats', 'incidents',
           'crewContracts', 'contractTemplates', 'crewNOK', 'crewMovements', 'exCrew',
-          'leaveRecords', 'officeStaff', 'hireRequests',
-          'vehicles', 'visits', 'visitTemplates', 'contactsDir', 'voyageContacts',
-          'drillRecords', 'changeLog', 'log', 'taskList', 'vaultFolders', 'tideCharts',
-          'tideLocs', 'alertContacts', 'notifications', 'activityLog', 'loginHistory', 'threads',
-          'signOnLog', 'disabledAdmins', 'adminRequests', 'incidents'
+          'leaveRecords', 'officeStaff', 'prevOfficeStaff', 'hireRequests', 'vehicles', 'visits', 'visitTemplates',
+          'contactsDir', 'voyageContacts', 'tempMasters', 'drillRecords', 'changeLog', 'log', 'taskList',
+          'vaultFolders', 'companyVaultLog', 'tideCharts', 'tideLocs', 'alertContacts', 'notifications',
+          'activityLog', 'loginHistory', 'threads', 'signOnLog', 'disabledAdmins', 'adminRequests', 'companies'
         ];
         
         arrayCollections.forEach(function(key) {
           var cloudArr = safeArrayExtract(data[key]);
-          var localArr = safeArrayExtract(DB[key]);
-          var itemMap = {};
-
-          // 1. Cloud items are authoritative
-          cloudArr.forEach(function(item) {
-            if (item && typeof item === 'object') {
-              var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-              if (k) itemMap[k] = item;
-            }
-          });
-
-          // 2. Preserve brand-new offline local items not yet in cloud
-          localArr.forEach(function(item) {
-            if (item && typeof item === 'object') {
-              var k = item.id || (item.username ? String(item.username).toUpperCase() : null);
-              if (k && !itemMap[k]) {
-                itemMap[k] = item;
-              }
-            }
-          });
-
-          if (cloudArr.length || localArr.length) {
-            var merged = Object.values(itemMap);
-            DB[key] = merged;
-            // If local had items not yet in cloud, automatically push merged array to cloud
-            if (localArr.length > 0 && merged.length > cloudArr.length) {
-              try {
-                if (FB_READY && FB_DB) {
-                  FB_DB.ref('tugwatch/' + key).set(merged);
-                }
-                fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + key + '.json', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(merged)
-                });
-              } catch(e) {}
-            }
+          if (cloudArr && cloudArr.length > 0) {
+            DB[key] = cloudArr;
+          } else if (data[key] && Array.isArray(data[key])) {
+            DB[key] = [];
           }
         });
 
