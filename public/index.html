@@ -4448,33 +4448,83 @@ html[data-theme="dark"] #l-pass::placeholder {
       <div class="page-hdr" style="margin-bottom:14px">
         <div>
           <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
-            <span>💾 Backup, Offline Extraction &amp; Restore Center</span>
-            <span class="chip chip-ok" style="font-size:10px">Lossless Recovery Engine</span>
+            <span>💾 Backup, Automated 8:00 PM Archiving &amp; Encrypted Restore Center</span>
+            <span class="chip chip-ok" style="font-size:10px">AES-256 Encrypted</span>
           </div>
-          <div style="font-size:11px;color:var(--t3);margin-top:2px">Export folder-wise, vessel-wise archives, download full JSON system snapshots, or seamlessly input/restore backups with 100% schema integrity</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Automated 8:00 PM daily backups on Master PC, vessel-wise structured archives, and military-grade encrypted backup &amp; decryption engine.</div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn btn-primary btn-sm" onclick="exportVesselAndFolderZipBackup()">🗂️ Export Vessel-Wise ZIP</button>
-          <button class="btn btn-accent btn-sm" onclick="exportFullDatabaseBackup()">📦 Download Master JSON</button>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-ok btn-sm" onclick="exportEncryptedBackup()" style="font-weight:700">🔐 Export Encrypted (.twbackup)</button>
+          <button class="btn btn-primary btn-sm" onclick="exportVesselAndFolderZipBackup()">🗂️ Vessel-Wise ZIP</button>
+          <button class="btn btn-accent btn-sm" onclick="exportFullDatabaseBackup()">📦 Plain JSON</button>
         </div>
       </div>
 
-      <!-- 3-CARD BACKUP MATRIX -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:18px">
-        <!-- Card 1: Vessel & Folder Wise ZIP Export -->
+      <!-- AUTOMATED 8:00 PM DAILY BACKUP SCHEDULER STATUS STRIP -->
+      <div class="data-card" style="margin-bottom:18px;padding:16px 20px;background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(56,189,248,0.08));border:1.5px solid var(--ok);border-radius:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:42px;height:42px;border-radius:50%;background:#dcfce7;border:1px solid #86efac;display:flex;align-items:center;justify-content:center;font-size:20px;color:#15803d">⏰</div>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px">
+                <span>Daily 8:00 PM Automated Local Backup (Master PC)</span>
+                <span class="chip chip-ok" id="tw-auto-bk-status-chip" style="font-size:9.5px">Active · Scheduled</span>
+              </div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">
+                Automatically compiles and downloads a full encrypted vessel-wise snapshot every evening at <strong>8:00 PM IST (20:00)</strong> when active on the Master PC.
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;font-weight:700;color:var(--t1)">
+              <input type="checkbox" id="tw-auto-bk-enable" checked onchange="toggleAutoBackupSchedule(this.checked)" style="width:17px;height:17px;accent-color:var(--ok)"/>
+              <span>Enable 8:00 PM Daily Auto-Backup</span>
+            </label>
+            <button class="btn btn-outline btn-sm" onclick="triggerManual8PMBackupNow()" style="font-weight:700">⚡ Backup Now (Instant)</button>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(0,0,0,0.1);display:flex;gap:20px;font-size:11px;color:var(--t2);flex-wrap:wrap">
+          <div>📅 <strong>Last Backup Taken:</strong> <span id="tw-last-backup-display" style="font-family:var(--fm);font-weight:700">Never</span></div>
+          <div>⏱️ <strong>Scheduled Time:</strong> <span style="font-family:var(--fm);font-weight:700">20:00 IST (8:00 PM) Daily</span></div>
+          <div>🔐 <strong>Format:</strong> <span style="font-family:var(--fm);font-weight:700">AES-256 Encrypted Container (.twbackup)</span></div>
+        </div>
+      </div>
+
+      <!-- 4-CARD BACKUP & INPUT MATRIX -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:18px">
+        
+        <!-- Card 1: Encrypted Master Backup (.twbackup) -->
+        <div class="data-card" style="padding:18px;border-top:3px solid var(--ok);display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">
+              <span>🔐 Encrypted Master Backup (.twbackup)</span>
+            </div>
+            <div style="font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:12px">
+              Exports an AES-GCM 256-bit encrypted snapshot protected by your Master Password. Safe for cloud storage, external hard drives, or emailing without risk of unauthorized access.
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:10px;color:var(--t2)">
+              <div><strong>Vessels:</strong> <span id="bk-stat-vessels">0</span> · <strong>Crew:</strong> <span id="bk-stat-crew">0</span></div>
+              <div style="margin-top:2px"><strong>Drawings &amp; Plans:</strong> <span id="bk-stat-drawings">0</span> · <strong>Certs:</strong> <span id="bk-stat-certs">0</span></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-ok" onclick="exportEncryptedBackup()" style="font-weight:700;padding:9px 16px;width:100%">
+            🔐 Download Encrypted Backup (.twbackup)
+          </button>
+        </div>
+
+        <!-- Card 2: Vessel & Folder Wise ZIP Export -->
         <div class="data-card" style="padding:18px;border-top:3px solid var(--accent);display:flex;flex-direction:column;justify-content:space-between">
           <div>
             <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">
               <span>🗂️ Vessel-Wise &amp; Folder-Wise ZIP Export</span>
             </div>
             <div style="font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:12px">
-              Extracts a complete structured ZIP archive with dedicated folders:
-              <ul style="margin:6px 0 0 16px;padding:0;font-size:10.5px;color:var(--t2)">
-                <li><code>📁 01_Vessels_Fleet/[Vessel_Name]/</code> (Certificates, Fuel, Maint, Crew)</li>
-                <li><code>📁 02_Material_and_Challans/</code> (Printed Delivery Challans, POs, Inventory)</li>
-                <li><code>📁 03_Crew_and_Indos/</code> (Manifest, Contracts, Leave)</li>
-                <li><code>📁 04_Finance_and_Invoices/</code> (Invoices, Salaries)</li>
-                <li><code>📁 05_Universal_Restore/</code> (Includes website-ready master JSON)</li>
+              Extracts a human-readable structured ZIP archive with separate folders:
+              <ul style="margin:4px 0 0 14px;padding:0;font-size:10px;color:var(--t2)">
+                <li><code>📁 01_Vessels_Fleet/[Vessel_Name]/</code> (Specs, Certs, Drawings, Fuel)</li>
+                <li><code>📁 02_Material_and_Challans/</code> (Delivery Challans, POs)</li>
+                <li><code>📁 03_Crew_and_Manifest/</code> (Contracts, CDC, Passport)</li>
+                <li><code>📁 04_Company_Letterheads/</code> (Seals, Stamps, Mandates)</li>
               </ul>
             </div>
           </div>
@@ -4483,43 +4533,25 @@ html[data-theme="dark"] #l-pass::placeholder {
           </button>
         </div>
 
-        <!-- Card 2: 1-Click Master System JSON Backup -->
-        <div class="data-card" style="padding:18px;border-top:3px solid var(--ok);display:flex;flex-direction:column;justify-content:space-between">
+        <!-- Card 3: Universal Input / Restore & Decryption Engine -->
+        <div class="data-card" style="padding:18px;border-top:3px solid #f59e0b;display:flex;flex-direction:column;justify-content:space-between">
           <div>
             <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">
-              <span>📦 1-Click Master Database Backup (.json)</span>
+              <span>📥 Input Data &amp; Decrypt Feed Engine</span>
             </div>
             <div style="font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:12px">
-              Instant snapshot of 100% of your website state formatted so the system can effortlessly re-import, rehydrate, and reconstruct every vessel, material challan, invoice, and setting.
-            </div>
-            <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:10px;color:var(--t2)">
-              <div><strong>Vessels:</strong> <span id="bk-stat-vessels">0</span> · <strong>Crew:</strong> <span id="bk-stat-crew">0</span></div>
-              <div style="margin-top:2px"><strong>Materials &amp; Challans:</strong> <span id="bk-stat-materials">0</span> · <strong>Invoices:</strong> <span id="bk-stat-invoices">0</span></div>
-            </div>
-          </div>
-          <button type="button" class="btn btn-ok" onclick="exportFullDatabaseBackup()" style="font-weight:700;padding:9px 16px;width:100%">
-            💾 Download Master Backup File
-          </button>
-        </div>
-
-        <!-- Card 3: Universal Input / Restore Engine -->
-        <div class="data-card" style="padding:18px;border-top:3px solid var(--warn);display:flex;flex-direction:column;justify-content:space-between">
-          <div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--t1);margin-bottom:4px">
-              <span>📥 Universal Input / Restore Engine</span>
-            </div>
-            <div style="font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:12px">
-              Lost data or switched devices? Drop any previously exported <code>.json</code> or <code>.zip</code> backup file here to restore all data with 100% accuracy.
+              Feed any <code>.twbackup</code>, <code>.json</code>, or <code>.zip</code> backup into the website. The system automatically prompts for password, decrypts, verifies checksum, and restores all vessels, crew, and documents.
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px">
-            <label class="btn btn-primary" style="cursor:pointer;text-align:center;font-weight:700;margin:0;padding:9px 16px">
-              📂 Select Backup File to Restore (.json / .zip)
-              <input type="file" id="universal-restore-input" accept=".json,.zip,.twbackup" style="display:none" onchange="handleUniversalRestoreFile(this)"/>
+            <label class="btn btn-primary" style="cursor:pointer;text-align:center;font-weight:700;margin:0;padding:9px 16px;background:#f59e0b;border-color:#f59e0b;color:#fff">
+              📂 Select Backup File (.twbackup / .json / .zip)
+              <input type="file" id="universal-restore-input" accept=".twbackup,.json,.zip" style="display:none" onchange="handleUniversalRestoreFile(this)"/>
             </label>
-            <button type="button" class="btn btn-outline btn-sm" onclick="openModal('m-backup-manager')">⚙️ Advanced Restore &amp; Cloud Sync</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="openManualJSONInputModal()">📝 Paste Raw Backup JSON</button>
           </div>
         </div>
+
       </div>
 
       <!-- CLOUD SYNC & STORAGE AUDIT ROW -->
@@ -34755,117 +34787,287 @@ function exportVesselAndFolderZipBackup() {
 }
 
 // 3. Universal File Handler for Restore (.json, .zip, .twbackup)
+
+/* ══════════════════════════════════════════════════════════════
+   AES-GCM 256-BIT ENCRYPTED BACKUP & 8:00 PM SCHEDULER ENGINE
+══════════════════════════════════════════════════════════════ */
+
+async function deriveAESKey(password, salt) {
+  var enc = new TextEncoder();
+  var keyMaterial = await window.crypto.subtle.importKey(
+    'raw',
+    enc.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits', 'deriveKey']
+  );
+  return window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptDataAES(plainText, password) {
+  var enc = new TextEncoder();
+  var salt = window.crypto.getRandomValues(new Uint8Array(16));
+  var iv = window.crypto.getRandomValues(new Uint8Array(12));
+  var key = await deriveAESKey(password, salt);
+  var cipherBuffer = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv },
+    key,
+    enc.encode(plainText)
+  );
+
+  // Helper ArrayBuffer to Base64
+  function buf2b64(buf) {
+    var bin = '';
+    var bytes = new Uint8Array(buf);
+    for (var i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+    return window.btoa(bin);
+  }
+
+  return {
+    format: 'TUGWATCH_ENCRYPTED_BACKUP_V2',
+    salt: buf2b64(salt),
+    iv: buf2b64(iv),
+    cipher: buf2b64(cipherBuffer)
+  };
+}
+
+async function decryptDataAES(encryptedContainer, password) {
+  function b642buf(b64) {
+    var bin = window.atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  var salt = new Uint8Array(b642buf(encryptedContainer.salt));
+  var iv = new Uint8Array(b642buf(encryptedContainer.iv));
+  var cipherBuf = b642buf(encryptedContainer.cipher);
+  var key = await deriveAESKey(password, salt);
+
+  var plainBuf = await window.crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: iv },
+    key,
+    cipherBuf
+  );
+
+  var dec = new TextDecoder();
+  return dec.decode(plainBuf);
+}
+
+async function exportEncryptedBackup(customPassword) {
+  var pass = customPassword;
+  if (!pass) {
+    var defaultPass = (MASTER && MASTER.password) ? MASTER.password : 'ocaptain';
+    var inputPass = prompt('Enter a password to encrypt this backup (Leave blank to use Master Admin Password):', defaultPass);
+    if (inputPass === null) return; // Cancelled
+    pass = inputPass.trim() || defaultPass;
+  }
+
+  toast('Encrypting database with AES-256... ⏳', 'var(--accent)');
+
+  try {
+    var fullPayload = JSON.stringify(DB, null, 2);
+    var encResult = await encryptDataAES(fullPayload, pass);
+
+    var totalDrawings = 0;
+    (DB.vessels || []).forEach(function(v){ totalDrawings += (v.drawings || []).length; });
+
+    var finalContainer = {
+      format: encResult.format,
+      salt: encResult.salt,
+      iv: encResult.iv,
+      cipher: encResult.cipher,
+      timestamp: new Date().toISOString(),
+      exportedBy: (CU ? CU.name + ' (' + CU.role + ')' : 'Master Admin'),
+      stats: {
+        vessels: (DB.vessels || []).length,
+        crew: (DB.crew || []).length,
+        certs: (DB.certs || []).length,
+        drawings: totalDrawings,
+        materials: (DB.materials || []).length,
+        invoices: (DB.invoices || []).length
+      }
+    };
+
+    var dateStr = today();
+    var timeStr = new Date().toTimeString().slice(0,5).replace(':','');
+    var filename = 'TugWatch_Encrypted_Backup_' + dateStr + '_' + timeStr + '.twbackup';
+
+    var blob = new Blob([JSON.stringify(finalContainer, null, 2)], { type: 'application/json' });
+    var u = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = u;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(u);
+
+    localStorage.setItem('tw_last_local_backup_ts', new Date().toLocaleString('en-IN'));
+    updateBackupDisplayTime();
+
+    audit('Exported AES-256 Encrypted Backup: ' + filename, 'var(--ok)');
+    toast('Encrypted Backup (' + filename + ') downloaded successfully ✓', 'var(--ok)');
+  } catch(err) {
+    uiAlert('Encryption error: ' + err.message);
+  }
+}
+window.exportEncryptedBackup = exportEncryptedBackup;
+
+function updateBackupDisplayTime() {
+  var lastTs = localStorage.getItem('tw_last_local_backup_ts') || 'Never';
+  var el = document.getElementById('tw-last-backup-display');
+  if (el) el.textContent = lastTs;
+}
+
+function toggleAutoBackupSchedule(enable) {
+  localStorage.setItem('tw_auto_bk_enabled', enable ? '1' : '0');
+  var chip = document.getElementById('tw-auto-bk-status-chip');
+  if (chip) {
+    chip.textContent = enable ? 'Active · Scheduled' : 'Disabled';
+    chip.className = enable ? 'chip chip-ok' : 'chip chip-muted';
+  }
+  toast(enable ? '8:00 PM Daily Auto-Backup enabled ✓' : 'Auto-Backup disabled', enable ? 'var(--ok)' : 'var(--warn)');
+}
+window.toggleAutoBackupSchedule = toggleAutoBackupSchedule;
+
+function triggerManual8PMBackupNow() {
+  exportEncryptedBackup();
+}
+window.triggerManual8PMBackupNow = triggerManual8PMBackupNow;
+
+/* ── 8:00 PM (20:00) AUTOMATED CRON SCHEDULER IN BROWSER ──── */
+function check8PMBackupTrigger() {
+  var isEnabled = localStorage.getItem('tw_auto_bk_enabled') !== '0';
+  if (!isEnabled) return;
+
+  var now = new Date();
+  var hours = now.getHours();
+  var minutes = now.getMinutes();
+
+  // Check if it is 8:00 PM (20:00 to 20:05)
+  if (hours === 20 && minutes >= 0 && minutes <= 5) {
+    var todayStr = today();
+    var lastRunDate = localStorage.getItem('tw_last_8pm_auto_date');
+    if (lastRunDate !== todayStr) {
+      localStorage.setItem('tw_last_8pm_auto_date', todayStr);
+      console.log('⏰ TugWatch: Triggering 8:00 PM Daily Auto-Backup...');
+      var defaultPass = (MASTER && MASTER.password) ? MASTER.password : 'ocaptain';
+      exportEncryptedBackup(defaultPass);
+    }
+  }
+}
+
+// Run timer every 30 seconds
+if (window._twBackupInterval) clearInterval(window._twBackupInterval);
+window._twBackupInterval = setInterval(check8PMBackupTrigger, 30000);
+
+/* Hook updateBackupDisplayTime in renderBackup */
+var _origRenderBackup = renderBackup;
+renderBackup = function() {
+  if (_origRenderBackup) _origRenderBackup();
+  updateBackupDisplayTime();
+  var totalDrawings = 0;
+  (DB.vessels || []).forEach(function(v){ totalDrawings += (v.drawings || []).length; });
+  var vEl = document.getElementById('bk-stat-vessels'); if(vEl) vEl.textContent = (DB.vessels||[]).length;
+  var cEl = document.getElementById('bk-stat-crew'); if(cEl) cEl.textContent = (DB.crew||[]).length;
+  var dEl = document.getElementById('bk-stat-drawings'); if(dEl) dEl.textContent = totalDrawings;
+  var crEl = document.getElementById('bk-stat-certs'); if(crEl) crEl.textContent = (DB.certs||[]).length;
+};
+
+
 function handleUniversalRestoreFile(inputEl) {
   var file = inputEl.files && inputEl.files[0];
   if (!file) return;
 
   var fileName = file.name.toLowerCase();
 
-  if (fileName.endsWith('.json') || fileName.endsWith('.twbackup')) {
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        var parsed = JSON.parse(ev.target.result);
-        promptRestoreConfirmation(parsed, file.name);
-      } catch (err) {
-        uiAlert('Invalid JSON file format: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-  } else if (fileName.endsWith('.zip')) {
-    if (typeof JSZip === 'undefined') {
-      uiAlert('JSZip library required to unpack ZIP backup. Please upload the .json backup file directly.');
-      return;
-    }
-    var zipReader = new FileReader();
-    zipReader.onload = function(ev) {
-      JSZip.loadAsync(ev.target.result).then(function(zip) {
-        // Look for TugWatch_MASTER_RESTORE_FILE.json inside ZIP
-        var restoreFile = zip.file('06_Universal_System_Restore_Package/TugWatch_MASTER_RESTORE_FILE.json') || zip.file('TugWatch_MASTER_RESTORE_FILE.json');
-        if (!restoreFile) {
-          // Search for any .json file
-          var foundKey = Object.keys(zip.files).find(function(k){ return k.toLowerCase().endsWith('.json') && !k.includes('particulars'); });
-          if (foundKey) restoreFile = zip.file(foundKey);
-        }
+  var reader = new FileReader();
+  reader.onload = async function(ev) {
+    try {
+      var rawText = ev.target.result;
+      var parsed = null;
+      try { parsed = JSON.parse(rawText); } catch(e){}
 
-        if (!restoreFile) {
-          uiAlert('Could not find TugWatch master restore JSON inside this ZIP file.');
+      // Check if this is an AES encrypted .twbackup container
+      if (parsed && parsed.format === 'TUGWATCH_ENCRYPTED_BACKUP_V2' && parsed.cipher && parsed.salt) {
+        var defaultPass = (MASTER && MASTER.password) ? MASTER.password : 'ocaptain';
+        var pass = prompt('🔐 Encrypted TugWatch Backup Detected!\n\nEnter Decryption Password (Default is Master Admin Password):', defaultPass);
+        if (pass === null) return; // Cancelled
+        pass = pass.trim() || defaultPass;
+
+        toast('Decrypting backup with AES-256... ⏳', 'var(--accent)');
+        try {
+          var decryptedText = await decryptDataAES(parsed, pass);
+          var decryptedPayload = JSON.parse(decryptedText);
+          toast('Backup decrypted successfully ✓', 'var(--ok)');
+          promptRestoreConfirmation(decryptedPayload, file.name + ' (Decrypted)');
+        } catch(decErr) {
+          uiAlert('❌ Decryption Failed: Invalid password or corrupted backup file.');
+        }
+        return;
+      }
+
+      // Plain JSON
+      if (parsed) {
+        promptRestoreConfirmation(parsed, file.name);
+        return;
+      }
+
+      // ZIP archive
+      if (fileName.endsWith('.zip')) {
+        if (typeof JSZip === 'undefined') {
+          uiAlert('JSZip library required to unpack ZIP backup. Please upload the .twbackup or .json file.');
           return;
         }
+        var zip = await JSZip.loadAsync(file);
+        var restoreFile = zip.file('05_Universal_Restore/TugWatch_MASTER_RESTORE_FILE.json') || zip.file('06_Universal_System_Restore_Package/TugWatch_MASTER_RESTORE_FILE.json') || zip.file('TugWatch_MASTER_RESTORE_FILE.json');
+        if (!restoreFile) {
+          var files = Object.keys(zip.files).filter(function(k){ return k.endsWith('.json'); });
+          if (files.length) restoreFile = zip.file(files[0]);
+        }
+        if (restoreFile) {
+          var zipJsonText = await restoreFile.async('text');
+          var zipData = JSON.parse(zipJsonText);
+          promptRestoreConfirmation(zipData, file.name + ' (from ZIP)');
+        } else {
+          uiAlert('Could not find restore JSON inside this ZIP archive.');
+        }
+      }
+    } catch (err) {
+      uiAlert('Restore error: ' + err.message);
+    }
+  };
 
-        restoreFile.async('string').then(function(jsonStr) {
-          var parsed = JSON.parse(jsonStr);
-          promptRestoreConfirmation(parsed, file.name);
-        });
-      }).catch(function(err) {
-        uiAlert('Failed to read ZIP archive: ' + err.message);
-      });
-    };
-    zipReader.readAsArrayBuffer(file);
+  if (fileName.endsWith('.zip')) {
+    reader.readAsArrayBuffer(file);
   } else {
-    uiAlert('Unsupported file format. Please upload a .json, .twbackup, or .zip archive.');
+    reader.readAsText(file);
   }
-
-  inputEl.value = '';
 }
 
-// 4. Modal Confirmation & Inspection Preview before Restoring
-function promptRestoreConfirmation(payload, sourceName) {
-  var targetData = payload.data || payload;
-  if (!targetData || typeof targetData !== 'object') {
-    uiAlert('Corrupt or unrecognized backup payload structure.');
-    return;
+function openManualJSONInputModal() {
+  var jsonText = prompt('Paste your TugWatch JSON database backup content below:');
+  if (!jsonText || !jsonText.trim()) return;
+  try {
+    var parsed = JSON.parse(jsonText);
+    promptRestoreConfirmation(parsed, 'Pasted Raw JSON');
+  } catch(e) {
+    uiAlert('Invalid JSON syntax: ' + e.message);
   }
-
-  var vCount = (targetData.vessels || []).length;
-  var cCount = (targetData.crew || []).length;
-  var certCount = (targetData.certs || []).length;
-  var matCount = (targetData.materials || []).length;
-  var invCount = (targetData.invoices || []).length;
-  var admCount = (targetData.dynamicAdmins || []).length;
-
-  var confModal = document.createElement('div');
-  confModal.className = 'overlay on';
-  confModal.style.zIndex = '10900';
-  confModal.innerHTML = '<div class="modal" style="max-width:540px">'
-    + '<div class="modal-title" style="color:var(--accent)">🔍 Backup Inspection &amp; Restore Verification</div>'
-    + '<div class="modal-sub">Inspected archive: <strong>' + esc(sourceName) + '</strong></div>'
-    + '<div style="background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:12px;margin:12px 0">'
-      + '<div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:6px">📦 Data Found in Backup:</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:var(--t2)">'
-        + '<div>🚢 Vessels: <strong>' + vCount + '</strong></div>'
-        + '<div>👥 Crew Members: <strong>' + cCount + '</strong></div>'
-        + '<div>📜 Certificates: <strong>' + certCount + '</strong></div>'
-        + '<div>📦 Material &amp; Challans: <strong>' + matCount + '</strong></div>'
-        + '<div>💰 Invoices: <strong>' + invCount + '</strong></div>'
-        + '<div>🛡️ Fleet Admins: <strong>' + admCount + '</strong></div>'
-      + '</div>'
-    + '</div>'
-    + '<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Choose how you would like to restore this data into the website:</div>'
-    + '<div style="display:flex;gap:8px;margin-bottom:8px">'
-      + '<button type="button" class="btn btn-primary" id="btn-restore-merge" style="flex:1;font-weight:700">🛡️ Safe Merge (Preserve New Entries)</button>'
-      + '<button type="button" class="btn btn-danger" id="btn-restore-overwrite" style="flex:1;font-weight:700">⚠️ Complete Overwrite (Full Rebuild)</button>'
-    + '</div>'
-    + '<div style="display:flex;justify-content:flex-end;margin-top:10px">'
-      + '<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest(\'.overlay\').remove()">Cancel</button>'
-    + '</div>'
-  + '</div>';
-
-  document.body.appendChild(confModal);
-
-  document.getElementById('btn-restore-merge').onclick = function() {
-    confModal.remove();
-    executeUniversalRestore(targetData, 'merge', sourceName);
-  };
-
-  document.getElementById('btn-restore-overwrite').onclick = function() {
-    if (!confirm('Warning: Complete Overwrite will replace your current website data with this backup file. Proceed?')) return;
-    confModal.remove();
-    executeUniversalRestore(targetData, 'overwrite', sourceName);
-  };
 }
-
-// 5. Execute Universal Restore with Bulletproof Local + Cloud Rehydration
+window.openManualJSONInputModal = openManualJSONInputModal;
 function executeUniversalRestore(targetData, mode, sourceName) {
   if (mode === 'overwrite') {
     DB = JSON.parse(JSON.stringify(targetData));
