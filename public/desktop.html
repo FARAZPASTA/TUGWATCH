@@ -2524,6 +2524,11 @@ html[data-theme="dark"] #l-pass::placeholder {
       Monthly Report<span class="nav-badge nb-default" id="nb-monthly-report"></span>
     </div>
     <div class="nav-item master-only" data-page="backup">
+    <div class="nav-item master-only" data-page="trash" onclick="go('trash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      <span>Recycle Bin</span>
+      <span class="nav-badge nb-default" id="nb-trash" style="background:#ef4444;color:#fff"></span>
+    </div>
       <svg viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#0369a1" stroke-width="1.5" stroke-linecap="round"/><path d="M7 10l5 5 5-5M12 15V3" stroke="#0369a1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Backup &amp; Restore
     </div>
@@ -4444,6 +4449,44 @@ html[data-theme="dark"] #l-pass::placeholder {
     </div>
 
     <!-- BACKUP, OFFLINE EXTRACTION & UNIVERSAL RESTORE PAGE -->
+    
+    <!-- RECENT DELETIONS & RECYCLE BIN PAGE -->
+    <div class="page" id="p-trash">
+      <div class="page-hdr" style="margin-bottom:14px">
+        <div>
+          <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
+            <span>🗑️ Recent Deletions &amp; Recycle Bin Vault</span>
+            <span class="chip chip-ok" id="trash-total-count">0</span>
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">
+            All deleted vessels, certificates, crew, maintenance logs, and documents are stored here safely. You can 1-click restore any item back to its exact place or permanently purge it.
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline btn-sm" onclick="renderTrash()">🔄 Refresh</button>
+          <button class="btn btn-danger btn-sm" onclick="emptyTrash()" style="font-weight:700">🧹 Empty Recycle Bin</button>
+        </div>
+      </div>
+
+      <!-- FILTER TABS & SEARCH -->
+      <div class="data-card" style="margin-bottom:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="trash-filter-tabs">
+          <button class="btn btn-outline btn-sm trash-filter-btn on" data-filter="all" onclick="renderTrash('all')">All Items</button>
+          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="vessels" onclick="renderTrash('vessels')">🚢 Vessels</button>
+          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="certs" onclick="renderTrash('certs')">📜 Certificates</button>
+          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="crew" onclick="renderTrash('crew')">👤 Crew</button>
+          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="maint" onclick="renderTrash('maint')">🔧 Maintenance</button>
+          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="materials" onclick="renderTrash('materials')">📦 Materials</button>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" class="form-input" id="trash-search-input" placeholder="Search deleted records..." style="width:220px;font-size:11px;padding:5px 10px" oninput="renderTrash()"/>
+        </div>
+      </div>
+
+      <!-- TRASH LIST CONTAINER -->
+      <div id="trash-list-container"></div>
+    </div>
+
     <div class="page" id="p-backup">
       <div class="page-hdr" style="margin-bottom:14px">
         <div>
@@ -8511,12 +8554,233 @@ function renderReports() {
 }
 
 function clearFields(ids) { ids.forEach(id=>{ const el=$(id); if(el) el.value=''; }); }
+
+/* ══════════════════════════════════════════════════════════════
+   RECENT DELETIONS & RECYCLE BIN RECOVERY VAULT
+══════════════════════════════════════════════════════════════ */
+
+function recordToRecentDeletes(col, item, title, vesselName) {
+  if (!item) return;
+  DB.recentDeletions = DB.recentDeletions || [];
+  
+  var recordTitle = title || item.name || item.title || item.item || item.desc || (col + ' Record');
+  var vName = vesselName || (item.vessel ? vname(item.vessel) : '') || 'Fleet / Global';
+  
+  var trashEntry = {
+    trashId: 'tr_' + uid(),
+    col: col,
+    title: recordTitle,
+    vesselName: vName,
+    item: JSON.parse(JSON.stringify(item)),
+    deletedAt: new Date().toISOString(),
+    deletedBy: (CU ? CU.name + ' (' + CU.role + ')' : 'Admin'),
+    canRestore: true
+  };
+
+  // Keep last 100 deleted items
+  DB.recentDeletions.unshift(trashEntry);
+  if (DB.recentDeletions.length > 100) {
+    DB.recentDeletions = DB.recentDeletions.slice(0, 100);
+  }
+
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('recentDeletions');
+  }
+  updateTrashBadge();
+}
+window.recordToRecentDeletes = recordToRecentDeletes;
+
+function updateTrashBadge() {
+  var count = (DB.recentDeletions || []).length;
+  var b = document.getElementById('nb-trash');
+  if (b) {
+    b.textContent = count > 0 ? count : '';
+    b.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+}
+window.updateTrashBadge = updateTrashBadge;
+
+function renderTrash(filterCategory) {
+  var grid = document.getElementById('trash-list-container');
+  if (!grid) return;
+
+  var countEl = document.getElementById('trash-total-count');
+  var allDeletions = DB.recentDeletions || [];
+  if (countEl) countEl.textContent = allDeletions.length;
+  updateTrashBadge();
+
+  var curFilter = filterCategory || window._trashFilter || 'all';
+  window._trashFilter = curFilter;
+
+  // Update filter buttons
+  document.querySelectorAll('.trash-filter-btn').forEach(function(btn) {
+    btn.classList.toggle('on', btn.getAttribute('data-filter') === curFilter);
+  });
+
+  var list = allDeletions;
+  if (curFilter !== 'all') {
+    list = list.filter(function(x){ return x.col === curFilter; });
+  }
+
+  var searchQ = (val('trash-search-input') || '').trim().toLowerCase();
+  if (searchQ) {
+    list = list.filter(function(x) {
+      return (x.title || '').toLowerCase().includes(searchQ) ||
+             (x.vesselName || '').toLowerCase().includes(searchQ) ||
+             (x.col || '').toLowerCase().includes(searchQ) ||
+             (x.deletedBy || '').toLowerCase().includes(searchQ);
+    });
+  }
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty" style="padding:40px;text-align:center">' +
+      '<div style="font-size:36px;margin-bottom:10px">🗑️</div>' +
+      '<strong>Recycle Bin is Clean</strong>' +
+      '<p style="font-size:12px;color:var(--t3);max-width:420px;margin:6px auto 0">No recently deleted items found. Whenever you delete vessels, certificates, crew, maintenance records, or drawings, they will be kept here safely for 30 days so you can restore them anytime.</p>' +
+    '</div>';
+    return;
+  }
+
+  var COL_ICONS = {
+    vessels: '🚢', certs: '📜', crew: '👤', maint: '🔧', defs: '⚠️',
+    voyages: '⚓', materials: '📦', drawings: '📐', expenses: '💰',
+    invoices: '📄', docCycles: '📋', companies: '🏢', letterFormats: '📝'
+  };
+
+  var tableHtml = '<div class="data-card" style="padding:0;overflow:hidden"><table>' +
+    '<thead><tr>' +
+      '<th>Type</th>' +
+      '<th>Item / Document Name</th>' +
+      '<th>Vessel / Section</th>' +
+      '<th>Deleted Date &amp; Time</th>' +
+      '<th>Deleted By</th>' +
+      '<th style="text-align:right">Actions</th>' +
+    '</tr></thead><tbody>' +
+    list.map(function(t) {
+      var icon = COL_ICONS[t.col] || '📁';
+      var colLabel = t.col.charAt(0).toUpperCase() + t.col.slice(1);
+      var delDate = t.deletedAt ? new Date(t.deletedAt).toLocaleString('en-IN') : '—';
+
+      return '<tr>' +
+        '<td style="white-space:nowrap"><span class="chip chip-info" style="font-size:9.5px">' + icon + ' ' + colLabel + '</span></td>' +
+        '<td><strong>' + esc(t.title) + '</strong></td>' +
+        '<td><span style="font-size:11px;color:var(--t2)">' + esc(t.vesselName) + '</span></td>' +
+        '<td style="font-size:11px;font-family:var(--fm)">' + delDate + '</td>' +
+        '<td style="font-size:10.5px;color:var(--t3)">' + esc(t.deletedBy) + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">' +
+          '<button class="btn btn-ok btn-sm" onclick="restoreFromTrash(\'' + t.trashId + '\')" style="margin-right:6px;font-weight:700" title="Restore back to original section">↩️ Restore</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="purgeFromTrash(\'' + t.trashId + '\')" title="Permanently Delete Forever">❌ Purge</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+
+  grid.innerHTML = tableHtml;
+}
+window.renderTrash = renderTrash;
+
+function restoreFromTrash(trashId) {
+  var allDeletions = DB.recentDeletions || [];
+  var idx = allDeletions.findIndex(function(x){ return x.trashId === trashId; });
+  if (idx === -1) return;
+
+  var t = allDeletions[idx];
+  var col = t.col;
+  var item = t.item;
+
+  if (!col || !item) {
+    toast('Corrupted trash item', 'var(--err)');
+    return;
+  }
+
+  DB[col] = DB[col] || [];
+  if (Array.isArray(DB[col])) {
+    DB[col].push(item);
+  }
+
+  // Remove from trash
+  allDeletions.splice(idx, 1);
+  DB.recentDeletions = allDeletions;
+
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud(col);
+    syncCollectionToCloud('recentDeletions');
+  }
+
+  // Refresh target renderers
+  if (col === 'vessels') { if (typeof renderVessels === 'function') renderVessels(); if (typeof fillVesselSelects === 'function') fillVesselSelects(); }
+  if (col === 'certs') { if (typeof renderCerts === 'function') renderCerts(); }
+  if (col === 'crew') { if (typeof renderCrew === 'function') renderCrew(); }
+  if (col === 'maint') { if (typeof renderMaint === 'function') renderMaint(); }
+  if (col === 'defs') { if (typeof renderDefs === 'function') renderDefs(); }
+  if (col === 'voyages') { if (typeof renderVoyages === 'function') renderVoyages(); }
+  if (col === 'materials') { if (typeof renderMatProvided === 'function') renderMatProvided(); }
+  if (col === 'docCycles') { if (typeof renderDocCycles === 'function') renderDocCycles(); }
+
+  if (typeof updateBadges === 'function') updateBadges();
+  renderTrash();
+
+  audit('Restored from Recycle Bin: ' + t.title + ' -> ' + col, 'var(--ok)');
+  toast('"' + t.title + '" restored successfully ✓', 'var(--ok)');
+}
+window.restoreFromTrash = restoreFromTrash;
+
+function purgeFromTrash(trashId) {
+  var allDeletions = DB.recentDeletions || [];
+  var idx = allDeletions.findIndex(function(x){ return x.trashId === trashId; });
+  if (idx === -1) return;
+
+  var t = allDeletions[idx];
+  if (!confirm('Permanently purge "' + t.title + '"? This item cannot be recovered.')) return;
+
+  allDeletions.splice(idx, 1);
+  DB.recentDeletions = allDeletions;
+
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('recentDeletions');
+  }
+  renderTrash();
+  toast('Permanently purged ✓', 'var(--warn)');
+}
+window.purgeFromTrash = purgeFromTrash;
+
+function emptyTrash() {
+  var count = (DB.recentDeletions || []).length;
+  if (!count) {
+    toast('Recycle Bin is already empty');
+    return;
+  }
+  if (!confirm('Are you sure you want to permanently delete ALL ' + count + ' items in the Recycle Bin? This action is irreversible.')) return;
+
+  DB.recentDeletions = [];
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('recentDeletions');
+  }
+  renderTrash();
+  toast('Recycle Bin emptied ✓', 'var(--ok)');
+  audit('Emptied Recycle Bin (' + count + ' items purged)', 'var(--err)');
+}
+window.emptyTrash = emptyTrash;
+
+
 function delItem(arr, idx, renderFn, msg) {
   if (!CU || (CU.role !== 'admin' && CU.role !== 'master')) {
     toast('Admin access required', 'var(--err)'); return;
   }
-  if (!confirm('Delete this item? This cannot be undone.')) return;
-  freeCloudFiles(arr[idx]);
+  if (!confirm('Delete this item? It will be moved to the Recycle Bin.')) return;
+  
+  var deletedItem = arr[idx];
+  var colName = null;
+  Object.keys(DB).forEach(function(k){ if (DB[k] === arr) colName = k; });
+  if (colName && deletedItem) {
+    recordToRecentDeletes(colName, deletedItem, msg, (deletedItem.vessel ? vname(deletedItem.vessel) : ''));
+  }
+
+  freeCloudFiles(deletedItem);
   arr.splice(idx, 1);
   saveDB();
   try {
@@ -9037,25 +9301,27 @@ function syncCollectionToCloud(col) {
   if (!col || DB[col] === undefined) return;
   var payload = DB[col];
 
-  // 1. Direct REST PUT to Firebase Realtime Database (Guaranteed 100% cloud delivery independent of SDK)
+  // 1. Authoritative Direct REST PUT to Firebase Realtime Database (Correct asia-southeast1 Region)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + col + '.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/' + col + '.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     }).then(function(res) {
       if (res.ok) {
-        console.log('TugWatch Cloud: Synced ' + col + ' via direct REST ✓');
+        console.log('TugWatch Cloud: Authoritatively synced ' + col + ' via direct REST PUT ✓');
       }
     }).catch(function(err){
       console.warn('TugWatch Cloud REST sync error for ' + col + ':', err);
     });
   } catch(e) {}
 
-  // 2. Secondary Firebase SDK write if connected
+  // 2. Authoritative Firebase SDK write (.set() overwrites the entire node, removing deleted items)
   try {
     if (FB_READY && FB_DB) {
-      FB_DB.ref('tugwatch/' + col).set(payload);
+      FB_DB.ref('tugwatch/' + col).set(payload)
+        .then(function(){ console.log('TugWatch Cloud SDK: Set ' + col + ' ✓'); })
+        .catch(function(e){ console.warn('SDK set error for ' + col + ':', e); });
     }
   } catch(e) {}
 
@@ -9066,7 +9332,6 @@ function syncCollectionToCloud(col) {
 }
 window.syncCollectionToCloud = syncCollectionToCloud;
 
-/* ── Safe Non-Destructive Cloud Sync to Firebase ───────── */
 var FB_SYNC_PENDING = false;
 var _cloudHydrated = false;
 
@@ -11181,8 +11446,12 @@ function deleteVessel(vid) {
     return;
   }
 
-  var msg = 'Are you sure you want to permanently delete vessel "' + v.name + '"?\n\nThis will remove the vessel and its local records from the active fleet.';
+  var msg = 'Are you sure you want to delete vessel "' + v.name + '"?\n\nThis vessel will be moved to the Recycle Bin and can be restored anytime.';
   if (!confirm(msg)) return;
+
+  if (typeof recordToRecentDeletes === 'function') {
+    recordToRecentDeletes('vessels', v, 'Vessel: ' + v.name, v.name);
+  }
 
   if (typeof freeCloudFiles === 'function') freeCloudFiles(v);
   (v.photos||[]).forEach(function(p){
@@ -33471,6 +33740,7 @@ function renderStorageInfo(){
   try{var str=localStorage.getItem('tugwatch_db_v6')||localStorage.getItem('tugwatch_v6')||'';var kb=Math.round(str.length/1024);var pct=Math.round(kb/5120*100);var docs=Object.keys(DB).reduce(function(a,k){return a+(Array.isArray(DB[k])?DB[k].length:0);},0);el.innerHTML='<strong>Used:</strong> '+kb+' KB / 5,120 KB ('+pct+'%)<div style="height:6px;background:var(--b2);border-radius:3px;margin:5px 0"><div style="height:100%;width:'+Math.min(pct,100)+'%;background:'+(pct>80?'#dc2626':pct>50?'#f59e0b':'#22c55e')+';border-radius:3px"></div></div><strong>Records:</strong> '+docs+' total ('+(DB.vessels||[]).length+' vessels, '+(DB.crew||[]).length+' crew)<br><small style="color:var(--t3)">File uploads (base64) use the most space</small>';}catch(e){el.textContent='Could not read storage info';}
 }
 function renderBackup(){renderStorageInfo();var el=document.getElementById('fb-sync-status');if(el)el.textContent=FB_READY?'Firebase: Connected':'Firebase: Not connected';}
+PAGE_TITLES['trash']='Recycle Bin';PAGE_HOOKS['trash']='renderTrash';
 PAGE_TITLES['backup']='Backup & Data Management';PAGE_HOOKS['backup']='renderBackup';
 
 if(!DB.portDues)DB.portDues=[];if(!DB.spares)DB.spares=[];

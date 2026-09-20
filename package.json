@@ -1,15 +1,36 @@
 {
   "name": "tugwatch",
   "version": "8.0.0",
-  "description": "TugWatch \u2014 Marine Fleet Operations OS",
+  "description": "TugWatch — Marine Fleet Operations OS",
   "private": true,
   "scripts": {
+    "start": "node scripts/serve.js",
+    "serve": "node scripts/serve.js",
     "verify": "node scripts/verify-integrity.js",
     "test:browsers": "node scripts/test-cross-browser.js",
-    "deploy:safe": "npm run verify && npx firebase-tools deploy --only hosting"
+    "deploy:safe": "npm run verify && npx firebase-tools deploy --only hosting",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy",
+    "build:apk": "npx cap sync android && cd android && ./gradlew assembleDebug",
+    "open:android": "npx cap open android",
+    "open:ios": "npx cap open ios"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@capacitor/cli": "^8.5.2",
+    "firebase": "^12.19.0",
+    "jszip": "^3.10.2",
+    "localforage": "^1.10.0",
     "playwright": "^1.49.1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/share": "^8.0.2",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
   }
 }
