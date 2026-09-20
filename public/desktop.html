@@ -2976,7 +2976,7 @@ html[data-theme="dark"] #l-pass::placeholder {
         <input class="fi search-input" id="mat-search" placeholder="Search by item, vessel, supplier..." oninput="renderMatProvided()"/>
         <button class="btn btn-ghost btn-sm admin-only" onclick="exportExcel('mat')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Excel</button>
       </div>
-      <div class="data-card"><table><thead><tr><th style="width:36px;text-align:center"><input type="checkbox" class="tw-chk-master" onclick="toggleSelectAll(this,'materials')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)" title="Select All"/></th><th>Date</th><th>Vessel</th><th>Item</th><th>Qty</th><th>Unit</th><th>Supplier</th><th>Cost (₹)</th><th>Received By</th><th>Remarks</th><th>Added By</th><th></th></tr></thead><tbody id="mat-tbody"></tbody></table></div>
+      <div class="data-card"><table><thead><tr><th style="width:36px;text-align:center"><input type="checkbox" class="tw-chk-master" onclick="toggleSelectAll(this,'materials')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)" title="Select All"/></th><th style="width:36px;text-align:center"><input type="checkbox" class="tw-chk-master" onclick="toggleSelectAll(this,'materials')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)" title="Select All"/></th><th>Date</th><th>Vessel</th><th>Item</th><th>Qty</th><th>Unit</th><th>Supplier</th><th>Cost (₹)</th><th>Received By</th><th>Remarks</th><th>Added By</th><th></th></tr></thead><tbody id="mat-tbody"></tbody></table></div>
     </div>
 
     <!-- MATERIAL REQUESTS -->
@@ -3608,6 +3608,23 @@ html[data-theme="dark"] #l-pass::placeholder {
             Export
           </button>
         </div>
+      </div>
+
+      <!-- AUTOMATED ALERT RECIPIENTS DIRECTORY -->
+      <div class="data-card" style="margin-bottom:18px;padding:18px 20px;background:var(--bg2);border:1px solid var(--b2);border-radius:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:14px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px">👥</span> Automated Expiry Alert Recipients (Emails & WhatsApp Numbers)
+            </div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px">Add unlimited email addresses and WhatsApp numbers to receive automated daily fleet expiry digests and instant reminders.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAlertContactModal()" style="display:flex;align-items:center;gap:6px;font-weight:700">
+            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Add Alert Recipient
+          </button>
+        </div>
+        <div id="alert-contacts-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px"></div>
       </div>
 
       <!-- SEVERITY KPI ROW -->
@@ -7809,6 +7826,57 @@ html[data-theme="dark"] #l-pass::placeholder {
     <button class="btn btn-primary" onclick="createFirebaseUser()">➕ Create Firebase User</button>
   </div>
 </div></div>
+
+<!-- MODAL: ADD / EDIT ALERT RECIPIENT -->
+<div class="overlay" id="m-alert-contact"><div class="modal" style="max-width:540px">
+  <button class="modal-close" data-close="m-alert-contact"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div class="modal-title" id="ac-modal-title">👥 Add Alert Recipient</div>
+  <div class="modal-sub">Add or edit contacts who should receive automatic daily expiry digests via Email and WhatsApp.</div>
+  
+  <input type="hidden" id="ac-edit-idx" value="-1"/>
+  
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div>
+      <label class="fl">Full Name *</label>
+      <input type="text" class="fi" id="ac-name" placeholder="e.g. Faraz Pasta" required/>
+    </div>
+    <div>
+      <label class="fl">Role / Designation</label>
+      <input type="text" class="fi" id="ac-role" placeholder="e.g. Fleet Master Admin"/>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+    <div>
+      <label class="fl">Email Address *</label>
+      <input type="email" class="fi" id="ac-email" placeholder="e.g. faraz.pasta@acemarine.in" required/>
+    </div>
+    <div>
+      <label class="fl">WhatsApp Number (with Country Code) *</label>
+      <input type="tel" class="fi" id="ac-phone" placeholder="e.g. +91 9328998664" required/>
+    </div>
+  </div>
+
+  <div style="background:var(--bg1);border:1px solid var(--b2);border-radius:10px;padding:12px 14px;margin-bottom:18px">
+    <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:8px">Active Alert Channels</div>
+    <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;font-weight:600">
+        <input type="checkbox" id="ac-email-active" checked style="width:16px;height:16px;accent-color:var(--accent)"/>
+        <span>✉️ Enable Email Digests</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;font-weight:600">
+        <input type="checkbox" id="ac-wa-active" checked style="width:16px;height:16px;accent-color:#25D366"/>
+        <span>📲 Enable WhatsApp Alerts</span>
+      </label>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:10px">
+    <button type="button" class="btn btn-ghost" onclick="closeModal('m-alert-contact')">Cancel</button>
+    <button type="button" class="btn btn-primary" onclick="saveAlertContact()">Save Recipient</button>
+  </div>
+</div></div>
+
 
 <div id="fb-sync-indicator" style="position:fixed;top:16px;right:16px;background:#0B2545;color:#fff;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;z-index:9999;opacity:0;transition:opacity .5s;pointer-events:none">
   ☁️ Syncing to cloud...

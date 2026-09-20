@@ -1,0 +1,22 @@
+name: Daily Fleet Expiry Alerts
+
+on:
+  schedule:
+    # 03:30 UTC = 09:00 AM IST every day
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-expiries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Daily Fleet Expiry Scan
+        run: node scripts/daily_fleet_alert_cron.js
