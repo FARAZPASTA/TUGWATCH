@@ -3452,6 +3452,7 @@ html[data-theme="dark"] #l-pass::placeholder {
         <button class="btn btn-outline btn-sm" onclick="filterLetters('GMB')" id="lf-GMB">GMB Applications</button>
         <button class="btn btn-outline btn-sm" onclick="filterLetters('General')" id="lf-General">General Letters</button>
         <button class="btn btn-outline btn-sm" onclick="filterLetters('Email')" id="lf-Email">Email Templates</button>
+        <button class="btn btn-outline btn-sm" onclick="filterLetters('Doc Cycles')" id="lf-Doc-Cycles" style="border-color:var(--accent);color:var(--accent);font-weight:700">📋 Document Cycles Formats</button>
       </div>
       <div id="letters-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px"></div>
     </div>
@@ -12606,6 +12607,360 @@ var CYCLE_TEMPLATES_BUILTIN = {
   },
 };
 
+function openNewCycle() {
+  document.getElementById('cyc-name').value = '';
+  document.getElementById('cyc-type').value = 'custom';
+  document.getElementById('cyc-authority').value = '';
+  document.getElementById('cyc-desc').value = '';
+  document.getElementById('cyc-deadline').value = '';
+  document.getElementById('cyc-steps-list').innerHTML = '';
+  // Fill vessel select
+  var vsel = document.getElementById('cyc-vessel');
+  vsel.innerHTML = '<option value="">Select vessel...</option>';
+  (DB.vessels||[]).forEach(function(v){ vsel.innerHTML += '<option value="'+v.id+'">'+v.name+'</option>'; });
+  openModal('m-doc-cycle');
+}
+
+function loadCycleTemplate() {
+  var type = document.getElementById('cyc-type').value;
+  var tpl = CYCLE_TEMPLATES_BUILTIN[type];
+  if (!tpl) { document.getElementById('cyc-steps-list').innerHTML = ''; return; }
+  document.getElementById('cyc-authority').value = tpl.authority||'';
+  document.getElementById('cyc-desc').value = tpl.desc||'';
+  // Render steps
+  var list = document.getElementById('cyc-steps-list');
+  list.innerHTML = '';
+  tpl.steps.forEach(function(step, i) {
+    appendCycleStepUI(step, i);
+  });
+}
+
+var _cycStepCount = 0;
+function addCycleStep(step) {
+  var list = document.getElementById('cyc-steps-list');
+  appendCycleStepUI(step || {title:'',desc:'',docs:[],status:'pending',notes:'',deadline:''}, list.children.length);
+}
+
+function appendCycleStepUI(step, index) {
+  var list = document.getElementById('cyc-steps-list');
+  var n = _cycStepCount++;
+  var div = document.createElement('div');
+  div.className = 'cyc-step-ui';
+  div.dataset.stepn = n;
+  div.style.cssText = 'background:var(--bg2);border:1.5px solid var(--b2);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.04)';
+
+  var docsText = (step.docs||[]).join('\n');
+
+  // Build options from Letter Vault
+  var vaultFormats = (DB.letterFormats || []);
+  var vaultOptions = '<option value="">— Choose Existing Letter Vault Template —</option>' +
+    vaultFormats.map(function(lf){
+      var isSel = (step.formatTitle && step.formatTitle === lf.title);
+      return '<option value="' + esc(lf.id) + '"' + (isSel?' selected':'') + '>' + esc(lf.title) + ' (' + esc(lf.cat || 'General') + ')</option>';
+    }).join('');
+
+  div.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+      '<div style="width:26px;height:26px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+(index+1)+'</div>' +
+      '<input class="form-input" style="flex:1;font-weight:700" placeholder="Step title (e.g. Apply for Carving & Marking Note) *" value="'+(step.title||'').replace(/"/g,'&quot;')+'" id="cstep-title-'+n+'">' +
+      '<button type="button" onclick="this.closest(\'.cyc-step-ui\').remove()" style="background:none;border:none;cursor:pointer;color:var(--err);font-size:18px" title="Delete Step">✕</button>' +
+    '</div>' +
+
+    '<div style="margin-bottom:10px">' +
+      '<input class="form-input" style="font-size:11.5px" placeholder="Step instructions & notes" value="'+(step.desc||'').replace(/"/g,'&quot;')+'" id="cstep-desc-'+n+'">' +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">' +
+      '<div>' +
+        '<label style="font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Required Documents (One per line)</label>' +
+        '<textarea class="form-input" style="font-size:11px;font-family:var(--fm);min-height:75px" placeholder="e.g.\nApplication Form 1\nBill of Sale\nBuilders Certificate" id="cstep-docs-'+n+'">'+docsText+'</textarea>' +
+      '</div>' +
+      '<div>' +
+        '<label style="font-size:9.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">📄 Letter Vault Format for this Step</label>' +
+        '<select class="form-input" style="font-size:11px;margin-bottom:6px" id="cstep-vault-sel-'+n+'" onchange="onCycleVaultFormatPick(this,'+n+')">' +
+          vaultOptions +
+        '</select>' +
+        '<input class="form-input" style="font-size:11px;font-weight:600;margin-bottom:4px" placeholder="Format Title (e.g. MMD Carving Note Request)" value="'+(step.formatTitle||'').replace(/"/g,'&quot;')+'" id="cstep-fmt-title-'+n+'">' +
+        '<textarea class="form-input" style="font-size:10.5px;font-family:var(--fm);min-height:48px" placeholder="Letter format text / template body..." id="cstep-fmt-body-'+n+'">'+(step.formatBody||'')+'</textarea>' +
+      '</div>' +
+    '</div>';
+
+  list.appendChild(div);
+}
+
+function onCycleVaultFormatPick(selectEl, n) {
+  var fid = selectEl.value;
+  if (!fid) return;
+  var lf = (DB.letterFormats || []).find(function(f){ return f.id === fid; });
+  if (lf) {
+    var titleEl = document.getElementById('cstep-fmt-title-' + n);
+    var bodyEl = document.getElementById('cstep-fmt-body-' + n);
+    if (titleEl) titleEl.value = lf.title || '';
+    if (bodyEl) bodyEl.value = lf.content || '';
+    toast('Loaded "' + lf.title + '" from Letter Vault ✓', 'var(--ok)');
+  }
+}
+window.onCycleVaultFormatPick = onCycleVaultFormatPick;
+function getCycleSteps() {
+  var list = document.getElementById('cyc-steps-list');
+  var steps = [];
+  Array.from(list.children).forEach(function(el, i) {
+    var n = el.dataset.stepn;
+    var title = (document.getElementById('cstep-title-' + n) ? document.getElementById('cstep-title-' + n).value : '').trim() || ('Step ' + (i+1));
+    var desc = (document.getElementById('cstep-desc-' + n) ? document.getElementById('cstep-desc-' + n).value : '').trim();
+    var docsRaw = (document.getElementById('cstep-docs-' + n) ? document.getElementById('cstep-docs-' + n).value : '');
+    var docs = docsRaw.split('\n').map(function(d){ return d.trim(); }).filter(Boolean);
+    var formatTitle = (document.getElementById('cstep-fmt-title-' + n) ? document.getElementById('cstep-fmt-title-' + n).value : '').trim();
+    var formatBody = (document.getElementById('cstep-fmt-body-' + n) ? document.getElementById('cstep-fmt-body-' + n).value : '').trim();
+
+    steps.push({
+      title: title,
+      desc: desc,
+      docs: docs,
+      formatTitle: formatTitle,
+      formatBody: formatBody,
+      status: 'pending',
+      completedDocs: {}
+    });
+  });
+  return steps;
+}
+function editCycle(cycId) {
+  var cyc = (DB.docCycles||[]).find(function(c){ return c.id===cycId; });
+  if (!cyc) return;
+  
+  // Open the new cycle modal
+  openNewCycle();
+  
+  setTimeout(function() {
+    // Set modal title
+    document.getElementById('cycle-modal-title').textContent = 'Edit Cycle — ' + cyc.name;
+    
+    // Fill header fields
+    document.getElementById('cyc-name').value      = cyc.name||'';
+    document.getElementById('cyc-type').value      = cyc.type||'custom';
+    document.getElementById('cyc-authority').value = cyc.authority||'';
+    document.getElementById('cyc-desc').value      = cyc.desc||'';
+    document.getElementById('cyc-deadline').value  = cyc.deadline||'';
+    
+    // Set vessel
+    var vsel = document.getElementById('cyc-vessel');
+    if (vsel && cyc.vesselId) vsel.value = cyc.vesselId;
+    
+    // Rebuild steps from existing cycle data
+    var list = document.getElementById('cyc-steps-list');
+    list.innerHTML = '';
+    _cycStepCount = 0;
+    (cyc.steps||[]).forEach(function(step, i) {
+      appendCycleStepUI(step, i);
+    });
+    
+    // Store edit ID on modal
+    document.getElementById('m-doc-cycle').dataset.editId  = cycId;
+    document.getElementById('m-doc-cycle').dataset.isEdit  = '1';
+  }, 120);
+}
+
+function saveCycle() {
+  var name = (document.getElementById('cyc-name') ? document.getElementById('cyc-name').value : '').trim();
+  if (!name) { uiAlert('Enter a cycle name'); return; }
+  var steps = getCycleSteps();
+  if (!steps.length) { uiAlert('Add at least one step'); return; }
+  var modal = document.getElementById('m-doc-cycle');
+  var isEdit = modal && modal.dataset.isEdit === '1';
+  var editId = modal && modal.dataset.editId;
+
+  if (isEdit && editId) {
+    var origCyc = (DB.docCycles||[]).find(function(c){ return c.id===editId; });
+    if (origCyc) {
+      steps.forEach(function(step, i) {
+        var origStep = origCyc.steps[i];
+        if (origStep) {
+          step.status = origStep.status || 'pending';
+          step.completedDocs = origStep.completedDocs || {};
+        }
+      });
+    }
+  }
+
+  var cyc = {
+    id: isEdit && editId ? editId : uid(),
+    name: name,
+    type: document.getElementById('cyc-type') ? document.getElementById('cyc-type').value : 'custom',
+    vesselId: document.getElementById('cyc-vessel') ? document.getElementById('cyc-vessel').value : '',
+    authority: document.getElementById('cyc-authority') ? document.getElementById('cyc-authority').value.trim() : '',
+    deadline: document.getElementById('cyc-deadline') ? document.getElementById('cyc-deadline').value : '',
+    desc: document.getElementById('cyc-desc') ? document.getElementById('cyc-desc').value.trim() : '',
+    steps: steps,
+    createdAt: isEdit && editId ? (origCyc ? origCyc.createdAt : today()) : today(),
+    updatedAt: today()
+  };
+
+  DB.docCycles = DB.docCycles || [];
+  if (isEdit && editId) {
+    var idx = DB.docCycles.findIndex(function(c){ return c.id===editId; });
+    if (idx >= 0) DB.docCycles[idx] = cyc; else DB.docCycles.push(cyc);
+  } else {
+    DB.docCycles.push(cyc);
+  }
+
+  // DUAL-STORE: Mirror any step formats into DB.letterFormats (Letter Vault)
+  DB.letterFormats = DB.letterFormats || [];
+  steps.forEach(function(st, sIdx) {
+    if (st.formatTitle && st.formatBody) {
+      var formatId = 'lf_cyc_' + cyc.id + '_' + sIdx;
+      var existingFmt = DB.letterFormats.find(function(f){ return f.id === formatId || f.title === st.formatTitle; });
+      var formatObj = {
+        id: formatId,
+        title: st.formatTitle,
+        cat: 'Doc Cycles',
+        subcat: cyc.name + ' · Step ' + (sIdx+1),
+        content: st.formatBody,
+        cycleId: cyc.id,
+        stepIndex: sIdx,
+        _by: (CU ? CU.name : 'System'),
+        _ts: today()
+      };
+      if (existingFmt) {
+        Object.assign(existingFmt, formatObj);
+      } else {
+        DB.letterFormats.push(formatObj);
+      }
+    }
+  });
+
+  closeModal('m-doc-cycle');
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('docCycles');
+    syncCollectionToCloud('letterFormats');
+  }
+  renderDocCycles();
+  if (typeof renderLetters === 'function') renderLetters();
+  audit('Saved Document Cycle: ' + name + ' (Formats synced to Letter Vault)', 'var(--ok)');
+  toast('Document Cycle saved & formats synced to Letter Vault ✓', 'var(--ok)');
+}
+function saveCycleAsTemplate() {
+  var name = document.getElementById('cyc-name').value.trim() || 'My Template';
+  var steps = getCycleSteps();
+  if (!DB.customCycleTemplates) DB.customCycleTemplates = [];
+  DB.customCycleTemplates.push({
+    id: uid(), name: name,
+    type: document.getElementById('cyc-type').value,
+    authority: document.getElementById('cyc-authority').value,
+    desc: document.getElementById('cyc-desc').value,
+    steps: steps, ts: Date.now()
+  });
+  saveDB(); toast('Template saved: '+name);
+}
+
+function renderDocCycles() {
+  var grid = document.getElementById('doc-cycles-grid');
+  if (!grid) return;
+  var nb = document.getElementById('nb-doc-cycles');
+  if (nb) nb.textContent = (DB.docCycles||[]).length;
+  if (!DB.docCycles || !DB.docCycles.length) {
+    grid.innerHTML = '<div class="empty">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>' +
+    '<strong>No Document Cycles Yet</strong>' +
+    '<p>Create visual submission workflows for Registry, Class Surveys, Insurance, Carving & Marking, and Custom Clearances.</p>' +
+    '<button class="btn btn-primary" onclick="openNewCycle()" style="margin:0 auto">+ Create First Cycle</button>' +
+    '</div>';
+    return;
+  }
+
+  var STATUS_CLR = {done:'#166534',inprog:'#92400e',pending:'#475569'};
+  var STATUS_BG  = {done:'#dcfce7',inprog:'#fef3c7',pending:'#f1f5f9'};
+  var STATUS_BORDER = {done:'#86efac',inprog:'#fcd34d',pending:'#cbd5e1'};
+  var STATUS_ICO = {done:'✓',inprog:'⏳',pending:'○'};
+  var TYPE_ICONS = {registry:'📜',survey:'🔍',carving:'✏️',insurance:'🛡️',customs:'🚢',custom:'📋'};
+
+  grid.innerHTML = DB.docCycles.slice().reverse().map(function(cyc) {
+    var completed = (cyc.steps||[]).filter(function(s){ return s.status==='done'; }).length;
+    var total = (cyc.steps||[]).length;
+    var pct = total ? Math.round(completed/total*100) : 0;
+    var v = cyc.vesselId ? (DB.vessels||[]).find(function(x){ return x.id===cyc.vesselId; }) : null;
+    var isComplete = cyc.status==='done' || pct===100;
+    var typeIcon = TYPE_ICONS[cyc.type] || '📋';
+
+    // Count all formats in this cycle
+    var formatsCount = 0;
+    (cyc.steps||[]).forEach(function(st){
+      if (st.formatTitle || (st.formats && st.formats.length)) formatsCount++;
+    });
+
+    // Build visual pipeline stepper
+    var stepsHtml = (cyc.steps||[]).map(function(step, i) {
+      var sc = STATUS_CLR[step.status] || STATUS_CLR.pending;
+      var sb = STATUS_BG[step.status] || STATUS_BG.pending;
+      var sborder = STATUS_BORDER[step.status] || STATUS_BORDER.pending;
+      var ico = STATUS_ICO[step.status] || '○';
+      var docs = step.docs || [];
+      var completedDocs = step.completedDocs || {};
+      var docDone = docs.filter(function(_, di){ return completedDocs[di]; }).length;
+
+      var formatBadge = (step.formatTitle || (step.formats && step.formats.length))
+        ? '<span class="chip chip-ok" style="font-size:9px;padding:1px 6px;margin-top:4px;display:inline-flex;align-items:center;gap:3px">📄 ' + esc(step.formatTitle || 'Letter Format') + '</span>'
+        : '';
+
+      return '<div style="background:var(--bg1);border:1.5px solid ' + sborder + ';border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;min-width:180px;flex:1;position:relative">' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+            '<div style="display:flex;align-items:center;gap:6px">' +
+              '<span style="width:20px;height:20px;border-radius:50%;background:' + sb + ';color:' + sc + ';border:1px solid ' + sborder + ';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">' + (i+1) + '</span>' +
+              '<span style="font-size:11.5px;font-weight:700;color:var(--t1)">' + esc(step.title || 'Step ' + (i+1)) + '</span>' +
+            '</div>' +
+            '<span style="font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:12px;background:' + sb + ';color:' + sc + '">' + ico + ' ' + (step.status === 'done' ? 'Done' : step.status === 'inprog' ? 'In Prog' : 'Pending') + '</span>' +
+          '</div>' +
+          (step.desc ? '<div style="font-size:10px;color:var(--t3);margin-bottom:6px;line-height:1.3">' + esc(step.desc) + '</div>' : '') +
+          (docs.length ? '<div style="font-size:9.5px;color:var(--t2);font-weight:600;margin-bottom:4px">📋 ' + docDone + '/' + docs.length + ' Docs Ready</div>' : '') +
+          formatBadge +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    return '<div class="data-card" style="padding:18px;margin-bottom:14px;border-radius:14px;border:1px solid var(--b2);box-shadow:0 2px 8px rgba(0,0,0,0.04)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<div style="width:42px;height:42px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:22px">' + typeIcon + '</div>' +
+          '<div>' +
+            '<div style="font-size:15px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px">' +
+              esc(cyc.name) +
+              (isComplete ? '<span class="chip chip-ok" style="font-size:10px">✓ Completed</span>' : '<span class="chip chip-warn" style="font-size:10px">⏳ ' + pct + '% In Progress</span>') +
+            '</div>' +
+            '<div style="font-size:11px;color:var(--t3);margin-top:2px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+              (v ? '<span>🚢 <strong>' + esc(v.name) + '</strong></span>' : '') +
+              (cyc.authority ? '<span>🏛️ ' + esc(cyc.authority) + '</span>' : '') +
+              (cyc.deadline ? '<span>📅 Due: ' + fmtDate(cyc.deadline) + '</span>' : '') +
+              (formatsCount > 0 ? '<span style="color:var(--accent);font-weight:700">📄 ' + formatsCount + ' Vault Formats Linked</span>' : '') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn btn-outline btn-sm" onclick="openCycleDetail(\'' + cyc.id + '\')" style="font-weight:700">👁️ View Workflow</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="editCycle(\'' + cyc.id + '\')" title="Edit Cycle">✏️ Edit</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteCycle(\'' + cyc.id + '\')" title="Delete Cycle">🗑️</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<!-- PROGRESS BAR -->' +
+      '<div style="margin-bottom:14px">' +
+        '<div style="display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;color:var(--t3);margin-bottom:4px">' +
+          '<span>Workflow Progress (' + completed + '/' + total + ' Steps)</span>' +
+          '<span>' + pct + '%</span>' +
+        '</div>' +
+        '<div style="height:6px;background:var(--bg2);border-radius:6px;overflow:hidden;border:1px solid var(--b2)">' +
+          '<div style="height:100%;width:' + pct + '%;background:' + (pct===100?'#22c55e':'var(--accent)') + ';border-radius:6px;transition:width .4s ease"></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<!-- VISUAL PIPELINE STEPPER -->' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">' +
+        stepsHtml +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
 function openNewCycle() {
   document.getElementById('cyc-name').value = '';
   document.getElementById('cyc-type').value = 'custom';
