@@ -4577,9 +4577,15 @@ html[data-theme="dark"] #l-pass::placeholder {
       <button class="modal-close" onclick="closeModal('m-edit')">✕</button>
     </div>
     <div style="padding:20px" id="edit-body"></div>
-    <div style="padding:0 20px 20px;display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn btn-ghost" onclick="closeModal('m-edit')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    <div style="padding:0 20px 20px;display:flex;gap:10px;justify-content:space-between;align-items:center">
+      <button class="btn btn-danger btn-sm" id="edit-delete-btn" style="display:none;align-items:center;gap:4px" onclick="deleteFromEditModal()">
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Delete Record
+      </button>
+      <div style="display:flex;gap:10px;margin-left:auto">
+        <button class="btn btn-ghost" onclick="closeModal('m-edit')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+      </div>
     </div>
   </div>
 </div>
@@ -8978,8 +8984,8 @@ function saveToFirebase() {
   Object.keys(DB).forEach(function(key) {
     if (key !== 'accounts' && key !== 'users' && key !== 'dynamicAdmins') {
       if (DB[key] !== undefined && DB[key] !== null) {
-        // Never wipe cloud collection with an empty array during background sync
-        if (protectedArrays.includes(key) && Array.isArray(DB[key]) && DB[key].length === 0) {
+        // Protect against unhydrated wipe, but allow authoritative sync if hydrated
+        if (!_cloudHydrated && protectedArrays.includes(key) && Array.isArray(DB[key]) && DB[key].length === 0) {
           return;
         }
         snapshot[key] = DB[key];
@@ -10944,12 +10950,15 @@ function deleteVessel(vid) {
   if (typeof hasPermission === 'function' && !hasPermission('vessel_manage') && CU && CU.role !== 'master' && CU.role !== 'admin') {
     uiAlert('You do not have permission to delete vessels.'); return;
   }
-  var v = (DB.vessels||[]).find(function(x){ return x.id === vid; });
-  if (!v) return;
+  var v = (DB.vessels||[]).find(function(x){ return x && (x.id === vid || x.name === vid); });
+  if (!v) {
+    toast('Vessel not found', 'var(--warn)');
+    return;
+  }
 
   // Count dependent records across every collection that references this vessel
   function cnt(arr, match){ return (DB[arr]||[]).filter(match).length; }
-  var byV  = function(r){ return r && (r.vessel === vid || r.vesselId === vid); };
+  var byV  = function(r){ return r && (r.vessel === v.id || r.vesselId === v.id); };
   var byVN = function(r){ return r && (r.vessel === v.name || r.vesselId === v.name); };
   var any  = function(r){ return byV(r) || byVN(r); };
 
@@ -10967,40 +10976,49 @@ function deleteVessel(vid) {
     ['Checklists', cnt('checklistRecords', any)],
     ['ORB Entries', cnt('orbEntries', any)],
     ['Spares', cnt('spares', any)],
-    ['Assigned Crew', cnt('crew', function(c){ return c && (c.vessel === vid || c.vessel === v.name); })]
+    ['Assigned Crew', cnt('crew', function(c){ return c && (c.vessel === v.id || c.vessel === v.name); })]
   ].filter(function(d){ return d[1] > 0; });
 
   var total = deps.reduce(function(a,d){ return a + d[1]; }, 0);
 
-  var msg = 'Delete vessel "' + v.name + '"?';
+  var msg = 'Are you sure you want to delete vessel "' + v.name + '"?';
   if (total > 0) {
-    msg += '\n\nThis vessel has linked records:\n' +
+    msg += '\n\n⚠️ This vessel has linked records:\n' +
       deps.map(function(d){ return '  • ' + d[1] + ' ' + d[0]; }).join('\n') +
-      '\n\nThese records will remain but show no vessel name (orphaned). ' +
-      'Consider keeping the vessel for historical accuracy.\n\nDelete anyway?';
+      '\n\nThese records will remain in the database as orphaned records.\n\nDelete anyway?';
   } else {
-    msg += '\n\nNo linked records found. This is safe to delete.';
+    msg += '\n\nNo linked records found. This vessel is safe to delete.';
   }
   if (!confirm(msg)) return;
 
-  // Require typing vessel name when there are dependents (prevents accidental data loss)
+  // Confirm with vessel name (trim and case-insensitive check)
   if (total > 0) {
-    var typed = prompt('To confirm deletion of "' + v.name + '" and orphan ' + total + ' linked record(s), type the vessel name exactly:');
-    if (typed !== v.name) { uiAlert('Name did not match. Deletion cancelled.'); return; }
+    var typed = prompt('To confirm deletion of "' + v.name + '" and orphan ' + total + ' linked record(s), type the vessel name:');
+    if (typed === null) return; // User clicked Cancel
+    if (typed.trim().toLowerCase() !== v.name.trim().toLowerCase()) {
+      uiAlert('Vessel name did not match ("' + typed + '" vs "' + v.name + '"). Deletion cancelled.');
+      return;
+    }
   }
 
   freeCloudFiles(v);
   (v.photos||[]).forEach(function(p){ if(typeof p==='string'&&p.indexOf('firebasestorage')!==-1&&FB_READY&&FB_STORAGE){try{FB_STORAGE.refFromURL(p).delete().catch(function(){});}catch(e){}} });
   var idx = DB.vessels.indexOf(v);
-  DB.vessels.splice(idx, 1);
-  if (typeof VC !== 'undefined') { try { delete VC.open[vid]; delete VC.tab[vid]; } catch(e){} }
+  if (idx !== -1) {
+    DB.vessels.splice(idx, 1);
+  }
+  if (typeof VC !== 'undefined' && VC.open) { try { delete VC.open[v.id]; delete VC.tab[v.id]; } catch(e){} }
   saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('vessels');
+  }
   renderVessels();
   if (typeof fillVesselSelects === 'function') fillVesselSelects();
   if (typeof updateBadges === 'function') updateBadges();
   audit('Deleted vessel: ' + v.name + (total>0 ? ' ('+total+' linked records orphaned)' : ''), 'var(--err)');
-  toast('Vessel "' + v.name + '" deleted');
+  toast('Vessel "' + v.name + '" deleted ✓', 'var(--ok)');
 }
+window.deleteVessel = deleteVessel;
 
 function renderVessels() {
   const wrap = $('vessel-list'); wrap.innerHTML='';
@@ -24536,6 +24554,39 @@ function getInlineFraudFlags(trip, vesselId, date) {
 ══════════════════════════════════════════════════════════════ */
 let editCtx = null;
 
+function deleteFromEditModal() {
+  if (!editCtx) return;
+  var module = editCtx.module;
+  var idx = editCtx.idx;
+  var collMap = { cert:'certs', maint:'maint', def:'defs', voyage:'voyages', visit:'visits', mat:'materials', crew:'crew', vessel:'vessels' };
+  var coll = collMap[module];
+  if (!coll || !DB[coll] || !DB[coll][idx]) {
+    closeModal('m-edit');
+    return;
+  }
+  var r = DB[coll][idx];
+  closeModal('m-edit');
+  if (module === 'vessel') {
+    deleteVessel(r.id);
+  } else if (module === 'cert') {
+    delItem(DB.certs, idx, renderCerts, 'Certificate deleted');
+  } else if (module === 'crew') {
+    delItem(DB.crew, idx, renderCrew, 'Crew member deleted');
+  } else if (module === 'maint') {
+    delItem(DB.maint, idx, renderMaint, 'Maintenance record deleted');
+  } else if (module === 'def') {
+    delItem(DB.defs, idx, renderDefs, 'Deficiency deleted');
+  } else if (module === 'voyage') {
+    delItem(DB.voyages, idx, renderVoyages, 'Voyage deleted');
+  } else if (module === 'visit') {
+    delItem(DB.visits, idx, renderVisits, 'Visit record deleted');
+  } else if (module === 'mat') {
+    delItem(DB.materials, idx, renderMatProvided, 'Material record deleted');
+  }
+  editCtx = null;
+}
+window.deleteFromEditModal = deleteFromEditModal;
+
 function openEdit(module, idx) {
   const collMap = { cert:'certs', maint:'maint', def:'defs', voyage:'voyages', visit:'visits', mat:'materials', crew:'crew', vessel:'vessels' };
   const coll = collMap[module];
@@ -24675,6 +24726,11 @@ function openEdit(module, idx) {
     },
   };
   if (modules[module]) modules[module]();
+  var delBtn = $('edit-delete-btn');
+  if (delBtn) {
+    var canDelete = (CU && (CU.role === 'master' || CU.role === 'admin')) || (typeof hasPermission === 'function' && hasPermission('vessel_manage'));
+    delBtn.style.display = canDelete ? 'inline-flex' : 'none';
+  }
   $('m-edit').classList.add('on');
 }
 
