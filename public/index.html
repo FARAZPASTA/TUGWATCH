@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#0B2545"/>
 <link rel="manifest" href="/manifest.json"/>
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzBCMjU0NSIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIwIDMyMGgyNzJsLTQwIDk2SDE2MHoiLz48cGF0aCBkPSJNMTIwIDMyMGwtMzItNjRoMzM2bC0zMiA2NCIvPjxwYXRoIGQ9Ik0yNTYgMjU2VjE1MGE2NCA2NCAwIDAgMSAxMjggMHY0MCIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjEyMCIgcj0iMTQiIGZpbGw9IiNmZmYiLz48L2c+PC9zdmc+"/>
@@ -11,10 +10,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="TugWatch"/>
 <meta name="mobile-web-app-capable" content="yes"/>
-
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="TugWatch"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet"/>
@@ -50,11 +45,11 @@ window.addEventListener('unhandledrejection', function(e) {
   console.warn('🛡️ TugWatch Watchdog Captured Promise Rejection:', errObj);
 });
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" onerror="window.__fbLoadError=true;console.warn('Firebase app SDK unavailable (offline) — running in local mode')"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" onerror="window.__fbLoadError=true"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" onerror="window.__fbLoadError=true"></script>
+<script src="vendor/jszip.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'"></script>
+<script src="vendor/localforage.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js'"></script>
+<script src="vendor/firebase-app-compat.js" onerror="this.onerror=null;this.src='https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';window.__fbLoadError=true"></script>
+<script src="vendor/firebase-auth-compat.js" onerror="this.onerror=null;this.src='https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';window.__fbLoadError=true"></script>
+<script src="vendor/firebase-database-compat.js" onerror="this.onerror=null;this.src='https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js';window.__fbLoadError=true"></script>
 <script>
 (function(){
   try {
@@ -117,8 +112,8 @@ body::before{display:none}
 .login-hint{margin-top:14px;font-size:11px;color:#8a8d91;text-align:center;line-height:1.6}
 
 /* LAYOUT */
-#app{display:flex;height:100vh;position:relative;z-index:1}
-#sidebar{background:var(--bg1);flex-shrink:0;border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden;width:240px;position:fixed;top:0;left:0;height:100vh;z-index:9000;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+#app{display:flex;height:100vh;height:100dvh;position:relative;z-index:1;padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area-inset-right,0)}
+#sidebar{background:var(--bg1);flex-shrink:0;border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden;width:240px;position:fixed;top:0;left:0;height:100vh;height:100dvh;z-index:9000;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
 .logo-wrap{padding:16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px;background:var(--bg1)}
 .logo-mark{width:30px;height:30px;background:linear-gradient(135deg,#1680b0,#2ab8f5);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(29,155,212,.35)}
 .logo-mark svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2}
@@ -150,7 +145,7 @@ nav{padding:10px 8px;flex:1;overflow-y:auto}
 #breadcrumb{font-size:12px;color:var(--t2)}
 #topbar-actions{display:flex;gap:6px}
 #content{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch}
-.page{position:absolute;top:0;right:0;bottom:0;left:0;overflow-y:auto;padding:20px 22px;display:none;background:var(--s0);color:var(--t1);box-sizing:border-box}
+.page{position:absolute;top:0;right:0;bottom:0;left:0;overflow-y:auto;padding:20px 22px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));display:none;background:var(--s0);color:var(--t1);box-sizing:border-box}
 .page.on{display:block!important;visibility:visible!important;opacity:1!important}
 
 /* BUTTONS */
@@ -6229,7 +6224,14 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div style="font-size:9.5px;color:var(--t3);margin-top:3px">Upload your official letterhead graphic (PNG, JPG, SVG). When attached, all IMO Crew Lists, Official Letters &amp; Vouchers print directly with your official letterhead design.</div>
   </div>
 
-  <!-- Basic Info -->
+  <!-- FULL RESOLUTION COMPANY LETTERHEAD VIEWER MODAL -->
+<div class="overlay" id="m-letterhead-view"><div class="modal modal-wide" style="max-width:760px;max-height:92vh;overflow-y:auto">
+  <button class="modal-close" data-close="m-letterhead-view"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div class="modal-title" id="m-lh-view-title">📜 Official Company Letterhead</div>
+  <div id="m-lh-view-body" style="padding:10px 0"></div>
+</div></div>
+
+<!-- Basic Info -->
   <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin:0 0 10px;border-left:3px solid var(--accent);padding-left:8px">Company Details</div>
   <div class="fr2"><div class="fg"><label class="fl">Company Name <span class="req">*</span></label><input class="fi" id="co-name" placeholder="e.g. ACE Marine Pvt. Ltd."/></div><div class="fg"><label class="fl">Relationship Type <span class="req">*</span></label><select class="fi" id="co-tag"><option value="">— Select type —</option><optgroup label="Group &amp; Sister Entities"><option value="Sister Company">Sister Company / Group Entity</option><option value="Parent Company">Parent / Holding Company</option><option value="Own Enterprise">Own Enterprise / Main Company</option></optgroup><optgroup label="Business Relationship"><option value="Client">Client</option><option value="Supplier">Supplier</option><option value="Agent">Agent</option><option value="Insurance">Insurance Company</option><option value="Surveyor">Surveyor / Inspector</option><option value="Contractor">Contractor</option><option value="Bank">Bank / Financial Institution</option><option value="Port Authority">Port Authority / MMD</option><option value="Other">Other</option></optgroup></select></div></div>
   <div class="fr2"><div class="fg"><label class="fl">Legal Entity Type <span class="req">*</span></label><select class="fi" id="co-entity"><option value="">— Select entity —</option><option value="Pvt Ltd">Private Limited (Pvt. Ltd.)</option><option value="Ltd">Public Limited (Ltd.)</option><option value="LLP">Limited Liability Partnership (LLP)</option><option value="Partnership">Partnership Firm</option><option value="Proprietorship">Sole Proprietorship</option><option value="OPC">One Person Company (OPC)</option><option value="Trust">Trust / Society</option><option value="Govt">Government / PSU</option><option value="Foreign">Foreign Company</option><option value="Other">Other</option></select></div><div class="fg"><label class="fl">Trade Name (if different)</label><input class="fi" id="co-tradename" placeholder="Operating / brand name"/></div></div>
@@ -14188,20 +14190,43 @@ function renderCompanies() {
       : '<div style="width:38px;height:38px;background:var(--accent-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid var(--b2)">🏢</div>';
     var docBadge = (co.docs&&co.docs.length) ? ' · 📎'+co.docs.length+' doc'+(co.docs.length>1?'s':'') : '';
     
-    // Compliance status for mandatory docs
+    // Letterhead & Stamp status
+    var hasLh = !!(co.letterheadImage || co.letterhead);
+    var hasStamp = !!(co.stampImage || co.stamp);
+
+    // Compliance status for mandatory docs + letterhead
     var mdocs = co.mandatoryDocs || {};
     var complianceBadges = [
-      { key:'gst',  label:'GST Cert' },
-      { key:'msme', label:'MSME Cert' },
-      { key:'pan',  label:'PAN Card' },
+      { key:'gst',        label:'GST Cert',  ok: !!(mdocs.gst && mdocs.gst.data) },
+      { key:'msme',       label:'MSME Cert', ok: !!(mdocs.msme && mdocs.msme.data) },
+      { key:'pan',        label:'PAN Card',  ok: !!(mdocs.pan && mdocs.pan.data) },
+      { key:'letterhead', label:'Letterhead', ok: hasLh },
+      { key:'stamp',      label:'Stamp/Seal', ok: hasStamp }
     ].map(function(d){
-      var ok = !!(mdocs[d.key] && mdocs[d.key].data);
       return '<span style="font-size:9.5px;font-weight:600;padding:2px 8px;border-radius:12px;background:' +
-        (ok ? '#dcfce7;color:#15803d;border:1px solid #bbf7d0' : '#fef2f2;color:#dc2626;border:1px solid #fecaca') +
-        '">' + (ok ? '✓ ' : '✗ ') + d.label + '</span>';
+        (d.ok ? '#dcfce7;color:#15803d;border:1px solid #bbf7d0' : '#fef2f2;color:#dc2626;border:1px solid #fecaca') +
+        '">' + (d.ok ? '✓ ' : '✗ ') + d.label + '</span>';
     }).join('');
     var vesselCount = DB.vessels ? DB.vessels.filter(function(v){ return v.company === co.id; }).length : 0;
     var addrStr = co.address || co.addr || '';
+    
+    var lhBannerHtml = hasLh ? `
+      <div style="background:#fff;border:1.5px solid var(--b2);border-radius:8px;padding:6px 10px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.03)" onclick="previewCompanyLetterhead('${co.id}')" title="Click to preview official letterhead in full resolution">
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px">
+          <img src="${co.letterheadImage || co.letterhead}" style="max-height:36px;max-width:140px;object-fit:contain;border-radius:4px" alt="Letterhead"/>
+          <div>
+            <div style="font-size:9.5px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:4px">
+              <span>📜 Official Letterhead Attached</span>
+            </div>
+            <div style="font-size:8.5px;color:var(--ok);font-weight:600">Active for IMO Lists &amp; Printouts ✓</div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" style="font-size:9px;padding:2px 6px;color:var(--accent);font-weight:700">Preview 👁</button>
+      </div>` : `
+      <div style="background:#fef2f2;border:1px dashed #fecaca;border-radius:8px;padding:6px 10px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer" onclick="openCompanyEdit('${co.id}')" title="Click to upload official letterhead">
+        <div style="font-size:9.5px;color:#dc2626;font-weight:600">📜 No Letterhead Graphic Attached</div>
+        <button type="button" class="btn btn-sm" style="font-size:9px;padding:2px 8px;background:#dc2626;color:#fff;border:none;border-radius:4px">Upload +</button>
+      </div>`;
     
     card.innerHTML = `
       <div>
@@ -14228,6 +14253,8 @@ function renderCompanies() {
             </button>
           </div>
         </div>
+
+        ${lhBannerHtml}
 
         <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:12px;background:var(--s2);padding:10px 12px;border-radius:8px;border:1px solid var(--b2);display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;align-items:flex-start;gap:6px">
@@ -14272,9 +14299,12 @@ function renderCompanies() {
         </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap">${complianceBadges}</div>
 
-        <!-- 1-Click Sharing & Bank Actions -->
+        <!-- 1-Click Sharing, Letterhead & Bank Actions -->
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 2px">
-          <button class="btn btn-sm" style="background:#25D366;color:#fff;font-size:9.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px" onclick="shareCompanyWhatsApp('${co.id}')" title="Share Company & Bank Details on WhatsApp">
+          <button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;font-weight:600;color:var(--accent);border-color:var(--accent)" onclick="previewCompanyLetterhead('${co.id}')" title="View &amp; Print Official Company Letterhead">
+            📜 Letterhead
+          </button>
+          <button class="btn btn-sm" style="background:#25D366;color:#fff;font-size:9.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px" onclick="shareCompanyWhatsApp('${co.id}')" title="Share Company &amp; Bank Details on WhatsApp">
             📲 Share on WA
           </button>
           <button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px" onclick="copyCompanyBankDetails('${co.id}')" title="Copy Bank Details to Clipboard">
@@ -14288,28 +14318,102 @@ function renderCompanies() {
           ${(function(){
             var mdocs = co.mandatoryDocs || {};
             var totalDocs = (co.docs||[]).length +
-              (mdocs.gst ? 1 : 0) + (mdocs.msme ? 1 : 0) + (mdocs.pan ? 1 : 0);
+              (mdocs.gst ? 1 : 0) + (mdocs.msme ? 1 : 0) + (mdocs.pan ? 1 : 0) +
+              (hasLh ? 1 : 0) + (hasStamp ? 1 : 0);
 
             if (CU && CU.role === 'staff') {
               var staffAccess = ((DB.companyVaultAccess||{})[co.id]||[]).indexOf(CU.id||CU.username) !== -1;
               if (!staffAccess) {
                 return '<div style="display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--t3);padding:4px 8px;background:var(--s3);border-radius:6px;border:1px solid var(--b2)">🔒 Documents — Access Restricted</div>';
               }
-              return '<button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:4px 8px" onclick="openCompanyVault(\''+co.id+'\')" title="View documents">📂 View Documents ('+totalDocs+')</button>';
+              return '<button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:4px 8px" onclick="openCompanyVault(\x27'+co.id+'\x27)" title="View documents">📂 View Documents ('+totalDocs+')</button>';
             }
 
             var hasAccess = CU && (CU.role === 'master' || CU.role === 'admin');
             if (hasAccess) {
-              return '<button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:4px 8px;font-weight:600" onclick="openCompanyVault(\''+co.id+'\')" title="View secure document vault">🔓 Document Vault ('+totalDocs+' docs)</button>';
+              return '<button class="btn btn-outline btn-sm" style="font-size:9.5px;padding:4px 8px;font-weight:600" onclick="openCompanyVault(\x27'+co.id+'\x27)" title="View secure document vault">🔓 Document Vault ('+totalDocs+' docs)</button>';
             }
             return '<div style="display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--t3);padding:4px 8px;background:var(--s3);border-radius:6px;border:1px solid var(--b2)">🔒 Vault — Access Restricted</div>';
           })()}
-          ${CU && (CU.role === 'master' || CU.role === 'admin') ? '<button class="btn btn-ghost btn-sm" style="font-size:9.5px;padding:4px 8px" onclick="manageVaultAccess(\''+co.id+'\')">⚙ Manage Staff Access</button>' : ''}
+          ${CU && (CU.role === 'master' || CU.role === 'admin') ? '<button class="btn btn-ghost btn-sm" style="font-size:9.5px;padding:4px 8px" onclick="manageVaultAccess(\x27'+co.id+'\x27)">⚙ Manage Staff Access</button>' : ''}
         </div>
       </div>`;
     grid.appendChild(card);
   });
 }
+
+/* ══════════════════════════════════════════════════════════════
+   HIGH-RESOLUTION COMPANY LETTERHEAD & SEAL VIEWER
+══════════════════════════════════════════════════════════════ */
+function previewCompanyLetterhead(coId) {
+  var co = (DB.companies||[]).find(function(c){ return c.id === coId; }) || getActiveOrFirstCompany();
+  if (!co) { if (typeof toast === 'function') toast('Company not found', 'var(--warn)'); return; }
+  
+  var titleEl = document.getElementById('m-lh-view-title');
+  var bodyEl = document.getElementById('m-lh-view-body');
+  if (titleEl) titleEl.innerHTML = '📜 Official Letterhead &amp; Branding — ' + esc(co.name);
+  
+  var lhData = co.letterheadImage || co.letterhead;
+  var stampData = co.stampImage || co.stamp;
+  
+  var html = '<div style="display:flex;flex-direction:column;gap:16px">';
+  
+  if (lhData) {
+    html += '<div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:10px;padding:16px;text-align:center">' +
+      '<div style="font-size:11px;font-weight:700;color:#1e3a8a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">' +
+        '<span>📜 Official Pre-Printed Header Graphic</span>' +
+        '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:9.5px;font-weight:600">Active &amp; Ready for Printing ✓</span>' +
+      '</div>' +
+      '<div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:12px">' +
+        '<img src="' + lhData + '" style="max-width:100%;max-height:180px;object-fit:contain" alt="' + esc(co.name) + ' Letterhead"/>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
+        '<a href="' + lhData + '" download="' + esc(co.name) + '_Letterhead.png" class="btn btn-outline btn-sm" style="display:inline-flex;align-items:center;gap:4px">' +
+          '⬇ Download Letterhead' +
+        '</a>' +
+        '<button class="btn btn-primary btn-sm" onclick="closeModal(\'m-letterhead-view\');openOfficialLetterModal(\'custom\',\'' + co.id + '\')" style="display:inline-flex;align-items:center;gap:4px">' +
+          '✉ Create Letter on Letterhead' +
+        '</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="printCompanyBankMandate(\'' + co.id + '\')" style="display:inline-flex;align-items:center;gap:4px">' +
+          '🖨️ Bank Mandate' +
+        '</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="closeModal(\'m-letterhead-view\');openCompanyEdit(\'' + co.id + '\')" style="font-size:10.5px">' +
+          '✏ Edit / Replace' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  } else {
+    html += '<div style="background:#fef2f2;border:1.5px dashed #fecaca;border-radius:10px;padding:24px;text-align:center">' +
+      '<div style="font-size:28px;margin-bottom:6px">📜</div>' +
+      '<div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:4px">No Letterhead Graphic Attached</div>' +
+      '<p style="font-size:11px;color:#64748b;margin-bottom:14px">Upload your official high-resolution letterhead header graphic to print IMO Crew Lists, Official Letters, and Bank Mandates with your exact company branding.</p>' +
+      '<button class="btn btn-primary" onclick="closeModal(\'m-letterhead-view\');openCompanyEdit(\'' + co.id + '\')">' +
+        '📤 Upload Letterhead for ' + esc(co.name) +
+      '</button>' +
+    '</div>';
+  }
+  
+  // Seal / Stamp Section
+  if (stampData) {
+    html += '<div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:16px">' +
+      '<div style="display:flex;align-items:center;gap:12px">' +
+        '<div style="width:50px;height:50px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;padding:4px">' +
+          '<img src="' + stampData + '" style="max-width:100%;max-height:100%;object-fit:contain" alt="Stamp"/>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-size:12px;font-weight:700;color:#0f172a">Official Company Seal / Stamp</div>' +
+          '<div style="font-size:10px;color:#15803d;font-weight:600">Attached &amp; Active ✓</div>' +
+        '</div>' +
+      '</div>' +
+      '<a href="' + stampData + '" download="' + esc(co.name) + '_Seal.png" class="btn btn-outline btn-sm">⬇ Download Stamp</a>' +
+    '</div>';
+  }
+  
+  html += '</div>';
+  if (bodyEl) bodyEl.innerHTML = html;
+  openModal('m-letterhead-view');
+}
+window.previewCompanyLetterhead = previewCompanyLetterhead;
 
 
 
@@ -15033,8 +15137,52 @@ function openCompanyVault(coId) {
     html += '<div style="margin-bottom:12px;padding:10px 12px;background:#e7f3ff;border-radius:8px;font-size:10px;color:#1877f2">Upload or replace documents via <strong>Edit Company</strong>.</div>';
   }
 
+  // LETTERHEAD & STAMP BRANDING ASSETS
+  var hasLh = !!(co.letterheadImage || co.letterhead);
+  var hasStamp = !!(co.stampImage || co.stamp);
+  html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--accent);margin-bottom:8px;border-left:3px solid var(--accent);padding-left:8px">Official Letterhead &amp; Branding Assets</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">';
+  
+  if (hasLh) {
+    html += '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-size:10px;font-weight:700;color:#15803d;margin-bottom:4px">📜 Official Letterhead Graphic</div>' +
+      '<div style="background:#fff;padding:4px;border-radius:4px;border:1px solid #bbf7d0;margin-bottom:8px">' +
+        '<img src="' + (co.letterheadImage || co.letterhead) + '" style="max-height:40px;max-width:100%;object-fit:contain"/>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px">' +
+        '<button class="btn btn-outline btn-sm" style="font-size:9px;flex:1" onclick="previewCompanyLetterhead(\'' + coId + '\')">👁 View</button>' +
+        '<a href="' + (co.letterheadImage || co.letterhead) + '" download="' + esc(co.name) + '_Letterhead.png" class="btn btn-outline btn-sm" style="font-size:9px;flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center">⬇ Download</a>' +
+      '</div>' +
+    '</div>';
+  } else {
+    html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-size:16px;margin-bottom:2px">📜</div>' +
+      '<div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:2px">Official Letterhead</div>' +
+      '<div style="font-size:9px;color:#dc2626;margin-bottom:6px">Not attached</div>' +
+      '<button class="btn btn-sm" style="font-size:9px;background:#dc2626;color:#fff" onclick="this.closest(\x27.overlay\x27).remove();openCompanyEdit(\x27' + coId + '\x27)">Upload +</button>' +
+    '</div>';
+  }
+
+  if (hasStamp) {
+    html += '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-size:10px;font-weight:700;color:#15803d;margin-bottom:4px">⭕ Official Company Seal</div>' +
+      '<div style="background:#fff;padding:4px;border-radius:4px;border:1px solid #bbf7d0;margin-bottom:8px">' +
+        '<img src="' + (co.stampImage || co.stamp) + '" style="max-height:40px;max-width:100%;object-fit:contain"/>' +
+      '</div>' +
+      '<a href="' + (co.stampImage || co.stamp) + '" download="' + esc(co.name) + '_Seal.png" class="btn btn-outline btn-sm" style="font-size:9px;width:100%;text-decoration:none;display:inline-flex;align-items:center;justify-content:center">⬇ Download Stamp</a>' +
+    '</div>';
+  } else {
+    html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-size:16px;margin-bottom:2px">⭕</div>' +
+      '<div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:2px">Company Seal / Stamp</div>' +
+      '<div style="font-size:9px;color:#dc2626;margin-bottom:6px">Not attached</div>' +
+      '<button class="btn btn-sm" style="font-size:9px;background:#dc2626;color:#fff" onclick="this.closest(\x27.overlay\x27).remove();openCompanyEdit(\x27' + coId + '\x27)">Upload +</button>' +
+    '</div>';
+  }
+  html += '</div>';
+
   // MANDATORY DOCS SECTION
-  html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#dc2626;margin-bottom:8px;border-left:3px solid #dc2626;padding-left:8px">Mandatory Documents</div>';
+  html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#dc2626;margin-bottom:8px;border-left:3px solid #dc2626;padding-left:8px">Mandatory Compliance Documents</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">';
   [
     { key:'gst',  label:'GST Certificate' },
@@ -33116,6 +33264,81 @@ function toggleMobileSidebarMenu() {
     }
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   CAPACITOR NATIVE MOBILE BRIDGE & RUNTIME (ANDROID & IOS)
+   ══════════════════════════════════════════════════════════════ */
+(function initCapacitorBridge() {
+  var cap = window.Capacitor;
+  if (!cap) return;
+
+  // 1. Hardware Back Button Handling
+  if (cap.Plugins && cap.Plugins.App) {
+    try {
+      cap.Plugins.App.addListener('backButton', function(data) {
+        var openOverlay = document.querySelector('.overlay.on, .overlay[style*="display: flex"], .overlay[style*="display: block"]');
+        if (openOverlay) {
+          if (typeof closeModal === 'function') closeModal();
+          else openOverlay.style.display = 'none';
+          return;
+        }
+        var searchPanel = document.getElementById('global-search-panel');
+        if (searchPanel && searchPanel.style.display === 'block') {
+          if (typeof closeSearchPanel === 'function') closeSearchPanel();
+          return;
+        }
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar && sidebar.classList.contains('mob-open')) {
+          if (typeof toggleMobileSidebarMenu === 'function') toggleMobileSidebarMenu();
+          return;
+        }
+        if (!data || !data.canGoBack) {
+          cap.Plugins.App.exitApp();
+        } else {
+          window.history.back();
+        }
+      });
+    } catch(err) {
+      console.warn('Capacitor App backButton init warning:', err);
+    }
+  }
+
+  // 2. Status Bar Maritime Color
+  if (cap.Plugins && cap.Plugins.StatusBar) {
+    try {
+      cap.Plugins.StatusBar.setBackgroundColor({ color: '#0B2545' });
+    } catch(err) {}
+  }
+
+  // 3. Network Offshore vs Shore Status Listener
+  if (cap.Plugins && cap.Plugins.Network) {
+    try {
+      cap.Plugins.Network.addListener('networkStatusChange', function(status) {
+        var netPill = document.getElementById('mobile-net-status');
+        if (!netPill) {
+          netPill = document.createElement('div');
+          netPill.id = 'mobile-net-status';
+          netPill.style.cssText = 'font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;display:flex;align-items:center;gap:4px;';
+          var topbarActions = document.getElementById('topbar-actions');
+          if (topbarActions) topbarActions.prepend(netPill);
+        }
+        if (status && status.connected) {
+          netPill.style.background = 'rgba(16,185,129,0.12)';
+          netPill.style.color = '#10b981';
+          netPill.style.border = '1px solid rgba(16,185,129,0.3)';
+          netPill.innerHTML = '🟢 Shore Synced';
+        } else {
+          netPill.style.background = 'rgba(239,68,68,0.12)';
+          netPill.style.color = '#ef4444';
+          netPill.style.border = '1px solid rgba(239,68,68,0.3)';
+          netPill.innerHTML = '⚓ Offshore (Local)';
+        }
+      });
+    } catch(err) {
+      console.warn('Capacitor Network init warning:', err);
+    }
+  }
+})();
 
 /* ══════════════════════════════════════════════════════════════
    ANDROID NATIVE FEATURE PACK
