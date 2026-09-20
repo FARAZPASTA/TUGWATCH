@@ -10919,30 +10919,154 @@ function onVesselTypeChange(type) {
 }
 
 function renderDrawingsList(v) {
-  if (!v.drawings || !v.drawings.length) return '<div class="empty">No drawings uploaded yet.</div>';
-  var container = document.createElement('div');
-  for (var i = 0; i < v.drawings.length; i++) {
-    var d = v.drawings[i];
-    var row = document.createElement('div');
-    row.className = 'file-row';
-    var dl = document.createElement('button');
-    dl.className = 'btn btn-outline btn-sm';
-    dl.textContent = 'Download';
-    (function(name){ dl.addEventListener('click', function(){ dlFile(name); }); })(d.name);
-    var del = document.createElement('button');
-    del.className = 'btn btn-danger btn-sm';
-    del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" style="width:10px;height:10px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>';
-    (function(vid, idx){ del.addEventListener('click', function(){ delDrawing(vid, idx); }); })(v.id, i);
-    row.innerHTML = '<div class="file-row-l"><div class="fext ' + extClass(d.name) + '">' + extLabel(d.name) + '</div><div><div class="fname">' + d.name + '</div><div class="fsize">' + d.size + '</div></div></div>';
-    var btns = document.createElement('div');
-    btns.style.cssText = 'display:flex;gap:5px';
-    btns.appendChild(dl);
-    btns.appendChild(del);
-    row.appendChild(btns);
-    container.appendChild(row);
+  if (!v.drawings || !v.drawings.length) {
+    return '<div style="grid-column:1/-1;padding:22px;text-align:center;color:var(--t3);font-size:12.5px;background:var(--bg1);border:1px dashed var(--b2);border-radius:10px">📂 No drawings or technical blueprints uploaded for ' + esc(v.name) + ' yet. Use the upload box above to add GA plans, stability booklets, or CAD files.</div>';
   }
-  return container.innerHTML;
+
+  return v.drawings.map(function(d, i) {
+    var ext = (d.name || '').split('.').pop().toUpperCase();
+    var hasData = !!d.data;
+    var extBadgeColor = ext === 'PDF' ? '#ef4444' : (ext === 'DWG' || ext === 'DXF' || ext === 'CAD') ? '#6366f1' : '#0ea5e9';
+
+    var previewBtn = hasData
+      ? '<button class="btn btn-primary btn-sm" onclick="viewVesselDrawing(\'' + v.id + '\',' + i + ')" style="font-size:10px;padding:3px 8px" title="View / Open full resolution">👁️ View</button>'
+      : '';
+
+    return '<div style="background:var(--bg1);border:1px solid var(--b2);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,0.04)">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:' + extBadgeColor + '15;border:1px solid ' + extBadgeColor + '40;color:' + extBadgeColor + ';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">' + ext + '</div>' +
+        '<div style="min-width:0;flex:1">' +
+          '<div style="font-size:12px;font-weight:700;color:var(--t1);word-break:break-word;line-height:1.3">' + esc(d.name) + '</div>' +
+          '<div style="font-size:10px;color:var(--t3);margin-top:3px">' + esc(d.size || '—') + (d.by ? ' · By ' + esc(d.by) : '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:flex-end;gap:6px;border-top:1px solid var(--b2);padding-top:8px">' +
+        previewBtn +
+        '<button class="btn btn-outline btn-sm" onclick="dlVesselDrawing(\'' + v.id + '\',' + i + ')" style="font-size:10px;padding:3px 8px" title="Download Drawing">⬇️ Download</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="delDrawing(\'' + v.id + '\',' + i + ')" style="font-size:10px;padding:3px 6px" title="Remove Drawing">🗑️</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
+
+function onFilePick(e, vid) {
+  if (e.target && e.target.files) {
+    applyFiles(vid, Array.from(e.target.files));
+    e.target.value = '';
+  }
+}
+window.onFilePick = onFilePick;
+
+function onDrop(e, vid) {
+  e.preventDefault();
+  if (e.dataTransfer && e.dataTransfer.files) {
+    applyFiles(vid, Array.from(e.dataTransfer.files));
+  }
+}
+window.onDrop = onDrop;
+
+function applyFiles(vid, files) {
+  var v = (DB.vessels||[]).find(function(x){ return x && x.id === vid; });
+  if (!v) return;
+  v.drawings = v.drawings || [];
+
+  var count = files.length;
+  var loaded = 0;
+
+  files.forEach(function(f) {
+    var sizeStr = f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : (f.size / 1024).toFixed(0) + ' KB';
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      v.drawings.push({
+        id: 'drw_' + uid(),
+        name: f.name,
+        size: sizeStr,
+        type: f.type || 'application/octet-stream',
+        data: evt.target.result,
+        uploadedAt: new Date().toISOString(),
+        by: (CU ? CU.name : 'Admin')
+      });
+      loaded++;
+      if (loaded === count) {
+        if (typeof VC !== 'undefined') {
+          VC.open[vid] = true;
+          VC.tab[vid] = 'drawings';
+        }
+        saveDB();
+        if (typeof syncCollectionToCloud === 'function') {
+          syncCollectionToCloud('vessels');
+        }
+        renderVessels();
+        if (typeof updateBadges === 'function') updateBadges();
+        audit('Uploaded ' + count + ' drawing(s) to ' + v.name, 'var(--accent)');
+        toast(count + ' drawing(s) uploaded successfully ✓', 'var(--ok)');
+      }
+    };
+    reader.readAsDataURL(f);
+  });
+}
+window.applyFiles = applyFiles;
+
+function delDrawing(vid, idx) {
+  var v = (DB.vessels||[]).find(function(x){ return x && x.id === vid; });
+  if (!v || !v.drawings || !v.drawings[idx]) return;
+  var name = v.drawings[idx].name;
+  if (!confirm('Are you sure you want to remove drawing "' + name + '"?')) return;
+
+  v.drawings.splice(idx, 1);
+  if (typeof VC !== 'undefined') {
+    VC.open[vid] = true;
+    VC.tab[vid] = 'drawings';
+  }
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('vessels');
+  }
+  renderVessels();
+  if (typeof updateBadges === 'function') updateBadges();
+  audit('Deleted drawing "' + name + '" from ' + v.name, 'var(--err)');
+  toast('Drawing removed ✓', 'var(--ok)');
+}
+window.delDrawing = delDrawing;
+
+function dlVesselDrawing(vid, idx) {
+  var v = (DB.vessels||[]).find(function(x){ return x && x.id === vid; });
+  if (!v || !v.drawings || !v.drawings[idx]) return;
+  var d = v.drawings[idx];
+
+  if (d.data && d.data.startsWith('data:')) {
+    var a = document.createElement('a');
+    a.href = d.data;
+    a.download = d.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast('Downloading "' + d.name + '" ✓', 'var(--ok)');
+  } else {
+    dlFile(d.name);
+  }
+}
+window.dlVesselDrawing = dlVesselDrawing;
+
+function viewVesselDrawing(vid, idx) {
+  var v = (DB.vessels||[]).find(function(x){ return x && x.id === vid; });
+  if (!v || !v.drawings || !v.drawings[idx]) return;
+  var d = v.drawings[idx];
+  if (!d.data) {
+    toast('No visual preview data available for this file', 'var(--warn)');
+    return;
+  }
+
+  var w = window.open('');
+  if (w) {
+    if (d.data.startsWith('data:image/')) {
+      w.document.write('<!DOCTYPE html><html><head><title>' + esc(d.name) + '</title><style>body{margin:0;background:#0f172a;display:flex;justify-content:center;align-items:center;min-height:100vh}img{max-width:98%;max-height:98vh;object-fit:contain;box-shadow:0 8px 30px rgba(0,0,0,0.5)}</style></head><body><img src="' + d.data + '" alt="' + esc(d.name) + '"/></body></html>');
+    } else {
+      w.document.write('<!DOCTYPE html><html><head><title>' + esc(d.name) + '</title><style>body{margin:0;height:100vh;overflow:hidden}iframe{width:100%;height:100%;border:none}</style></head><body><iframe src="' + d.data + '"></iframe></body></html>');
+    }
+  }
+}
+window.viewVesselDrawing = viewVesselDrawing;
 
 function renderTripsList(trips, key) {
   if (!trips || !trips.length) return '<div class="empty" style="padding:12px 0">No trips logged for this date.</div>';
@@ -11024,67 +11148,34 @@ function deleteVessel(vid) {
     return;
   }
 
-  // Count dependent records across every collection that references this vessel
-  function cnt(arr, match){ return (DB[arr]||[]).filter(match).length; }
-  var byV  = function(r){ return r && (r.vessel === v.id || r.vesselId === v.id); };
-  var byVN = function(r){ return r && (r.vessel === v.name || r.vesselId === v.name); };
-  var any  = function(r){ return byV(r) || byVN(r); };
-
-  var deps = [
-    ['Voyages', cnt('voyages', any)],
-    ['Certificates', cnt('certs', any)],
-    ['Maintenance', cnt('maint', any)],
-    ['Deficiencies', cnt('defs', any)],
-    ['Bunker Receipts', cnt('bunkerReceipts', any)],
-    ['Incidents', cnt('incidents', any)],
-    ['Drills', cnt('drillRecords', any)],
-    ['Port Dues', cnt('portDues', any)],
-    ['Visits', cnt('visits', any)],
-    ['Work Orders', cnt('workOrders', any)],
-    ['Checklists', cnt('checklistRecords', any)],
-    ['ORB Entries', cnt('orbEntries', any)],
-    ['Spares', cnt('spares', any)],
-    ['Assigned Crew', cnt('crew', function(c){ return c && (c.vessel === v.id || c.vessel === v.name); })]
-  ].filter(function(d){ return d[1] > 0; });
-
-  var total = deps.reduce(function(a,d){ return a + d[1]; }, 0);
-
-  var msg = 'Are you sure you want to delete vessel "' + v.name + '"?';
-  if (total > 0) {
-    msg += '\n\n⚠️ This vessel has linked records:\n' +
-      deps.map(function(d){ return '  • ' + d[1] + ' ' + d[0]; }).join('\n') +
-      '\n\nThese records will remain in the database as orphaned records.\n\nDelete anyway?';
-  } else {
-    msg += '\n\nNo linked records found. This vessel is safe to delete.';
-  }
+  var msg = 'Are you sure you want to permanently delete vessel "' + v.name + '"?\n\nThis will remove the vessel and its local records from the active fleet.';
   if (!confirm(msg)) return;
 
-  // Confirm with vessel name (trim and case-insensitive check)
-  if (total > 0) {
-    var typed = prompt('To confirm deletion of "' + v.name + '" and orphan ' + total + ' linked record(s), type the vessel name:');
-    if (typed === null) return; // User clicked Cancel
-    if (typed.trim().toLowerCase() !== v.name.trim().toLowerCase()) {
-      uiAlert('Vessel name did not match ("' + typed + '" vs "' + v.name + '"). Deletion cancelled.');
-      return;
+  if (typeof freeCloudFiles === 'function') freeCloudFiles(v);
+  (v.photos||[]).forEach(function(p){
+    if (typeof p === 'string' && p.indexOf('firebasestorage') !== -1 && FB_READY && FB_STORAGE) {
+      try { FB_STORAGE.refFromURL(p).delete().catch(function(){}); } catch(e){}
     }
-  }
+  });
 
-  freeCloudFiles(v);
-  (v.photos||[]).forEach(function(p){ if(typeof p==='string'&&p.indexOf('firebasestorage')!==-1&&FB_READY&&FB_STORAGE){try{FB_STORAGE.refFromURL(p).delete().catch(function(){});}catch(e){}} });
   var idx = DB.vessels.indexOf(v);
   if (idx !== -1) {
     DB.vessels.splice(idx, 1);
   }
-  if (typeof VC !== 'undefined' && VC.open) { try { delete VC.open[v.id]; delete VC.tab[v.id]; } catch(e){} }
+  if (typeof VC !== 'undefined' && VC.open) {
+    try { delete VC.open[v.id]; delete VC.tab[v.id]; } catch(e){}
+  }
+
   saveDB();
   if (typeof syncCollectionToCloud === 'function') {
     syncCollectionToCloud('vessels');
   }
+
   renderVessels();
   if (typeof fillVesselSelects === 'function') fillVesselSelects();
   if (typeof updateBadges === 'function') updateBadges();
-  audit('Deleted vessel: ' + v.name + (total>0 ? ' ('+total+' linked records orphaned)' : ''), 'var(--err)');
-  toast('Vessel "' + v.name + '" deleted ✓', 'var(--ok)');
+  audit('Deleted vessel: ' + v.name, 'var(--err)');
+  toast('Vessel "' + v.name + '" deleted successfully ✓', 'var(--ok)');
 }
 window.deleteVessel = deleteVessel;
 
@@ -11112,7 +11203,7 @@ function renderVessels() {
           </button>
           ${v.gdrive ? `<a class="edit-btn" style="color:#16a34a;border-color:#16a34a;text-decoration:none;display:inline-flex;align-items:center;gap:4px" href="${v.gdrive}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Google Drive</a>` : ''}
           <button class="edit-btn" onclick="event.stopPropagation();openEdit('vessel',DB.vessels.indexOf(v))"><svg viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
-          <button class="edit-btn" style="color:var(--err);border-color:var(--err)" onclick="event.stopPropagation();deleteVessel(v.id)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>Delete</button>
+          <button class="edit-btn" style="color:var(--err);border-color:var(--err)" onclick="event.stopPropagation();deleteVessel('${v.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>Delete</button>
           <span class="chip chip-accent">${(v.drawings||[]).length} drawings</span>
           <svg class="chev ${isOpen?'open':''}" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -11173,19 +11264,54 @@ function renderVessels() {
           ${renderEquipLog(v.id)}
         </div>
         <div class="tab-panel ${tab==='drawings'?'on':''}" id="vt-drawings-${v.id}">
-          <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:8px">📐 Technical Drawings</div>
-          <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event,'${v.id}')">
-            <input type="file" multiple onchange="onFilePick(event,'${v.id}')"/>
-            <svg viewBox="0 0 24 24" fill="none"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
-            <p><strong>Click to upload</strong> or drag &amp; drop — PDF, DWG, DXF</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:14px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:8px">
+                <span>📐</span> Vessel Technical Drawings, Blueprints &amp; GA Plans
+              </div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">Upload and manage General Arrangement (GA) plans, stability booklets, engine room layouts, tank capacities, and technical blueprints.</div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--accent)">
+              ${(v.drawings||[]).length} Plan(s) Uploaded
+            </div>
           </div>
-          <div class="file-list">
+
+          <!-- LARGE HERO UPLOAD DROPZONE -->
+          <div style="background:linear-gradient(135deg,rgba(56,189,248,0.06),rgba(99,102,241,0.06));border:2px dashed var(--accent);border-radius:14px;padding:26px 20px;text-align:center;margin-bottom:18px;position:relative;cursor:pointer;transition:all .2s"
+               ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='rgba(56,189,248,0.12)'"
+               ondragleave="this.style.borderColor='var(--accent)';this.style.background='linear-gradient(135deg,rgba(56,189,248,0.06),rgba(99,102,241,0.06))'"
+               ondrop="onDrop(event,'${v.id}')">
+            <input type="file" multiple accept=".pdf,.dwg,.dxf,.png,.jpg,.jpeg,.cad,.zip,.tiff" onchange="onFilePick(event,'${v.id}')" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:10" title="Click to browse or drag & drop blueprints"/>
+            <div style="width:52px;height:52px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--accent)">
+              <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <div style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:4px">Upload Vessel Drawings &amp; Blueprints</div>
+            <div style="font-size:12px;color:var(--t3);max-width:560px;margin:0 auto 10px">
+              Click to select files or drag &amp; drop here. Supports <strong>General Arrangement (GA), Engine Layout, Tank/Capacity Plans, Stability Booklets, Electrical Schematics, Safety Plans</strong>.
+            </div>
+            <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+              <span class="chip chip-info" style="font-size:10px">📄 PDF Plans</span>
+              <span class="chip chip-info" style="font-size:10px">📐 CAD / DWG / DXF</span>
+              <span class="chip chip-info" style="font-size:10px">🖼️ High-Res Scans</span>
+              <span class="chip chip-info" style="font-size:10px">📦 ZIP Archives</span>
+            </div>
+          </div>
+
+          <!-- DRAWINGS GALLERY / CARDS -->
+          <div class="file-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px">
             ${renderDrawingsList(v)}
           </div>
-          <div style="border-top:2px solid #e4e6eb;margin-top:16px;padding-top:14px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <div style="font-size:11px;font-weight:700;color:var(--t1)">📎 Custom Documents</div>
-              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openVesselDocUpload('${v.id}')">+ Add Document</button>
+
+          <!-- CUSTOM DOCUMENTS VAULT -->
+          <div style="border-top:1px solid var(--b2);margin-top:18px;padding-top:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div>
+                <div style="font-size:13px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:6px">
+                  <span>📎</span> Additional Vessel Documents &amp; Manuals
+                </div>
+                <div style="font-size:10.5px;color:var(--t3)">Upload operational manuals, class survey reports, and miscellaneous documentation.</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openVesselDocUpload('${v.id}')" style="font-weight:700">+ Add Document</button>
             </div>
             ${(function(){try{return renderVesselCustomDocs(v.id);}catch(e){return '';}})()}
           </div>
