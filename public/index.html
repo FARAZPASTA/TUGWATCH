@@ -3761,7 +3761,7 @@ html[data-theme="dark"] #l-pass::placeholder {
       <!-- TAB BAR: DIRECTORY VS LOG -->
       <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--b1);padding-bottom:8px">
         <button type="button" id="vtms-tab-btn-dir" class="btn btn-primary btn-sm" onclick="switchVtmsTab('dir')" style="font-weight:700">🏢 Port Authorities &amp; VTMS Stations (<span id="vtms-dir-count">10</span>)</button>
-        <button type="button" id="vtms-tab-btn-log" class="btn btn-ghost btn-sm" onclick="switchVtmsTab('log')" style="font-weight:700">📝 Port Entry / Exit Log (<span id="nb-vtms">0</span>)</button>
+        <button type="button" id="vtms-tab-btn-log" class="btn btn-ghost btn-sm" onclick="switchVtmsTab('log')" style="font-weight:700">📝 Port Entry / Exit Log (<span id="vtms-log-count">0</span>)</button>
       </div>
 
       <!-- SECTION 1: OFFICIAL VTMS DIRECTORY -->
@@ -4438,7 +4438,7 @@ html[data-theme="dark"] #l-pass::placeholder {
         <div class="page-hdr-title">Monthly Operations Report</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           <input type="month" class="fi" id="mr-month" style="width:150px;font-size:11px"/>
-          <select class="fi" id="mr-vessel" style="width:140px;font-size:11px"><option value="">All Vessels</option></select>
+          <select class="fi" id="monthrep-vessel" style="width:140px;font-size:11px"><option value="">All Vessels</option></select>
           <button class="btn btn-outline btn-sm" onclick="generateMonthlyReport()">Generate Report</button>
           <button class="btn btn-primary btn-sm" onclick="printMonthlyReport()">Print / PDF</button>
         </div>
@@ -5817,7 +5817,7 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div class="fr2"><div class="fg"><label class="fl">Old Equipment (Make/Model/Serial)</label><input class="fi" id="ec-old" placeholder="e.g. SAMYUNG SRG-150N / SN:123456"/></div><div class="fg"><label class="fl">New Equipment (Make/Model/Serial)</label><input class="fi" id="ec-new" placeholder="e.g. FURUNO FS-1575 / SN:789012"/></div></div>
   <div class="fr2"><div class="fg"><label class="fl">Date of Change <span class="req">*</span></label><input class="fi" id="ec-date" type="date"/></div><div class="fg"><label class="fl">Done By (Vendor / Engineer)</label><input class="fi" id="ec-by-vendor" placeholder="Name of technician / agency"/></div></div>
   <div class="fr2"><div class="fg"><label class="fl">Cost (Rs)</label><input class="fi" id="ec-cost" type="number" placeholder="0"/></div><div class="fg"><label class="fl">Warranty Until</label><input class="fi" id="ec-warranty" type="date"/></div></div>
-  <div class="fg"><label class="fl">Reason for Change</label><input class="fi" id="ec-reason" placeholder="e.g. Failed at sea, Upgrade for compliance, Routine replacement"/></div>
+  <div class="fg"><label class="fl">Reason for Change</label><input class="fi" id="eqc-reason" placeholder="e.g. Failed at sea, Upgrade for compliance, Routine replacement"/></div>
   <div class="fg"><label class="fl">Upload Invoice / Docs</label><input class="fi fi-file" id="ec-doc" type="file" accept=".pdf,.jpg,.jpeg,.png"/></div>
   <div class="modal-footer"><button class="btn btn-ghost" data-close="m-equip-change">Cancel</button><button class="btn btn-primary" onclick="saveEquipChange()">Save Change Log</button></div>
 </div></div>
@@ -6224,7 +6224,7 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div class="fg"><label class="fl">Month</label><input class="fi" id="sp-month" type="month"/></div>
   <div class="fr2"><div class="fg"><label class="fl">Gross Salary (Rs)</label><input class="fi" id="sp-gross" type="number" placeholder="0" oninput="var g=parseFloat(this.value)||0;var d=parseFloat(document.getElementById('sp-ded').value)||0;document.getElementById('sp-net').value='Rs '+(g-d).toLocaleString('en-IN')"/></div><div class="fg"><label class="fl">Deductions (Rs)</label><input class="fi" id="sp-ded" type="number" placeholder="0" oninput="var g=parseFloat(document.getElementById('sp-gross').value)||0;var d=parseFloat(this.value)||0;document.getElementById('sp-net').value='Rs '+(g-d).toLocaleString('en-IN')"/></div></div>
   <div class="fg"><label class="fl">Net Payable</label><input class="fi fi-readonly" id="sp-net" readonly placeholder="Auto-calculated"/></div>
-  <div class="fr2"><div class="fg"><label class="fl">Payment Mode</label><select class="fi" id="sp-mode"><option>Bank Transfer</option><option>Cash</option><option>UPI</option><option>Cheque</option></select></div><div class="fg"><label class="fl">Remarks</label><input class="fi" id="sp-rem" placeholder="Payment reference"/></div></div>
+  <div class="fr2"><div class="fg"><label class="fl">Payment Mode</label><select class="fi" id="sp-mode"><option>Bank Transfer</option><option>Cash</option><option>UPI</option><option>Cheque</option></select></div><div class="fg"><label class="fl">Remarks</label><input class="fi" id="salpay-rem" placeholder="Payment reference"/></div></div>
   <div class="modal-footer"><button class="btn btn-ghost" data-close="m-salary-pay">Cancel</button><button class="btn btn-primary" onclick="processSalary()">Process Payment</button></div>
 </div></div>
 
@@ -9213,7 +9213,7 @@ function confirmIrreversible(actionLabel, onConfirm) {
 var FIREBASE_CONFIG = {
   apiKey:            "AIzaSyAk9XOGXJvtvIgMc9FJ3FTvQ_me_ipMelM",
   authDomain:        "tugwatch.firebaseapp.com",
-  databaseURL:       "https://tugwatch-default-rtdb.firebaseio.com",
+  databaseURL:       "https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId:         "tugwatch",
   storageBucket:     "tugwatch.firebasestorage.app",
   messagingSenderId: "947938170538",
@@ -11101,7 +11101,7 @@ function resolveAdminRequest(reqId, action) {
 
 
 /* ── ROCK-SOLID DIRECT CLOUD & MULTI-DEVICE AUTH ENGINE ────────── */
-var CLOUD_RTDB_URL = "https://tugwatch-default-rtdb.firebaseio.com/tugwatch.json";
+var CLOUD_RTDB_URL = "https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch.json";
 
 function findUserInDataset(dataset, u, p) {
   if (!dataset) return null;
@@ -18077,13 +18077,13 @@ function processSalary() {
   if (dup) {
     if (!confirm(m.name + ' already has a payment recorded for ' + month + ' (₹' + fmt(dup.net) + '). Record another payment anyway?')) return;
   }
-  DB.salaries.push(meta({ id:uid(), crewIdx:crewIdx, crewName:m.name, vessel:m.vessel, month:month, gross:gross, deductions:ded, net:net, mode:val('sp-mode'), rem:val('sp-rem'), date:today() }));
+  DB.salaries.push(meta({ id:uid(), crewIdx:crewIdx, crewName:m.name, vessel:m.vessel, month:month, gross:gross, deductions:ded, net:net, mode:val('sp-mode'), rem:val('salpay-rem'), date:today() }));
   closeModal('m-salary-pay');
   renderSalary();
   saveDB();
   audit('Salary processed: ' + m.name + ' — ₹' + fmt(net) + ' for ' + month, 'var(--ok)');
   toast('Salary recorded for ' + m.name);
-  clearFields(['sp-gross','sp-ded','sp-net','sp-rem']);
+  clearFields(['sp-gross','sp-ded','sp-net','salpay-rem']);
 }
 
 function processAllSalaries() {
@@ -19482,17 +19482,17 @@ function saveStaffEditModal() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -22997,7 +22997,7 @@ function saveEquipChange() {
     id:uid(), vessel:vid, type:type, changeType:val('ec-change-type'),
     oldEquip:val('ec-old'), newEquip:val('ec-new'), date:date,
     byVendor:val('ec-by-vendor'), cost:num('ec-cost'),
-    warranty:val('ec-warranty'), reason:val('ec-reason'),
+    warranty:val('ec-warranty'), reason:val('eqc-reason'),
     docFile: pf ? pf.name : ''
   }));
 
@@ -23021,7 +23021,7 @@ function saveEquipChange() {
   saveDB();
   audit('Equipment changed on ' + vname(vid) + ': ' + type + (val('ec-old')?' from '+val('ec-old'):'') + (val('ec-new')?' to '+val('ec-new'):''), 'var(--warn)');
   toast('Equipment change logged' + (v && val('ec-new') ? ' — vessel profile updated' : ''));
-  clearFields(['ec-old','ec-new','ec-by-vendor','ec-cost','ec-warranty','ec-reason']);
+  clearFields(['ec-old','ec-new','ec-by-vendor','ec-cost','ec-warranty','eqc-reason']);
 }
 
 function renderEquipLog(vid) {
@@ -30401,6 +30401,8 @@ function renderVTMSLog() {
   var entries = (DB.vtmsLog||[]).filter(function(e){ return !fil || e.vessel === fil; });
   var nb = document.getElementById('nb-vtms');
   if (nb) nb.textContent = (DB.vtmsLog||[]).length;
+  var tabLogCount = document.getElementById('vtms-log-count');
+  if (tabLogCount) tabLogCount.textContent = (DB.vtmsLog||[]).length;
   if (!entries.length) { el.innerHTML='<div class="empty" style="padding:28px">No port entry / VTMS records logged yet. Click "Log Port Entry / Exit" to record a vessel movement.</div>'; return; }
   var typeColors = { entry:'chip-ok', exit:'chip-warn', vtms:'chip-accent', anchorage:'chip-info', pilotage:'chip-muted' };
   var statusColors = { Sent:'chip-accent', Acknowledged:'chip-warn', Approved:'chip-ok', Cleared:'chip-ok', Pending:'chip-err' };
@@ -34177,7 +34179,7 @@ PAGE_TITLES['part-specs']='Parts Spec';PAGE_HOOKS['part-specs']='renderPartSpecs
 /* MONTHLY REPORT */
 function generateMonthlyReport(){
   var month=(document.getElementById('mr-month')||{}).value;if(!month){uiAlert('Select a month');return;}
-  var vessel=(document.getElementById('mr-vessel')||{}).value||'';
+  var vessel=(document.getElementById('monthrep-vessel')||{}).value||'';
   var el=document.getElementById('monthly-report-content');if(!el)return;
   var parts=month.split('-');var yr=parseInt(parts[0]);var mo=parseInt(parts[1]);
   var label=new Date(yr,mo-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});
@@ -34200,7 +34202,7 @@ function generateMonthlyReport(){
 }
 function printMonthlyReport(){var el=document.getElementById('mr-printable');if(!el){uiAlert('Generate report first');return;}var w=window.open();w.document.write('<html><head><title>TugWatch — Marine Fleet Operations OS</title><style>body{font-family:Arial,sans-serif;font-size:12px}table{width:100%;border-collapse:collapse}th,td{padding:5px 8px;border:1px solid #ddd}th{background:#f0f2f5}</style></head><body>');w.document.write(el.outerHTML);w.document.write('</body></html>');w.document.close();setTimeout(function(){w.print();},400);}
 function renderMonthlyReport(){
-  var vsel=document.getElementById('mr-vessel');if(vsel&&vsel.options.length<=1)(DB.vessels||[]).forEach(function(v){var o=document.createElement('option');o.value=v.id;o.textContent=v.name;vsel.appendChild(o);});
+  var vsel=document.getElementById('monthrep-vessel');if(vsel&&vsel.options.length<=1)(DB.vessels||[]).forEach(function(v){var o=document.createElement('option');o.value=v.id;o.textContent=v.name;vsel.appendChild(o);});
   var mr=document.getElementById('mr-month');if(mr&&!mr.value)mr.value=today().slice(0,7);
 }
 PAGE_TITLES['monthly-report']='Monthly Operations Report';PAGE_HOOKS['monthly-report']='renderMonthlyReport';
@@ -35852,17 +35854,17 @@ function executeUniversalRestore(targetData, mode, sourceName) {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -36334,17 +36336,17 @@ function saveMasterCredentialsV8() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -36492,17 +36494,17 @@ function saveCompanyProfileV8() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -36809,17 +36811,17 @@ function saveUnifiedUserModal() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -36865,17 +36867,17 @@ function deleteUserV8(userId, type) {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -36919,17 +36921,17 @@ function saveCompanyProfileV8() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37055,17 +37057,17 @@ function toggleMasterLock(key, val) {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37182,17 +37184,17 @@ function saveMasterFromModal() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37552,7 +37554,7 @@ async function checkCloudAccountSyncStatus() {
 
   var startTime = Date.now();
   try {
-    var resp = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json?t=' + Date.now(), { cache: 'no-store' });
+    var resp = await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json?t=' + Date.now(), { cache: 'no-store' });
     var latency = Date.now() - startTime;
     if (resp.ok) {
       var cloudArr = await resp.json();
@@ -37888,12 +37890,12 @@ async function syncAccountsToCloud() {
 
   try {
     var payload = JSON.stringify(DB.accounts);
-    var r1 = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    var r1 = await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: payload
     });
-    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: payload
@@ -38009,17 +38011,17 @@ async function deleteAccountClean(accountId) {
   saveDB();
 
   try {
-    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -38091,17 +38093,17 @@ function saveCompanyProfileClean() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -38324,17 +38326,17 @@ function saveMyProfileSelfService() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
