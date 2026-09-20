@@ -2523,12 +2523,12 @@ html[data-theme="dark"] #l-pass::placeholder {
       <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/><path d="M7 8h10M7 12h6M7 16h8" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/></svg>
       Monthly Report<span class="nav-badge nb-default" id="nb-monthly-report"></span>
     </div>
-    <div class="nav-item master-only" data-page="backup">
-    <div class="nav-item master-only" data-page="trash" onclick="go('trash')">
+    <div class="nav-item" data-page="trash" onclick="go('trash')">
       <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-      <span>Recycle Bin</span>
+      <span>Recycle Bin &amp; Requests</span>
       <span class="nav-badge nb-default" id="nb-trash" style="background:#ef4444;color:#fff"></span>
     </div>
+    <div class="nav-item master-only" data-page="backup" onclick="go('backup')">
       <svg viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="#0369a1" stroke-width="1.5" stroke-linecap="round"/><path d="M7 10l5 5 5-5M12 15V3" stroke="#0369a1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Backup &amp; Restore
     </div>
@@ -4455,36 +4455,64 @@ html[data-theme="dark"] #l-pass::placeholder {
       <div class="page-hdr" style="margin-bottom:14px">
         <div>
           <div class="page-hdr-title" style="display:flex;align-items:center;gap:8px">
-            <span>🗑️ Recent Deletions &amp; Recycle Bin Vault</span>
-            <span class="chip chip-ok" id="trash-total-count">0</span>
+            <span>🗑️ Recycle Bin &amp; Deletion Requests Hub</span>
+            <span class="chip chip-warn" id="trash-pending-badge" style="display:none;font-size:10px">0 Pending Requests</span>
           </div>
           <div style="font-size:11px;color:var(--t3);margin-top:2px">
-            All deleted vessels, certificates, crew, maintenance logs, and documents are stored here safely. You can 1-click restore any item back to its exact place or permanently purge it.
+            Master Administrator &amp; Fleet Admins hold exclusive deletion rights. Staff deletion requests require Admin review before records are moved to Recycle Bin.
           </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-outline btn-sm" onclick="renderTrash()">🔄 Refresh</button>
-          <button class="btn btn-danger btn-sm" onclick="emptyTrash()" style="font-weight:700">🧹 Empty Recycle Bin</button>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="renderTrashHub()">🔄 Refresh</button>
+          <button class="btn btn-danger btn-sm master-only" id="trash-empty-btn" onclick="emptyTrash()" style="font-weight:700">🧹 Empty Recycle Bin</button>
         </div>
       </div>
 
-      <!-- FILTER TABS & SEARCH -->
-      <div class="data-card" style="margin-bottom:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <div style="display:flex;gap:6px;flex-wrap:wrap" id="trash-filter-tabs">
-          <button class="btn btn-outline btn-sm trash-filter-btn on" data-filter="all" onclick="renderTrash('all')">All Items</button>
-          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="vessels" onclick="renderTrash('vessels')">🚢 Vessels</button>
-          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="certs" onclick="renderTrash('certs')">📜 Certificates</button>
-          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="crew" onclick="renderTrash('crew')">👤 Crew</button>
-          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="maint" onclick="renderTrash('maint')">🔧 Maintenance</button>
-          <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="materials" onclick="renderTrash('materials')">📦 Materials</button>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" class="form-input" id="trash-search-input" placeholder="Search deleted records..." style="width:220px;font-size:11px;padding:5px 10px" oninput="renderTrash()"/>
-        </div>
+      <!-- MAIN TABS (Requests vs Recycle Bin) -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;border-bottom:2px solid var(--b1);padding-bottom:10px">
+        <button class="btn btn-outline btn-sm trash-main-tab on" id="tab-btn-del-requests" onclick="switchTrashTab('requests')" style="font-weight:700;display:flex;align-items:center;gap:6px">
+          <span>📋 Deletion Approval Requests</span>
+          <span class="chip chip-warn" id="trash-tab-requests-count" style="font-size:9.5px;padding:1px 6px">0</span>
+        </button>
+        <button class="btn btn-outline btn-sm trash-main-tab" id="tab-btn-del-vault" onclick="switchTrashTab('vault')" style="font-weight:700;display:flex;align-items:center;gap:6px">
+          <span>🗑️ Deleted Records Vault (Recycle Bin)</span>
+          <span class="chip chip-ok" id="trash-tab-vault-count" style="font-size:9.5px;padding:1px 6px">0</span>
+        </button>
       </div>
 
-      <!-- TRASH LIST CONTAINER -->
-      <div id="trash-list-container"></div>
+      <!-- VIEW 1: DELETION REQUESTS APPROVAL PANEL -->
+      <div id="trash-view-requests" style="display:block">
+        <div class="data-card" style="margin-bottom:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="delreq-filter-tabs">
+            <button class="btn btn-outline btn-sm delreq-filter-btn on" data-filter="all" onclick="renderDeletionRequests('all')">All Requests</button>
+            <button class="btn btn-outline btn-sm delreq-filter-btn" data-filter="pending" onclick="renderDeletionRequests('pending')">⏳ Pending Approval</button>
+            <button class="btn btn-outline btn-sm delreq-filter-btn" data-filter="approved" onclick="renderDeletionRequests('approved')">✅ Approved</button>
+            <button class="btn btn-outline btn-sm delreq-filter-btn" data-filter="rejected" onclick="renderDeletionRequests('rejected')">❌ Rejected</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" class="form-input" id="delreq-search-input" placeholder="Search requests..." style="width:200px;font-size:11px;padding:5px 10px" oninput="renderDeletionRequests()"/>
+          </div>
+        </div>
+        <div id="delreq-list-container"></div>
+      </div>
+
+      <!-- VIEW 2: RECYCLE BIN VAULT -->
+      <div id="trash-view-vault" style="display:none">
+        <div class="data-card" style="margin-bottom:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="trash-filter-tabs">
+            <button class="btn btn-outline btn-sm trash-filter-btn on" data-filter="all" onclick="renderTrashVault('all')">All Items</button>
+            <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="vessels" onclick="renderTrashVault('vessels')">🚢 Vessels</button>
+            <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="certs" onclick="renderTrashVault('certs')">📜 Certificates</button>
+            <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="crew" onclick="renderTrashVault('crew')">👤 Crew</button>
+            <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="maint" onclick="renderTrashVault('maint')">🔧 Maintenance</button>
+            <button class="btn btn-outline btn-sm trash-filter-btn" data-filter="materials" onclick="renderTrashVault('materials')">📦 Materials</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" class="form-input" id="trash-search-input" placeholder="Search deleted records..." style="width:200px;font-size:11px;padding:5px 10px" oninput="renderTrashVault()"/>
+          </div>
+        </div>
+        <div id="trash-list-container"></div>
+      </div>
     </div>
 
     <div class="page" id="p-backup">
@@ -4660,6 +4688,40 @@ html[data-theme="dark"] #l-pass::placeholder {
 <!-- VTMS INTIMATION EMAIL MODAL -->
 
 <!-- UNIVERSAL EDIT MODAL — used by openEdit() for vessel/crew/cert/maint/def/voyage/visit/mat -->
+<!-- STAFF DELETION APPROVAL REQUEST MODAL -->
+<div class="overlay" id="m-deletion-request">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+          <span>📋 Request Deletion Approval</span>
+          <span class="chip chip-warn" style="font-size:10px">Staff Authorization</span>
+        </div>
+        <div style="font-size:11px;color:var(--t3);margin-top:2px">Staff deletion requests require Master or Fleet Admin approval.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('m-deletion-request')">✕</button>
+    </div>
+    <div style="padding:20px">
+      <div class="data-card" style="margin-bottom:14px;padding:12px;background:var(--bg);border-radius:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;margin-bottom:4px" id="del-req-target-type">RECORD TO DELETE</div>
+        <div style="font-size:13px;font-weight:800;color:var(--t1)" id="del-req-target-title">—</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:3px" id="del-req-target-sub">—</div>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label class="fl">Reason / Justification for Deletion <span class="req" style="color:var(--err)">*</span></label>
+        <textarea class="form-input" id="del-req-reason" rows="3" style="width:100%;box-sizing:border-box" placeholder="Explain clearly why this record should be deleted (e.g. Duplicate entry, Replaced with updated certificate, Order cancelled, Data entry typo)..."></textarea>
+      </div>
+      <div style="font-size:11px;color:var(--t3);background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.3);padding:10px 14px;border-radius:8px">
+        ℹ️ <strong>Governance Notice:</strong> To protect fleet data integrity, only the <strong>Master Administrator</strong> and <strong>Fleet Admins</strong> have direct deletion authority. This record will remain active in the system until an Admin reviews and approves your request.
+      </div>
+    </div>
+    <div style="padding:0 20px 20px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('m-deletion-request')">Cancel</button>
+      <button class="btn btn-warn" onclick="submitStaffDeletionRequest()" style="font-weight:700">📨 Submit Request for Approval</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="m-edit">
   <div class="modal modal-wide" style="max-width:680px;max-height:90vh;overflow-y:auto">
     <div class="modal-hdr">
@@ -8556,8 +8618,89 @@ function renderReports() {
 function clearFields(ids) { ids.forEach(id=>{ const el=$(id); if(el) el.value=''; }); }
 
 /* ══════════════════════════════════════════════════════════════
-   RECENT DELETIONS & RECYCLE BIN RECOVERY VAULT
-══════════════════════════════════════════════════════════════ */
+   MASTER & ADMIN EXCLUSIVE DELETIONS & APPROVAL ENGINE
+   ══════════════════════════════════════════════════════════════ */
+
+function isMasterOrAdmin() {
+  if (!CU) return false;
+  if (CU.role === 'master' || CU.role === 'admin' || CU.role === 'superadmin') return true;
+  if ((CU.username || '').toUpperCase() === (DB.masterUsername || 'FARAZ').toUpperCase()) return true;
+  return false;
+}
+window.isMasterOrAdmin = isMasterOrAdmin;
+
+var _pendingDeletionContext = null;
+
+function openDeletionRequestModal(ctx) {
+  _pendingDeletionContext = ctx;
+  var modal = document.getElementById('m-deletion-request');
+  if (!modal) return;
+  
+  var targetTypeEl = document.getElementById('del-req-target-type');
+  var targetTitleEl = document.getElementById('del-req-target-title');
+  var targetSubEl = document.getElementById('del-req-target-sub');
+  var reasonInput = document.getElementById('del-req-reason');
+  
+  var colName = ctx.col || 'record';
+  if (targetTypeEl) targetTypeEl.textContent = colName.toUpperCase() + ' DELETION REQUEST';
+  if (targetTitleEl) targetTitleEl.textContent = ctx.title || 'Selected Record';
+  if (targetSubEl) targetSubEl.textContent = (ctx.vesselName ? ('Vessel: ' + ctx.vesselName + ' · ') : '') + 'Requester: ' + (CU ? (CU.name + ' (@' + CU.username + ')') : 'Staff');
+  if (reasonInput) {
+    reasonInput.value = '';
+    setTimeout(function(){ reasonInput.focus(); }, 150);
+  }
+  
+  openModal('m-deletion-request');
+}
+window.openDeletionRequestModal = openDeletionRequestModal;
+
+function submitStaffDeletionRequest() {
+  if (!_pendingDeletionContext) {
+    closeModal('m-deletion-request');
+    return;
+  }
+  var reasonInput = document.getElementById('del-req-reason');
+  var reason = reasonInput ? reasonInput.value.trim() : '';
+  if (!reason) {
+    toast('Please enter a reason/justification for deletion', 'var(--warn)');
+    if (reasonInput) reasonInput.focus();
+    return;
+  }
+
+  DB.deletionRequests = DB.deletionRequests || [];
+  var ctx = _pendingDeletionContext;
+  var reqId = 'delreq_' + uid();
+  
+  var newReq = {
+    id: reqId,
+    col: ctx.col || 'records',
+    itemId: (ctx.item ? ctx.item.id : null) || null,
+    itemIndex: (typeof ctx.idx === 'number' ? ctx.idx : null),
+    itemTitle: ctx.title || 'Record',
+    vesselName: ctx.vesselName || (ctx.item && ctx.item.vessel ? vname(ctx.item.vessel) : '—'),
+    itemSnapshot: ctx.item ? JSON.parse(JSON.stringify(ctx.item)) : null,
+    requestedBy: CU ? CU.name : 'Staff User',
+    requesterUsername: CU ? CU.username : 'staff',
+    requesterRole: CU ? CU.role : 'staff',
+    requestedAt: new Date().toISOString(),
+    reason: reason,
+    status: 'pending'
+  };
+
+  DB.deletionRequests.unshift(newReq);
+  saveDB();
+  
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('deletionRequests');
+  }
+
+  closeModal('m-deletion-request');
+  _pendingDeletionContext = null;
+  updateTrashBadge();
+  audit('Submitted deletion approval request for "' + newReq.itemTitle + '" (' + reason + ')', 'var(--warn)');
+  toast('Deletion request submitted to Fleet Administrator for approval ✓', 'var(--ok)');
+}
+window.submitStaffDeletionRequest = submitStaffDeletionRequest;
 
 function recordToRecentDeletes(col, item, title, vesselName) {
   if (!item) return;
@@ -8577,10 +8720,10 @@ function recordToRecentDeletes(col, item, title, vesselName) {
     canRestore: true
   };
 
-  // Keep last 100 deleted items
+  // Keep last 150 deleted items
   DB.recentDeletions.unshift(trashEntry);
-  if (DB.recentDeletions.length > 100) {
-    DB.recentDeletions = DB.recentDeletions.slice(0, 100);
+  if (DB.recentDeletions.length > 150) {
+    DB.recentDeletions = DB.recentDeletions.slice(0, 150);
   }
 
   saveDB();
@@ -8592,28 +8735,249 @@ function recordToRecentDeletes(col, item, title, vesselName) {
 window.recordToRecentDeletes = recordToRecentDeletes;
 
 function updateTrashBadge() {
-  var count = (DB.recentDeletions || []).length;
+  var trashCount = (DB.recentDeletions || []).length;
+  var pendingReqs = (DB.deletionRequests || []).filter(function(r){ return r && r.status === 'pending'; }).length;
+  
   var b = document.getElementById('nb-trash');
   if (b) {
-    b.textContent = count > 0 ? count : '';
-    b.style.display = count > 0 ? 'inline-block' : 'none';
+    var totalBadge = isMasterOrAdmin() ? (pendingReqs > 0 ? (pendingReqs + ' req') : (trashCount > 0 ? trashCount : '')) : (trashCount > 0 ? trashCount : '');
+    b.textContent = totalBadge;
+    b.style.display = totalBadge ? 'inline-block' : 'none';
   }
+
+  var pendChip = document.getElementById('trash-pending-badge');
+  if (pendChip) {
+    pendChip.textContent = pendingReqs + ' Pending Request' + (pendingReqs === 1 ? '' : 's');
+    pendChip.style.display = pendingReqs > 0 ? 'inline-flex' : 'none';
+  }
+
+  var tabReqCount = document.getElementById('trash-tab-requests-count');
+  if (tabReqCount) tabReqCount.textContent = pendingReqs;
+
+  var tabVaultCount = document.getElementById('trash-tab-vault-count');
+  if (tabVaultCount) tabVaultCount.textContent = trashCount;
 }
 window.updateTrashBadge = updateTrashBadge;
 
-function renderTrash(filterCategory) {
+function switchTrashTab(tab) {
+  window._activeTrashTab = tab;
+  var isReq = tab === 'requests';
+  
+  var btnReq = document.getElementById('tab-btn-del-requests');
+  var btnVault = document.getElementById('tab-btn-del-vault');
+  var viewReq = document.getElementById('trash-view-requests');
+  var viewVault = document.getElementById('trash-view-vault');
+
+  if (btnReq) btnReq.classList.toggle('on', isReq);
+  if (btnVault) btnVault.classList.toggle('on', !isReq);
+  if (viewReq) viewReq.style.display = isReq ? 'block' : 'none';
+  if (viewVault) viewVault.style.display = isReq ? 'none' : 'block';
+
+  if (isReq) renderDeletionRequests();
+  else renderTrashVault();
+}
+window.switchTrashTab = switchTrashTab;
+
+function renderTrashHub() {
+  updateTrashBadge();
+  var curTab = window._activeTrashTab || 'requests';
+  switchTrashTab(curTab);
+}
+window.renderTrashHub = renderTrashHub;
+window.renderTrash = renderTrashHub;
+
+function renderDeletionRequests(filterStatus) {
+  var grid = document.getElementById('delreq-list-container');
+  if (!grid) return;
+
+  var allReqs = DB.deletionRequests || [];
+  updateTrashBadge();
+
+  var curFilter = filterStatus || window._delReqFilter || 'all';
+  window._delReqFilter = curFilter;
+
+  document.querySelectorAll('.delreq-filter-btn').forEach(function(btn) {
+    btn.classList.toggle('on', btn.getAttribute('data-filter') === curFilter);
+  });
+
+  var list = allReqs;
+  if (curFilter !== 'all') {
+    list = list.filter(function(x){ return x && x.status === curFilter; });
+  }
+
+  var searchQ = (val('delreq-search-input') || '').trim().toLowerCase();
+  if (searchQ) {
+    list = list.filter(function(x) {
+      return (x.itemTitle || '').toLowerCase().includes(searchQ) ||
+             (x.vesselName || '').toLowerCase().includes(searchQ) ||
+             (x.requestedBy || '').toLowerCase().includes(searchQ) ||
+             (x.requesterUsername || '').toLowerCase().includes(searchQ) ||
+             (x.reason || '').toLowerCase().includes(searchQ);
+    });
+  }
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty" style="padding:40px;text-align:center">' +
+      '<div style="font-size:36px;margin-bottom:10px">📋</div>' +
+      '<strong>No Deletion Requests Found</strong>' +
+      '<p style="font-size:12px;color:var(--t3);max-width:440px;margin:6px auto 0">Staff members submit requests here whenever an item needs deletion. Master &amp; Fleet Admins can review, approve, or reject requests with full audit history.</p>' +
+    '</div>';
+    return;
+  }
+
+  var tableHtml = '<div class="data-card" style="padding:0;overflow:hidden"><table>' +
+    '<thead><tr>' +
+      '<th>Status</th>' +
+      '<th>Target Record</th>' +
+      '<th>Vessel / Module</th>' +
+      '<th>Requested By</th>' +
+      '<th>Reason / Justification</th>' +
+      '<th>Date &amp; Time</th>' +
+      '<th style="text-align:right">Admin Actions</th>' +
+    '</tr></thead><tbody>' +
+    list.map(function(r) {
+      var reqDate = r.requestedAt ? new Date(r.requestedAt).toLocaleString('en-IN') : '—';
+      var statusChip = '<span class="chip chip-warn">⏳ Pending</span>';
+      if (r.status === 'approved') statusChip = '<span class="chip chip-ok">✅ Approved</span>';
+      else if (r.status === 'rejected') statusChip = '<span class="chip chip-err">❌ Rejected</span>';
+
+      var actions = '—';
+      if (r.status === 'pending') {
+        if (isMasterOrAdmin()) {
+          actions = '<div style="display:flex;gap:6px;justify-content:flex-end">' +
+            '<button class="btn btn-ok btn-sm" onclick="approveDeletionRequest(\'' + r.id + '\')" style="font-weight:700">✅ Approve &amp; Delete</button>' +
+            '<button class="btn btn-danger btn-sm" onclick="rejectDeletionRequest(\'' + r.id + '\')">❌ Reject</button>' +
+          '</div>';
+        } else {
+          actions = '<span style="font-size:10.5px;color:var(--t3)">Awaiting Admin Review</span>';
+        }
+      } else {
+        actions = '<span style="font-size:10px;color:var(--t3)">' + esc(r.reviewedBy || 'Admin') + '</span>';
+      }
+
+      return '<tr>' +
+        '<td style="white-space:nowrap">' + statusChip + '</td>' +
+        '<td><strong>' + esc(r.itemTitle) + '</strong></td>' +
+        '<td><span style="font-size:11px;color:var(--t2)">' + esc(r.vesselName) + ' <span style="color:var(--t3)">(' + esc(r.col) + ')</span></span></td>' +
+        '<td><span style="font-size:11.5px;font-weight:600">' + esc(r.requestedBy) + '</span><div style="font-size:9.5px;color:var(--t3)">@' + esc(r.requesterUsername) + ' · ' + esc(r.requesterRole) + '</div></td>' +
+        '<td style="font-size:11px;max-width:220px;color:var(--t1)"><em>"' + esc(r.reason) + '"</em>' + (r.reviewRemarks ? ('<div style="font-size:9.5px;color:var(--err);margin-top:2px"><strong>Remark:</strong> ' + esc(r.reviewRemarks) + '</div>') : '') + '</td>' +
+        '<td style="font-size:10.5px;font-family:var(--fm);white-space:nowrap">' + reqDate + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">' + actions + '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+
+  grid.innerHTML = tableHtml;
+}
+window.renderDeletionRequests = renderDeletionRequests;
+
+function approveDeletionRequest(reqId) {
+  if (!isMasterOrAdmin()) {
+    toast('Admin or Master access required', 'var(--err)');
+    return;
+  }
+  var req = (DB.deletionRequests || []).find(function(r){ return r && r.id === reqId; });
+  if (!req) { toast('Deletion request not found', 'var(--err)'); return; }
+  if (req.status !== 'pending') { toast('Request already ' + req.status, 'var(--warn)'); return; }
+
+  if (!confirm('Approve deletion of "' + req.itemTitle + '"?\n\nThis will remove the record from active service and move it into the Recycle Bin.')) return;
+
+  var col = req.col;
+  var targetItem = req.itemSnapshot;
+  var removed = false;
+
+  if (col === 'vessels') {
+    var vIdx = (DB.vessels || []).findIndex(function(v){ return v && (v.id === req.itemId || v.name === req.itemTitle.replace(/^Vessel:\s*/i, '')); });
+    if (vIdx !== -1) {
+      targetItem = DB.vessels[vIdx];
+      recordToRecentDeletes('vessels', targetItem, req.itemTitle, targetItem.name);
+      DB.vessels.splice(vIdx, 1);
+      removed = true;
+      if (typeof updateVesselSelects === 'function') updateVesselSelects();
+      if (typeof renderVessels === 'function') renderVessels();
+      if (typeof renderDashboard === 'function') renderDashboard();
+    }
+  } else if (Array.isArray(DB[col])) {
+    var itemIdx = -1;
+    if (req.itemId) {
+      itemIdx = DB[col].findIndex(function(x){ return x && x.id === req.itemId; });
+    }
+    if (itemIdx === -1 && targetItem) {
+      itemIdx = DB[col].findIndex(function(x){
+        return x && (
+          (x.name && x.name === targetItem.name) ||
+          (x.desc && x.desc === targetItem.desc) ||
+          (x.title && x.title === targetItem.title) ||
+          (x.id && x.id === targetItem.id)
+        );
+      });
+    }
+    if (itemIdx !== -1) {
+      var it = DB[col][itemIdx];
+      recordToRecentDeletes(col, it, req.itemTitle, req.vesselName);
+      if (typeof freeCloudFiles === 'function') freeCloudFiles(it);
+      DB[col].splice(itemIdx, 1);
+      removed = true;
+    }
+  }
+
+  req.status = 'approved';
+  req.reviewedBy = (CU ? CU.name + ' (' + CU.role + ')' : 'Admin');
+  req.reviewedAt = new Date().toISOString();
+
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    if (col) syncCollectionToCloud(col);
+    syncCollectionToCloud('recentDeletions');
+    syncCollectionToCloud('deletionRequests');
+  }
+
+  updateTrashBadge();
+  renderDeletionRequests();
+  audit('Approved deletion of ' + req.itemTitle + ' (Requested by @' + req.requesterUsername + ')', 'var(--warn)');
+  toast('Deletion approved & record moved to Recycle Bin ✓', 'var(--ok)');
+}
+window.approveDeletionRequest = approveDeletionRequest;
+
+function rejectDeletionRequest(reqId) {
+  if (!isMasterOrAdmin()) {
+    toast('Admin or Master access required', 'var(--err)');
+    return;
+  }
+  var req = (DB.deletionRequests || []).find(function(r){ return r && r.id === reqId; });
+  if (!req) { toast('Deletion request not found', 'var(--err)'); return; }
+  if (req.status !== 'pending') { toast('Request already ' + req.status, 'var(--warn)'); return; }
+
+  var reason = prompt('Reason for rejecting deletion request (optional):', 'Record is required for compliance/audit');
+  if (reason === null) return;
+
+  req.status = 'rejected';
+  req.reviewedBy = (CU ? CU.name + ' (' + CU.role + ')' : 'Admin');
+  req.reviewedAt = new Date().toISOString();
+  req.reviewRemarks = reason || 'Rejected by Administrator';
+
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('deletionRequests');
+  }
+
+  updateTrashBadge();
+  renderDeletionRequests();
+  audit('Rejected deletion request for ' + req.itemTitle + ' from @' + req.requesterUsername, 'var(--err)');
+  toast('Deletion request rejected', 'var(--warn)');
+}
+window.rejectDeletionRequest = rejectDeletionRequest;
+
+function renderTrashVault(filterCategory) {
   var grid = document.getElementById('trash-list-container');
   if (!grid) return;
 
-  var countEl = document.getElementById('trash-total-count');
   var allDeletions = DB.recentDeletions || [];
-  if (countEl) countEl.textContent = allDeletions.length;
   updateTrashBadge();
 
   var curFilter = filterCategory || window._trashFilter || 'all';
   window._trashFilter = curFilter;
 
-  // Update filter buttons
   document.querySelectorAll('.trash-filter-btn').forEach(function(btn) {
     btn.classList.toggle('on', btn.getAttribute('data-filter') === curFilter);
   });
@@ -8637,7 +9001,7 @@ function renderTrash(filterCategory) {
     grid.innerHTML = '<div class="empty" style="padding:40px;text-align:center">' +
       '<div style="font-size:36px;margin-bottom:10px">🗑️</div>' +
       '<strong>Recycle Bin is Clean</strong>' +
-      '<p style="font-size:12px;color:var(--t3);max-width:420px;margin:6px auto 0">No recently deleted items found. Whenever you delete vessels, certificates, crew, maintenance records, or drawings, they will be kept here safely for 30 days so you can restore them anytime.</p>' +
+      '<p style="font-size:12px;color:var(--t3);max-width:420px;margin:6px auto 0">No recently deleted items found. Whenever Master or Admins delete vessels, certificates, crew, or records, they are safely preserved here.</p>' +
     '</div>';
     return;
   }
@@ -8662,6 +9026,8 @@ function renderTrash(filterCategory) {
       var colLabel = t.col.charAt(0).toUpperCase() + t.col.slice(1);
       var delDate = t.deletedAt ? new Date(t.deletedAt).toLocaleString('en-IN') : '—';
 
+      var purgeBtn = isMasterOrAdmin() ? ('<button class="btn btn-danger btn-sm" onclick="purgeFromTrash(\'' + t.trashId + '\')" title="Permanently Delete Forever">❌ Purge</button>') : '';
+
       return '<tr>' +
         '<td style="white-space:nowrap"><span class="chip chip-info" style="font-size:9.5px">' + icon + ' ' + colLabel + '</span></td>' +
         '<td><strong>' + esc(t.title) + '</strong></td>' +
@@ -8670,7 +9036,7 @@ function renderTrash(filterCategory) {
         '<td style="font-size:10.5px;color:var(--t3)">' + esc(t.deletedBy) + '</td>' +
         '<td style="text-align:right;white-space:nowrap">' +
           '<button class="btn btn-ok btn-sm" onclick="restoreFromTrash(\'' + t.trashId + '\')" style="margin-right:6px;font-weight:700" title="Restore back to original section">↩️ Restore</button>' +
-          '<button class="btn btn-danger btn-sm" onclick="purgeFromTrash(\'' + t.trashId + '\')" title="Permanently Delete Forever">❌ Purge</button>' +
+          purgeBtn +
         '</td>' +
       '</tr>';
     }).join('') +
@@ -8678,9 +9044,13 @@ function renderTrash(filterCategory) {
 
   grid.innerHTML = tableHtml;
 }
-window.renderTrash = renderTrash;
+window.renderTrashVault = renderTrashVault;
 
 function restoreFromTrash(trashId) {
+  if (!isMasterOrAdmin()) {
+    toast('Admin access required to restore items', 'var(--err)');
+    return;
+  }
   var allDeletions = DB.recentDeletions || [];
   var idx = allDeletions.findIndex(function(x){ return x.trashId === trashId; });
   if (idx === -1) return;
@@ -8699,7 +9069,6 @@ function restoreFromTrash(trashId) {
     DB[col].push(item);
   }
 
-  // Remove from trash
   allDeletions.splice(idx, 1);
   DB.recentDeletions = allDeletions;
 
@@ -8709,7 +9078,6 @@ function restoreFromTrash(trashId) {
     syncCollectionToCloud('recentDeletions');
   }
 
-  // Refresh target renderers
   if (col === 'vessels') { if (typeof renderVessels === 'function') renderVessels(); if (typeof fillVesselSelects === 'function') fillVesselSelects(); }
   if (col === 'certs') { if (typeof renderCerts === 'function') renderCerts(); }
   if (col === 'crew') { if (typeof renderCrew === 'function') renderCrew(); }
@@ -8720,7 +9088,7 @@ function restoreFromTrash(trashId) {
   if (col === 'docCycles') { if (typeof renderDocCycles === 'function') renderDocCycles(); }
 
   if (typeof updateBadges === 'function') updateBadges();
-  renderTrash();
+  renderTrashVault();
 
   audit('Restored from Recycle Bin: ' + t.title + ' -> ' + col, 'var(--ok)');
   toast('"' + t.title + '" restored successfully ✓', 'var(--ok)');
@@ -8728,6 +9096,10 @@ function restoreFromTrash(trashId) {
 window.restoreFromTrash = restoreFromTrash;
 
 function purgeFromTrash(trashId) {
+  if (!isMasterOrAdmin()) {
+    toast('Only Master & Admins can purge records', 'var(--err)');
+    return;
+  }
   var allDeletions = DB.recentDeletions || [];
   var idx = allDeletions.findIndex(function(x){ return x.trashId === trashId; });
   if (idx === -1) return;
@@ -8742,12 +9114,16 @@ function purgeFromTrash(trashId) {
   if (typeof syncCollectionToCloud === 'function') {
     syncCollectionToCloud('recentDeletions');
   }
-  renderTrash();
+  renderTrashVault();
   toast('Permanently purged ✓', 'var(--warn)');
 }
 window.purgeFromTrash = purgeFromTrash;
 
 function emptyTrash() {
+  if (!isMasterOrAdmin()) {
+    toast('Only Master & Admins can empty the Recycle Bin', 'var(--err)');
+    return;
+  }
   var count = (DB.recentDeletions || []).length;
   if (!count) {
     toast('Recycle Bin is already empty');
@@ -8760,39 +9136,55 @@ function emptyTrash() {
   if (typeof syncCollectionToCloud === 'function') {
     syncCollectionToCloud('recentDeletions');
   }
-  renderTrash();
+  renderTrashVault();
   toast('Recycle Bin emptied ✓', 'var(--ok)');
   audit('Emptied Recycle Bin (' + count + ' items purged)', 'var(--err)');
 }
 window.emptyTrash = emptyTrash;
 
-
 function delItem(arr, idx, renderFn, msg) {
-  if (!CU || (CU.role !== 'admin' && CU.role !== 'master')) {
-    toast('Admin access required', 'var(--err)'); return;
+  if (!CU) {
+    toast('Please sign in to proceed', 'var(--err)');
+    return;
   }
-  if (!confirm('Delete this item? It will be moved to the Recycle Bin.')) return;
-  
-  var deletedItem = arr[idx];
+
+  var deletedItem = arr ? arr[idx] : null;
   var colName = null;
   Object.keys(DB).forEach(function(k){ if (DB[k] === arr) colName = k; });
-  if (colName && deletedItem) {
-    recordToRecentDeletes(colName, deletedItem, msg, (deletedItem.vessel ? vname(deletedItem.vessel) : ''));
+  var itemTitle = msg || (deletedItem ? (deletedItem.name || deletedItem.desc || deletedItem.title || deletedItem.type || 'Record') : 'Record');
+  var vesselName = deletedItem && deletedItem.vessel ? vname(deletedItem.vessel) : '';
+
+  // 1. IF STAFF: Intercept and route to Approval Request Modal
+  if (!isMasterOrAdmin()) {
+    openDeletionRequestModal({
+      col: colName,
+      idx: idx,
+      item: deletedItem,
+      title: itemTitle,
+      vesselName: vesselName
+    });
+    return;
   }
 
-  freeCloudFiles(deletedItem);
-  arr.splice(idx, 1);
+  // 2. IF MASTER OR ADMIN: Direct Deletion to Recycle Bin
+  if (!confirm('Delete this item? It will be moved to the Recycle Bin.')) return;
+  
+  if (colName && deletedItem) {
+    recordToRecentDeletes(colName, deletedItem, itemTitle, vesselName);
+  }
+
+  if (deletedItem && typeof freeCloudFiles === 'function') freeCloudFiles(deletedItem);
+  if (arr) arr.splice(idx, 1);
   saveDB();
   try {
-    var colName = null;
-    Object.keys(DB).forEach(function(k){ if (DB[k] === arr) colName = k; });
     if (colName && typeof syncCollectionToCloud === 'function') syncCollectionToCloud(colName);
   } catch(e){}
-  renderFn();
+  if (typeof renderFn === 'function') renderFn();
   updateBadges();
-  audit('Deleted item: ' + msg, 'var(--warn)');
-  toast(msg);
+  audit('Deleted item: ' + itemTitle + ' (Moved to Recycle Bin)', 'var(--warn)');
+  toast(itemTitle + ' moved to Recycle Bin ✓', 'var(--ok)');
 }
+window.delItem = delItem;
 
 /* Irreversible action confirmation — requires typing a phrase */
 function confirmIrreversible(actionLabel, onConfirm) {
@@ -11437,15 +11829,25 @@ function vesselDocChip(v) {
 }
 
 function deleteVessel(vid) {
-  if (typeof hasPermission === 'function' && !hasPermission('vessel_manage') && CU && CU.role !== 'master' && CU.role !== 'admin') {
-    uiAlert('You do not have permission to delete vessels.'); return;
-  }
   var v = (DB.vessels||[]).find(function(x){ return x && (x.id === vid || x.name === vid); });
   if (!v) {
     toast('Vessel not found', 'var(--warn)');
     return;
   }
 
+  // 1. IF STAFF: Intercept and route to Approval Request Modal
+  if (!isMasterOrAdmin()) {
+    openDeletionRequestModal({
+      col: 'vessels',
+      idx: DB.vessels.indexOf(v),
+      item: v,
+      title: 'Vessel: ' + v.name,
+      vesselName: v.name
+    });
+    return;
+  }
+
+  // 2. IF MASTER OR ADMIN: Direct Deletion to Recycle Bin
   var msg = 'Are you sure you want to delete vessel "' + v.name + '"?\n\nThis vessel will be moved to the Recycle Bin and can be restored anytime.';
   if (!confirm(msg)) return;
 
@@ -11475,9 +11877,10 @@ function deleteVessel(vid) {
 
   renderVessels();
   if (typeof fillVesselSelects === 'function') fillVesselSelects();
+  if (typeof renderDashboard === 'function') renderDashboard();
   if (typeof updateBadges === 'function') updateBadges();
-  audit('Deleted vessel: ' + v.name, 'var(--err)');
-  toast('Vessel "' + v.name + '" deleted successfully ✓', 'var(--ok)');
+  audit('Deleted vessel "' + v.name + '" (Moved to Recycle Bin)', 'var(--err)');
+  toast('Vessel "' + v.name + '" moved to Recycle Bin ✓', 'var(--ok)');
 }
 window.deleteVessel = deleteVessel;
 
@@ -12682,9 +13085,24 @@ function renderQuotations() {
 }
 
 function deleteQuotation(id) {
+  var q = (DB.quotations || []).find(function(x){ return x && x.id === id; });
+  if (!q) return;
+  if (!isMasterOrAdmin()) {
+    openDeletionRequestModal({
+      col: 'quotations',
+      item: q,
+      title: 'Quotation: ' + (q.quotationNo || q.title || q.id),
+      vesselName: q.vessel ? vname(q.vessel) : 'Commercial'
+    });
+    return;
+  }
   if (!confirm('Delete this quotation?')) return;
-  DB.quotations = (DB.quotations||[]).filter(function(q){ return q.id!==id; });
-  saveDB(); renderQuotations(); toast('Quotation deleted');
+  recordToRecentDeletes('quotations', q, 'Quotation: ' + (q.quotationNo || q.title || q.id), (q.vessel ? vname(q.vessel) : ''));
+  DB.quotations = (DB.quotations||[]).filter(function(x){ return x && x.id !== id; });
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('quotations');
+  renderQuotations();
+  toast('Quotation moved to Recycle Bin ✓');
 }
 
 function openQuotationFormats() {
@@ -13789,10 +14207,25 @@ function updateCycleStepNotes(cycId, stepIdx, notes) {
 }
 
 function deleteCycle(cycId) {
+  var cyc = (DB.docCycles || []).find(function(c){ return c.id === cycId; });
+  if (!cyc) return;
+  if (!isMasterOrAdmin()) {
+    openDeletionRequestModal({
+      col: 'docCycles',
+      item: cyc,
+      title: 'Doc Cycle: ' + (cyc.title || cyc.name || cyc.templateName || 'Document Cycle'),
+      vesselName: cyc.vessel ? vname(cyc.vessel) : 'Compliance'
+    });
+    return;
+  }
   if (!confirm('Delete this document cycle?')) return;
+  recordToRecentDeletes('docCycles', cyc, 'Doc Cycle: ' + (cyc.title || cyc.name || 'Cycle'), (cyc.vessel ? vname(cyc.vessel) : ''));
   DB.docCycles = (DB.docCycles||[]).filter(function(c){ return c.id!==cycId; });
-  saveDB(); closeModal('m-cycle-detail'); renderDocCycles();
-  toast('Cycle deleted');
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('docCycles');
+  closeModal('m-cycle-detail');
+  renderDocCycles();
+  toast('Document cycle moved to Recycle Bin ✓');
 }
 
 /* ── CYCLE ATTACHMENT HELPERS ─────────────────────────────── */
@@ -14243,38 +14676,44 @@ function executeBatchDelete() {
   var ids = Array.from(TW_SELECTION.ids);
   if (!col || !ids.length || !DB[col]) return;
 
-  if (!CU || (CU.role !== 'admin' && CU.role !== 'master')) {
-    if (typeof hasPermission === 'function' && !hasPermission(col + '_manage')) {
-      toast('Admin permission required to delete items', 'var(--err)');
-      return;
-    }
-  }
-
   var count = ids.length;
   var colTitle = col.charAt(0).toUpperCase() + col.slice(1);
-  var msg = 'Are you sure you want to permanently delete ' + count + ' selected ' + (count === 1 ? 'item' : 'items') + ' from ' + colTitle + '?\n\nThis action cannot be undone.';
+
+  if (!isMasterOrAdmin()) {
+    openDeletionRequestModal({
+      col: col,
+      idx: null,
+      item: { id: ids.join(','), count: count, col: col },
+      title: 'Batch Selection: ' + count + ' ' + colTitle + ' records',
+      vesselName: 'Multiple'
+    });
+    clearBatchSelection();
+    return;
+  }
+
+  var msg = 'Are you sure you want to delete ' + count + ' selected ' + (count === 1 ? 'item' : 'items') + ' from ' + colTitle + '?\n\nThese records will be moved to the Recycle Bin.';
   if (!confirm(msg)) return;
 
-  // Perform deletion
   if (Array.isArray(DB[col])) {
     var idSet = new Set(ids);
     DB[col] = DB[col].filter(function(item, idx) {
       if (!item) return false;
       var matchId = item.id ? String(item.id) : String(idx);
       if (idSet.has(matchId) || idSet.has(String(idx))) {
+        recordToRecentDeletes(col, item, (item.name || item.desc || item.title || colTitle + ' item'), (item.vessel ? vname(item.vessel) : ''));
         if (typeof freeCloudFiles === 'function') freeCloudFiles(item);
-        return false; // Remove
+        return false;
       }
-      return true; // Keep
+      return true;
     });
   }
 
   saveDB();
   if (typeof syncCollectionToCloud === 'function') {
     syncCollectionToCloud(col);
+    syncCollectionToCloud('recentDeletions');
   }
 
-  // Trigger render functions
   var renderers = {
     vessels: typeof renderVessels === 'function' ? renderVessels : null,
     certs: typeof renderCerts === 'function' ? renderCerts : null,
@@ -14297,8 +14736,8 @@ function executeBatchDelete() {
   if (col === 'companies' && typeof fillCompanySelects === 'function') fillCompanySelects();
   if (typeof updateBadges === 'function') updateBadges();
 
-  audit('Bulk deleted ' + count + ' items from ' + col, 'var(--err)');
-  toast('Deleted ' + count + ' ' + (count === 1 ? 'item' : 'items') + ' ✓', 'var(--ok)');
+  audit('Bulk deleted ' + count + ' items from ' + col + ' to Recycle Bin', 'var(--warn)');
+  toast('Moved ' + count + ' ' + (count === 1 ? 'item' : 'items') + ' to Recycle Bin ✓', 'var(--ok)');
   clearBatchSelection();
 }
 window.executeBatchDelete = executeBatchDelete;
@@ -25628,6 +26067,21 @@ function deleteFromEditModal() {
   }
   var r = DB[coll][idx];
   closeModal('m-edit');
+  
+  if (!isMasterOrAdmin()) {
+    var title = r.name || r.desc || r.type || (module.toUpperCase() + ' Record');
+    var vName = r.vessel ? vname(r.vessel) : (module === 'vessel' ? r.name : '');
+    openDeletionRequestModal({
+      col: coll,
+      idx: idx,
+      item: r,
+      title: title,
+      vesselName: vName
+    });
+    editCtx = null;
+    return;
+  }
+
   if (module === 'vessel') {
     deleteVessel(r.id);
   } else if (module === 'cert') {
@@ -25790,8 +26244,14 @@ function openEdit(module, idx) {
   if (modules[module]) modules[module]();
   var delBtn = $('edit-delete-btn');
   if (delBtn) {
-    var canDelete = (CU && (CU.role === 'master' || CU.role === 'admin')) || (typeof hasPermission === 'function' && hasPermission('vessel_manage'));
-    delBtn.style.display = canDelete ? 'inline-flex' : 'none';
+    delBtn.style.display = 'inline-flex';
+    if (isMasterOrAdmin()) {
+      delBtn.className = 'btn btn-danger btn-sm';
+      delBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg> Delete Record';
+    } else {
+      delBtn.className = 'btn btn-warn btn-sm';
+      delBtn.innerHTML = '📋 Request Deletion';
+    }
   }
   $('m-edit').classList.add('on');
 }
@@ -26217,9 +26677,25 @@ function updateTask() {
   clearFields(['tu-note']);
 }
 function deleteTask(taskId) {
+  var t = (DB.taskList || []).find(function(x){ return x && x.id === taskId; });
+  if (!t) return;
+  if (!isMasterOrAdmin()) {
+    openDeletionRequestModal({
+      col: 'taskList',
+      idx: DB.taskList.indexOf(t),
+      item: t,
+      title: 'Task: ' + (t.title || t.name || 'Task'),
+      vesselName: t.vessel ? vname(t.vessel) : 'Fleet Operations'
+    });
+    return;
+  }
   if (!confirm('Delete this task?')) return;
-  DB.taskList = (DB.taskList||[]).filter(function(t){ return t.id!==taskId; });
-  renderTaskList(); saveDB(); toast('Task deleted');
+  recordToRecentDeletes('taskList', t, 'Task: ' + (t.title || 'Task'), (t.vessel ? vname(t.vessel) : ''));
+  DB.taskList = (DB.taskList||[]).filter(function(x){ return x && x.id !== taskId; });
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') syncCollectionToCloud('taskList');
+  renderTaskList();
+  toast('Task moved to Recycle Bin ✓', 'var(--ok)');
 }
 
 /* ══════════════════════════════════════════════════════════════
