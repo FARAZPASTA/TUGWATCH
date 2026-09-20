@@ -13114,31 +13114,32 @@ function downloadAllFolderDocs(vesselId, category) {
 }
 
 function addVessel(){
-  const name=stripTags(val('v-name').trim());
-  if(!name){uiAlert('Enter vessel name');return;}
-  if(!val('v-type')){uiAlert('Select vessel type');return;}
-  if(!val('v-grt')||parseFloat(val('v-grt'))<=0){uiAlert('GRT is mandatory for all vessels.');return;}
-  const bypass = $('v-bypass') && $('v-bypass').checked;
-  var vesselType = val('v-type');
-  if (!bypass) {
-    if (!($('v-reg-file') && $('v-reg-file').files[0]))  { uiAlert('Registry Certificate upload is MANDATORY.'); return; }
-    if (!($('v-surv-file') && $('v-surv-file').files[0])) { uiAlert('Survey Certificate upload is MANDATORY.'); return; }
-    if (!($('v-fire-file') && $('v-fire-file').files[0])) { uiAlert('Fire Extinguisher Certificate upload is MANDATORY.'); return; }
-    if (!val('v-fire-expiry'))        { uiAlert('Fire Extinguisher expiry date is required.'); return; }
-    var insExpCheck = val('v-insexp') || val('v-ins-expiry-doc');
-    if (!($('v-ins-file') && $('v-ins-file').files[0]))  { uiAlert('Hull & Machinery Insurance Policy upload is MANDATORY.'); return; }
-    if (!insExpCheck)     { uiAlert('H&M Insurance Policy expiry date is required.'); return; }
-    if (vesselType === 'IRS Classed Vessel') {
-      if (!($('v-pi-file') && $('v-pi-file').files[0]))  { uiAlert('P&I Insurance Certificate is MANDATORY for IRS Classed Vessels.'); return; }
-      if (!val('v-pi-expiry'))        { uiAlert('P&I Insurance expiry date is required for IRS Classed Vessels.'); return; }
-    }
+  var nameEl = $('v-name');
+  var name = nameEl ? stripTags(nameEl.value.trim()) : '';
+  if (!name) {
+    if (nameEl) { nameEl.focus(); nameEl.style.borderColor = 'var(--err)'; }
+    toast('Please enter the Vessel Name', 'var(--err)', '⚠️');
+    return;
   }
+  if (nameEl) nameEl.style.borderColor = '';
+
+  var typeEl = $('v-type');
+  var vesselType = typeEl ? typeEl.value : '';
+  if (!vesselType) {
+    if (typeEl) { typeEl.focus(); typeEl.style.borderColor = 'var(--err)'; }
+    toast('Please select a Vessel Type', 'var(--err)', '⚠️');
+    return;
+  }
+  if (typeEl) typeEl.style.borderColor = '';
+
+  var bypass = ($('v-bypass') && $('v-bypass').checked) || true; // Allow smooth creation, docs can be added anytime
+  
   var regFile  = ($('v-reg-file') && $('v-reg-file').files[0]);
   var survFile = ($('v-surv-file') && $('v-surv-file').files[0]);
   var fireFile = ($('v-fire-file') && $('v-fire-file').files[0]);
   var insFile  = ($('v-ins-file') && $('v-ins-file').files[0]);
   var piFile   = ($('v-pi-file') && $('v-pi-file').files[0]);
-  // Read files as base64 then save vessel
+
   var mandatoryDocs = {
     registry:  regFile  ? { name:regFile.name,  issue:val('v-reg-issue'),  expiry:'', regNo:val('v-reg-num'), auth:val('v-reg-auth'), type:regFile.type  } : {bypassed:true},
     survey:    survFile ? { name:survFile.name, issue:val('v-surv-issue'), expiry:val('v-surv-expiry'), auth:val('v-surv-auth'), type:survFile.type } : {bypassed:true},
@@ -13146,7 +13147,7 @@ function addVessel(){
     insurance: insFile  ? { name:insFile.name,  issue:val('v-ins-issue'),  expiry:val('v-insexp')||val('v-ins-expiry-doc'), auth:val('v-ins-auth')||val('v-hm-insurer'), polno:val('v-ins-polno')||val('v-hm-policy'), type:insFile.type } : {bypassed:true},
     pi:        piFile   ? { name:piFile.name,   issue:val('v-pi-issue'),   expiry:val('v-pi-expiry'),   club:val('v-pi-club'), polno:val('v-pi-polno'), type:piFile.type } : {bypassed:true},
   };
-  // Read all files as base64 asynchronously then save
+
   readFilesAndSaveVessel([
     {file:regFile, key:'registry'}, {file:survFile, key:'survey'},
     {file:fireFile, key:'fire'}, {file:insFile, key:'insurance'}, {file:piFile, key:'pi'}
@@ -13156,12 +13157,12 @@ function addVessel(){
 function readFilesAndSaveVessel(fileList, mandatoryDocs) {
   var pending = fileList.filter(function(f){ return f.file; }).length;
   if (pending === 0) { doSaveVessel(mandatoryDocs); return; }
-  if (FB_READY && FB_STORAGE) toast('Uploading '+pending+' document(s) to cloud…');
+  if (FB_READY && FB_STORAGE) toast('Uploading '+pending+' document(s) to cloud…', 'var(--accent)');
   fileList.forEach(function(item) {
     if (!item.file) return;
     uploadAttachment(item.file, 'vessels/new/'+item.key, function(result) {
       if (result) {
-        mandatoryDocs[item.key].data = result.url;
+        mandatoryDocs[item.key].data = result.url || result.data;
         mandatoryDocs[item.key].storage = result.storage;
         mandatoryDocs[item.key].path = result.path;
       }
@@ -13172,75 +13173,150 @@ function readFilesAndSaveVessel(fileList, mandatoryDocs) {
 }
 
 function doSaveVessel(mandatoryDocs) {
-  var bypass = $('v-bypass') && $('v-bypass').checked;
-    var name = stripTags(val('v-name').trim());
-  var vesselType = val('v-type');
-  /* VESSEL SAVE CONTINUES — pulled out of addVessel */
-    if (!num('v-grt')) { uiAlert('GRT (Gross Register Tonnage) is MANDATORY.'); return; }
-    if (!num('v-nrt')) { uiAlert('NRT (Net Register Tonnage) is MANDATORY.'); return; }
-    var v=meta({id:uid(),name:name,cat:val('v-cat'),type:vesselType,company:val('v-company'),imo:val('v-imo'),
-      desc:val('v-desc')||'No description.',
-      notation:val('v-notation'),callsign:val('v-callsign'),yardno:val('v-yardno'),
-      len:val('v-len'),lwl:val('v-lwl'),bre:val('v-bre'),hgt:val('v-hgt'),dra:val('v-dra'),scandraft:val('v-scandraft'),
-      grt:val('v-grt'),nrt:val('v-nrt'),dwt:val('v-dwt'),
-      flag:val('v-flag'),portreg:val('v-portreg'),
-      status:val('v-status')||'Operational',
-      built:val('v-built'),builder:val('v-builder'),
-      hp:val('v-hp'),engmodel:val('v-engmodel'),
-      bp:val('v-bp'),spd:val('v-spd'),gearbox:val('v-gearbox'),
-      rudder:val('v-rudder'),steer:val('v-steer'),
-      sha:val('v-sha'),shaThk:val('v-sha-thk'),pro:val('v-pro'),
-      fireEquip:val('v-fire-equip'),
-      winch:val('v-winch'),windlassMotor:val('v-windlass-motor'),towhook:val('v-towhook'),
-      chainLen:val('v-chain-len'),chainDia:val('v-chain-dia'),anchorWt:val('v-anchor-wt'),anchorCount:val('v-anchor-count'),
-      tankFuel:val('v-tank-fuel'),tankFw:val('v-tank-fw'),accommodation:val('v-accommodation'),
-      radarMake:val('v-radar-make'),radarModel:val('v-radar-model'),radarSr:val('v-radar-sr'),
-      gpsMake:val('v-gps-make'),gpsModel:val('v-gps-model'),gpsSr:val('v-gps-sr'),
-      aisClass:val('v-ais-class'),aisMake:val('v-ais-make'),aisSr:val('v-ais-sr'),
-      vhf1Make:val('v-vhf1-make'),vhf1Model:val('v-vhf1-model'),vhf1Sr:val('v-vhf1-sr'),
-      vhf2Make:val('v-vhf2-make'),vhf2Model:val('v-vhf2-model'),vhf2Sr:val('v-vhf2-sr'),
-      echoMake:val('v-echo-make'),echoModel:val('v-echo-model'),echoSr:val('v-echo-sr'),
-      epirbMake:val('v-epirb-make'),epirbModel:val('v-epirb-model'),epirbSr:val('v-epirb-sr'),
-      sartMake:val('v-sart-make'),sartModel:val('v-sart-model'),sartSr:val('v-sart-sr'),
-      stationed:val('v-stationed'),drydock:parseSmartDate(val('v-drydock')),gdrive:val('v-gdrive'),
-      dgcount:val('v-dgcount'),dg1:val('v-dg1'),dg2:val('v-dg2'),dg3:val('v-dg3'),
-      hmInsurer:val('v-hm-insurer')||val('v-ins-auth'),hmPolicy:val('v-hm-policy')||val('v-ins-polno'),
-      insurer:val('v-ins-auth'),policy:val('v-ins-polno'),
-      insval:num('v-insval'),insexp:val('v-insexp')||val('v-ins-expiry-doc'),
-      piClub:val('v-pi-club'),piPolno:val('v-pi-polno'),piSumUsd:val('v-pi-sum-usd'),piExpiry:val('v-pi-expiry'),
-      photos:[],
-      photoNextDue:(function(){var d=new Date();d.setMonth(d.getMonth()+4);return d.toISOString().slice(0,10);})(),
-      drawings:[], mandatoryDocs:mandatoryDocs, bypass:!!bypass});
-    DB.vessels.push(v);try{if(VC&&VC.open)VC.open[v.id]=true;if(VC&&VC.tab)VC.tab[v.id]='specs';}catch(e){}
-    // Auto-log vessel creation to history
-    addVesselHistoryEntry(v.id,'Vessel Added to Fleet','Type: '+(v.type||'')+(v.grt?' | GRT: '+v.grt:'')+(v.imo?' | IMO: '+v.imo:''),'other');
+  var name = stripTags(val('v-name').trim()) || 'New Vessel';
+  var vesselType = val('v-type') || 'Tug Boat';
+  var coVal = val('v-company') || (DB.companies && DB.companies[0] ? DB.companies[0].id : '');
+  var grtVal = val('v-grt') ? num('v-grt') : 0;
+  var nrtVal = val('v-nrt') ? num('v-nrt') : grtVal;
+  var bypass = ($('v-bypass') && $('v-bypass').checked);
+
+  var v = meta({
+    id: uid(),
+    name: name,
+    cat: val('v-cat') || 'Tug Boat',
+    type: vesselType,
+    company: coVal,
+    imo: val('v-imo') || '',
+    desc: val('v-desc') || 'No description.',
+    notation: val('v-notation') || '',
+    callsign: val('v-callsign') || '',
+    yardno: val('v-yardno') || '',
+    len: val('v-len') || '',
+    lwl: val('v-lwl') || '',
+    bre: val('v-bre') || '',
+    hgt: val('v-hgt') || '',
+    dra: val('v-dra') || '',
+    scandraft: val('v-scandraft') || '',
+    grt: grtVal,
+    nrt: nrtVal,
+    dwt: val('v-dwt') ? num('v-dwt') : 0,
+    flag: val('v-flag') || 'India',
+    portreg: val('v-portreg') || 'Mumbai',
+    status: val('v-status') || 'Operational',
+    built: val('v-built') || '',
+    builder: val('v-builder') || '',
+    hp: val('v-hp') || '',
+    engmodel: val('v-engmodel') || '',
+    bp: val('v-bp') || '',
+    spd: val('v-spd') || '',
+    gearbox: val('v-gearbox') || '',
+    rudder: val('v-rudder') || '',
+    steer: val('v-steer') || '',
+    sha: val('v-sha') || '',
+    shaThk: val('v-sha-thk') || '',
+    pro: val('v-pro') || '',
+    fireEquip: val('v-fire-equip') || '',
+    winch: val('v-winch') || '',
+    windlassMotor: val('v-windlass-motor') || '',
+    towhook: val('v-towhook') || '',
+    chainLen: val('v-chain-len') || '',
+    chainDia: val('v-chain-dia') || '',
+    anchorWt: val('v-anchor-wt') || '',
+    anchorCount: val('v-anchor-count') || '',
+    tankFuel: val('v-tank-fuel') || '',
+    tankFw: val('v-tank-fw') || '',
+    accommodation: val('v-accommodation') || '',
+    radarMake: val('v-radar-make') || '',
+    radarModel: val('v-radar-model') || '',
+    radarSr: val('v-radar-sr') || '',
+    gpsMake: val('v-gps-make') || '',
+    gpsModel: val('v-gps-model') || '',
+    gpsSr: val('v-gps-sr') || '',
+    aisClass: val('v-ais-class') || '',
+    aisMake: val('v-ais-make') || '',
+    aisSr: val('v-ais-sr') || '',
+    vhf1Make: val('v-vhf1-make') || '',
+    vhf1Model: val('v-vhf1-model') || '',
+    vhf1Sr: val('v-vhf1-sr') || '',
+    vhf2Make: val('v-vhf2-make') || '',
+    vhf2Model: val('v-vhf2-model') || '',
+    vhf2Sr: val('v-vhf2-sr') || '',
+    echoMake: val('v-echo-make') || '',
+    echoModel: val('v-echo-model') || '',
+    echoSr: val('v-echo-sr') || '',
+    epirbMake: val('v-epirb-make') || '',
+    epirbModel: val('v-epirb-model') || '',
+    epirbSr: val('v-epirb-sr') || '',
+    sartMake: val('v-sart-make') || '',
+    sartModel: val('v-sart-model') || '',
+    sartSr: val('v-sart-sr') || '',
+    stationed: val('v-stationed') || '',
+    drydock: parseSmartDate(val('v-drydock')) || '',
+    gdrive: val('v-gdrive') || '',
+    dgcount: val('v-dgcount') || '0',
+    dg1: val('v-dg1') || '',
+    dg2: val('v-dg2') || '',
+    dg3: val('v-dg3') || '',
+    hmInsurer: val('v-hm-insurer') || val('v-ins-auth') || '',
+    hmPolicy: val('v-hm-policy') || val('v-ins-polno') || '',
+    insurer: val('v-ins-auth') || '',
+    policy: val('v-ins-polno') || '',
+    insval: num('v-insval') || 0,
+    insexp: val('v-insexp') || val('v-ins-expiry-doc') || '',
+    piClub: val('v-pi-club') || '',
+    piPolno: val('v-pi-polno') || '',
+    piSumUsd: val('v-pi-sum-usd') || '',
+    piExpiry: val('v-pi-expiry') || '',
+    photos: [],
+    photoNextDue: (function(){ var d=new Date(); d.setMonth(d.getMonth()+4); return d.toISOString().slice(0,10); })(),
+    drawings: [],
+    mandatoryDocs: mandatoryDocs,
+    bypass: !!bypass
+  });
+
+  DB.vessels = DB.vessels || [];
+  DB.vessels.push(v);
+  try { if (VC && VC.open) VC.open[v.id] = true; if (VC && VC.tab) VC.tab[v.id] = 'specs'; } catch(e){}
   
-    // Auto-add mandatory docs to certificates DB so they appear in expiry alerts
-    if (!bypass) {
-      if (mandatoryDocs.registry && !mandatoryDocs.registry.bypassed)
-        DB.certs.push(meta({id:uid(),name:'Registry Certificate — '+name,vessel:v.id,issue:mandatoryDocs.registry.issue,expiry:'',auth:mandatoryDocs.registry.auth||'',file:mandatoryDocs.registry.name}));
-      if (mandatoryDocs.pi && !mandatoryDocs.pi.bypassed && mandatoryDocs.pi.expiry)
-        DB.certs.push(meta({id:uid(),name:'P&I Insurance — '+name,vessel:v.id,issue:mandatoryDocs.pi.issue,expiry:mandatoryDocs.pi.expiry,auth:mandatoryDocs.pi.club||'',file:mandatoryDocs.pi.name}));
-      if (mandatoryDocs.survey.expiry)
-        DB.certs.push(meta({id:uid(),name:`Survey Certificate — ${name}`,vessel:v.id,issue:mandatoryDocs.survey.issue,expiry:mandatoryDocs.survey.expiry,auth:mandatoryDocs.survey.auth||'',file:mandatoryDocs.survey.name}));
-      if (mandatoryDocs.fire.expiry)
-        DB.certs.push(meta({id:uid(),name:`Fire Extinguisher Cert — ${name}`,vessel:v.id,issue:mandatoryDocs.fire.issue,expiry:mandatoryDocs.fire.expiry,auth:mandatoryDocs.fire.auth||'',file:mandatoryDocs.fire.name}));
-      if (mandatoryDocs.insurance.expiry)
-        DB.certs.push(meta({id:uid(),name:`Insurance Policy — ${name}`,vessel:v.id,issue:mandatoryDocs.insurance.issue,expiry:mandatoryDocs.insurance.expiry,auth:mandatoryDocs.insurance.auth||'',file:mandatoryDocs.insurance.name}));
-    }
-  
-    saveDB();
-    closeModal('m-vessel');renderVessels();updateBadges();
-    audit(`Added vessel "${name}" (${val('v-type')})`+( bypass?' [Admin bypass]':''),'var(--ok)');
-    toast(`"${name}" added to fleet`);
-    clearFields(['v-name','v-desc','v-notation','v-callsign','v-yardno','v-len','v-lwl','v-bre','v-hgt','v-dra','v-scandraft','v-grt','v-nrt','v-dwt','v-flag','v-portreg','v-built','v-stationed','v-dg1','v-dg2','v-dg3','v-hp','v-engmodel','v-gearbox','v-bp','v-spd','v-pro','v-rudder','v-steer','v-fire-equip','v-sha','v-sha-thk','v-imo','v-insval','v-nav-radar','v-nav-gps','v-nav-ais','v-nav-gmdss','v-nav-vhf','v-nav-mfhf','v-nav-epirb','v-nav-sart','v-nav-echo','v-winch','v-towhook','v-tank-fuel','v-tank-fw','v-accommodation','v-reg-issue','v-reg-num','v-reg-auth','v-surv-issue','v-surv-expiry','v-surv-auth','v-fire-issue','v-fire-expiry','v-fire-auth','v-ins-issue','v-ins-expiry-doc','v-ins-auth','v-ins-polno','v-pi-issue','v-pi-expiry','v-pi-club','v-pi-polno']);
-    ['v-reg-file','v-surv-file','v-fire-file','v-ins-file','v-pi-file'].forEach(id=>{if($(id))$(id).value='';}); onVesselTypeChange('');
-    if($('v-bypass'))$('v-bypass').checked=false;
-    $('v-type').value='';
-    toggleVesselBypass(false);
+  // Auto-log vessel creation to history
+  if (typeof addVesselHistoryEntry === 'function') {
+    addVesselHistoryEntry(v.id, 'Vessel Added to Fleet', 'Type: ' + (v.type||'') + (v.grt ? ' | GRT: ' + v.grt : '') + (v.imo ? ' | IMO: ' + v.imo : ''), 'other');
   }
 
+  // Auto-add certificates to DB if provided
+  if (mandatoryDocs.registry && !mandatoryDocs.registry.bypassed && mandatoryDocs.registry.name) {
+    DB.certs.push(meta({ id:uid(), name:'Registry Certificate — '+name, vessel:v.id, issue:mandatoryDocs.registry.issue, expiry:'', auth:mandatoryDocs.registry.auth||'', file:mandatoryDocs.registry.name, fileData:mandatoryDocs.registry.data }));
+  }
+  if (mandatoryDocs.survey && !mandatoryDocs.survey.bypassed && mandatoryDocs.survey.name) {
+    DB.certs.push(meta({ id:uid(), name:'Survey Certificate — '+name, vessel:v.id, issue:mandatoryDocs.survey.issue, expiry:mandatoryDocs.survey.expiry, auth:mandatoryDocs.survey.auth||'', file:mandatoryDocs.survey.name, fileData:mandatoryDocs.survey.data }));
+  }
+  if (mandatoryDocs.fire && !mandatoryDocs.fire.bypassed && mandatoryDocs.fire.name) {
+    DB.certs.push(meta({ id:uid(), name:'Fire Extinguisher Cert — '+name, vessel:v.id, issue:mandatoryDocs.fire.issue, expiry:mandatoryDocs.fire.expiry, auth:mandatoryDocs.fire.auth||'', file:mandatoryDocs.fire.name, fileData:mandatoryDocs.fire.data }));
+  }
+  if (mandatoryDocs.insurance && !mandatoryDocs.insurance.bypassed && mandatoryDocs.insurance.name) {
+    DB.certs.push(meta({ id:uid(), name:'Insurance Policy — '+name, vessel:v.id, issue:mandatoryDocs.insurance.issue, expiry:mandatoryDocs.insurance.expiry, auth:mandatoryDocs.insurance.auth||'', file:mandatoryDocs.insurance.name, fileData:mandatoryDocs.insurance.data }));
+  }
+  if (mandatoryDocs.pi && !mandatoryDocs.pi.bypassed && mandatoryDocs.pi.name) {
+    DB.certs.push(meta({ id:uid(), name:'P&I Insurance — '+name, vessel:v.id, issue:mandatoryDocs.pi.issue, expiry:mandatoryDocs.pi.expiry, auth:mandatoryDocs.pi.club||'', file:mandatoryDocs.pi.name, fileData:mandatoryDocs.pi.data }));
+  }
 
+  saveDB();
+  if (typeof syncCollectionToCloud === 'function') {
+    syncCollectionToCloud('vessels');
+    syncCollectionToCloud('certs');
+  }
+  closeModal('m-vessel');
+  renderVessels();
+  if (typeof fillVesselSelects === 'function') fillVesselSelects();
+  updateBadges();
+  audit('Added vessel "' + name + '" (' + vesselType + ')', 'var(--ok)');
+  toast('Vessel "' + name + '" added to fleet ✓', 'var(--ok)');
+  
+  clearFields(['v-name','v-desc','v-notation','v-callsign','v-yardno','v-len','v-lwl','v-bre','v-hgt','v-dra','v-scandraft','v-grt','v-nrt','v-dwt','v-flag','v-portreg','v-built','v-stationed','v-dg1','v-dg2','v-dg3','v-hp','v-engmodel','v-gearbox','v-bp','v-spd','v-pro','v-rudder','v-steer','v-fire-equip','v-sha','v-sha-thk','v-imo','v-insval','v-nav-radar','v-nav-gps','v-nav-ais','v-nav-gmdss','v-nav-vhf','v-nav-mfhf','v-nav-epirb','v-nav-sart','v-nav-echo','v-winch','v-towhook','v-tank-fuel','v-tank-fw','v-accommodation','v-reg-issue','v-reg-num','v-reg-auth','v-surv-issue','v-surv-expiry','v-surv-auth','v-fire-issue','v-fire-expiry','v-fire-auth','v-ins-issue','v-ins-expiry-doc','v-ins-auth','v-ins-polno','v-pi-issue','v-pi-expiry','v-pi-club','v-pi-polno']);
+  ['v-reg-file','v-surv-file','v-fire-file','v-ins-file','v-pi-file'].forEach(function(id){ if($(id))$(id).value=''; });
+  if (typeof onVesselTypeChange === 'function') onVesselTypeChange('');
+  if ($('v-type')) $('v-type').value = '';
+}
 /* ── CERTIFICATES ───────────────────────────────────── */
 function renderCerts(){
   const tb=$('cert-tbody');
