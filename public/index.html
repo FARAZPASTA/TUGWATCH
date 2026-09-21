@@ -2249,16 +2249,34 @@ html[data-theme="dark"] #l-pass::placeholder {
       <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:#9a9fa8;fill:none;stroke-width:2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </div>
   </div>
-  <div id="global-search-panel" style="display:none;position:fixed;top:0;left:220px;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9998" onclick="if(event.target===this)closeSearchPanel()">
-    <div style="background:#fff;width:580px;max-width:95vw;margin:60px auto 0;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;max-height:80vh;display:flex;flex-direction:column">
-      <div style="padding:14px 16px;border-bottom:1px solid #e4e6eb;display:flex;align-items:center;gap:10px">
-        <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#1877f2;fill:none;stroke-width:2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="global-search-input2" placeholder="Search vessels, crew, certificates, documents, tasks..." 
-          style="flex:1;border:none;outline:none;font-size:14px" oninput="runGlobalSearch(this.value)" autocomplete="off">
-        <kbd style="font-size:9px;padding:2px 6px;background:#f0f2f5;border-radius:4px;color:#65676b;cursor:pointer" onclick="closeSearchPanel()">ESC</kbd>
+  <!-- UNIVERSAL COMMAND PALETTE SEARCH MODAL -->
+  <div id="global-search-panel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);z-index:99999" onclick="if(event.target===this)closeSearchPanel()">
+    <div style="background:var(--bg1, #fff);color:var(--t1, #1c1e21);width:740px;max-width:95vw;margin:45px auto 0;border-radius:14px;border:1px solid var(--b2, #e4e6eb);box-shadow:0 25px 80px rgba(0,0,0,0.45);overflow:hidden;max-height:85vh;display:flex;flex-direction:column">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--b1, #e4e6eb);display:flex;align-items:center;gap:12px;background:var(--bg2, #f8fafc)">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--accent, #0284c7);fill:none;stroke-width:2.5;flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="global-search-input2" placeholder="Universal Search across all 48 modules (vessels, documents, permissions, certs, crew, invoices, accounts...)" 
+          style="flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--t1, #1c1e21);font-family:inherit;font-weight:500" oninput="runGlobalSearch(this.value)" onkeydown="if(event.key==='Escape')closeSearchPanel()" autocomplete="off">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="search-count-badge" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--s3);padding:2px 8px;border-radius:10px;display:none">0 results</span>
+          <kbd style="font-size:10px;padding:3px 7px;background:var(--s3, #e2e8f0);border-radius:5px;color:var(--t2, #475569);cursor:pointer;border:1px solid var(--b2, #cbd5e1)" onclick="closeSearchPanel()">ESC</kbd>
+        </div>
       </div>
-      <div id="panel-search-results" style="overflow-y:auto;flex:1;padding:8px 0">
-        <div style="text-align:center;padding:32px;color:#9a9fa8;font-size:13px">Start typing to search across all data...</div>
+      <div style="padding:8px 16px;background:var(--bg1);border-bottom:1px solid var(--b2);display:flex;gap:6px;overflow-x:auto;align-items:center">
+        <span style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px">Quick Filters:</span>
+        <button type="button" class="search-filter-pill on" onclick="filterSearchCategory('all', this)" style="padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer">All</button>
+        <button type="button" class="search-filter-pill" onclick="filterSearchCategory('vault', this)" style="padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);cursor:pointer">📁 Document Vault</button>
+        <button type="button" class="search-filter-pill" onclick="filterSearchCategory('vessel', this)" style="padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);cursor:pointer">🚢 Vessels</button>
+        <button type="button" class="search-filter-pill" onclick="filterSearchCategory('cert', this)" style="padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);cursor:pointer">📜 Certificates</button>
+        <button type="button" class="search-filter-pill" onclick="filterSearchCategory('crew', this)" style="padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);cursor:pointer">👤 Crew</button>
+        <button type="button" class="search-filter-pill" onclick="filterSearchCategory('finance', this)" style="padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);cursor:pointer">💰 Invoices &amp; Accounts</button>
+        <button type="button" class="search-filter-pill" onclick="filterSearchCategory('ops', this)" style="padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);cursor:pointer">📋 Operations &amp; Logs</button>
+      </div>
+      <div id="panel-search-results" style="overflow-y:auto;flex:1;padding:12px 16px;min-height:280px;max-height:60vh">
+        <div style="text-align:center;padding:40px 20px;color:var(--t3, #94a3b8)">
+          <div style="font-size:36px;margin-bottom:8px">⚡</div>
+          <div style="font-size:14px;font-weight:700;color:var(--t1)">Universal Fleet Search</div>
+          <div style="font-size:11.5px;margin-top:4px">Type anything to search across all 48 modules, vessels, voyage permissions, emails, certificates, crew, invoices, and bank statements.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -2610,15 +2628,14 @@ html[data-theme="dark"] #l-pass::placeholder {
       <div id="breadcrumb">Fleet Operations Centre</div>
     </div>
     <div id="topbar-actions" style="display:flex;align-items:center;gap:8px">
-      <div id="global-search-wrap" style="display:none;position:relative;margin-right:4px">
-        <input type="text" id="global-search-input" placeholder="Search vessels, crew, certs, tasks, vendors..." oninput="runGlobalSearch(this.value)" onkeydown="if(event.key==='Escape')closeGlobalSearch()" autocomplete="off" style="width:260px;padding:6px 32px 6px 12px;background:var(--s3);border:1px solid var(--accent-dim);border-radius:20px;color:var(--t1);font-size:11px;outline:none;font-family:var(--ff)"/>
-        <span onclick="closeGlobalSearch()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--t3);font-size:16px;line-height:1">&#215;</span>
+      <!-- UNIVERSAL OMNISEARCH BAR IN TOPBAR -->
+      <div id="global-search-wrap" style="display:flex;align-items:center;position:relative;margin-right:6px">
+        <div style="position:relative;display:flex;align-items:center">
+          <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:2.5;pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="global-search-input" placeholder="Universal Search across 48 modules (Ctrl+K)..." onfocus="openSearchPanel(this.value)" oninput="runGlobalSearch(this.value)" onkeydown="if(event.key==='Escape')closeGlobalSearch();if(event.key==='Enter')openSearchPanel(this.value)" autocomplete="off" style="width:260px;padding:6px 56px 6px 30px;background:var(--bg2);border:1px solid var(--b2);border-radius:20px;color:var(--t1);font-size:11px;outline:none;font-family:var(--ff);box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="if(document.activeElement!==this)this.style.borderColor='var(--b2)'"/>
+          <kbd onclick="openSearchPanel()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--fm);font-size:9.5px;background:var(--s4);padding:1px 5px;border-radius:4px;color:var(--t3);border:1px solid var(--b1);cursor:pointer;user-select:none" title="Press Ctrl+K or ⌘K to open Universal Search">⌘K</kbd>
+        </div>
       </div>
-      <button id="search-toggle-btn" onclick="toggleGlobalSearch()" title="Search anywhere (Ctrl+K or ⌘K)" style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--b2);border-radius:8px;padding:5px 11px;cursor:pointer;color:var(--t2);font-size:11px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--t1)'" onmouseout="this.style.borderColor='var(--b2)';this.style.color='var(--t2)'">
-        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <span>Search</span>
-        <kbd style="font-family:var(--fm);font-size:9.5px;background:var(--s4);padding:1px 5px;border-radius:4px;color:var(--t3);border:1px solid var(--b1)">⌘K</kbd>
-      </button>
 
             <!-- 1-CLICK WHATSAPP BRIEFING & BACKUP TOPBAR BUTTONS -->
       <button class="btn btn-ghost btn-sm" onclick="openWhatsAppFleetBriefingModal()" title="1-Click WhatsApp Fleet Morning Briefing" style="font-size:11px;font-weight:700;color:#25D366;border:1px solid rgba(37,211,102,0.3);background:rgba(37,211,102,0.06);display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px">
@@ -3173,35 +3190,75 @@ html[data-theme="dark"] #l-pass::placeholder {
 
     <!-- DOCUMENT VAULT -->
     <div class="page" id="p-vault">
-      <div class="page-hdr">
-        <div class="page-hdr-title">Document Vault — All Vessel Documents</div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-primary" onclick="return openModal('m-vault-folder',event)">
+      <div class="page-hdr" style="flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="page-hdr-title">📁 Fleet Document Vault &amp; Approvals Repository</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Centralized vault for Single Voyage Permissions, Mobilisation Formats, Port NOCs, Email Approvals, and Statutory Vessel Folders.</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openVaultUploadModal()">
+            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            📤 Upload Document / Permission
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="return openModal('m-vault-folder',event)">
             <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>+ Custom Folder
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadVaultCategory('registry')">Registry</button>
-          <button class="btn btn-warn btn-sm" onclick="openPaintPhotoTask()" title="Assign paint inspection task">
-            🎨 Paint Inspection Task
-          </button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadVaultCategory('survey')">Survey</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadVaultCategory('fire')">Fire</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadVaultCategory('insurance')">Insurance</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadVaultCategory('pi')">P&amp;I</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadVaultCategory('certs')">Other Certs</button>
-          <button class="btn btn-ghost btn-sm admin-only" onclick="downloadAllDocuments()">
+          <button class="btn btn-ghost btn-sm" onclick="downloadAllDocuments()">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download All Documents
+            Download All
           </button>
         </div>
       </div>
-      <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-lg);padding:12px 16px;margin-bottom:14px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
-        <div style="font-size:11px;color:var(--t2)">
-          <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:2;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Documents are stored in your browser. Upload documents when adding vessels/crew to see them here. Use <strong>Download All</strong> to save everything at once.
+
+      <!-- FILTER & SEARCH BAR IN DOCUMENT VAULT -->
+      <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <!-- SEARCH WITHIN VAULT -->
+          <div style="position:relative;flex:1;min-width:220px">
+            <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--t3);fill:none;stroke-width:2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="vault-search-input" placeholder="🔍 Search documents by heading, subject, vessel, category, ref #..." oninput="filterVaultDocs()" style="width:100%;padding:7px 10px 7px 32px;background:var(--bg1);border:1px solid var(--b2);border-radius:8px;font-size:11.5px;color:var(--t1);outline:none;box-sizing:border-box"/>
+          </div>
+
+          <!-- VESSEL FILTER DROPDOWN -->
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;font-weight:700;color:var(--t2);white-space:nowrap">Vessel:</span>
+            <select id="vault-vessel-filter" onchange="filterVaultDocs()" style="padding:6px 10px;background:var(--bg1);border:1px solid var(--b2);border-radius:8px;font-size:11px;color:var(--t1);outline:none;min-width:160px">
+              <option value="all">All Vessels &amp; General</option>
+              <option value="__other__">🏢 Other / General Fleet</option>
+            </select>
+          </div>
+
+          <div id="vault-summary" style="font-size:11px;color:var(--t3);white-space:nowrap;margin-left:auto;font-weight:600"></div>
         </div>
-        <div id="vault-summary" style="font-size:10px;color:var(--t3);white-space:nowrap"></div>
+
+        <!-- CATEGORY PILLS -->
+        <div style="display:flex;gap:6px;overflow-x:auto;align-items:center;padding-top:4px" id="vault-cat-pills">
+          <button type="button" class="vault-pill on" onclick="selectVaultCategoryPill('all', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:700;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer">All Files (<span id="vcnt-all">0</span>)</button>
+          <button type="button" class="vault-pill" onclick="selectVaultCategoryPill('Voyage Permission / Email NOC', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:600;border:1px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer">⚓ Voyage Permissions (<span id="vcnt-voyage">0</span>)</button>
+          <button type="button" class="vault-pill" onclick="selectVaultCategoryPill('Port Clearance & Permissions', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:600;border:1px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer">📜 Port Clearances (<span id="vcnt-port">0</span>)</button>
+          <button type="button" class="vault-pill" onclick="selectVaultCategoryPill('Mobilisation / Demobilisation Formats', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:600;border:1px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer">📝 Mobilisation Formats (<span id="vcnt-mob">0</span>)</button>
+          <button type="button" class="vault-pill" onclick="selectVaultCategoryPill('Letterhead & Official Formats', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:600;border:1px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer">🏢 Letterheads &amp; Formats (<span id="vcnt-lh">0</span>)</button>
+          <button type="button" class="vault-pill" onclick="selectVaultCategoryPill('Government / DG Shipping Approvals', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:600;border:1px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer">🏛️ Govt / DG Approvals (<span id="vcnt-govt">0</span>)</button>
+          <button type="button" class="vault-pill" onclick="selectVaultCategoryPill('Survey & Inspection Reports', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:600;border:1px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer">🔍 Survey Reports (<span id="vcnt-survey">0</span>)</button>
+          <button type="button" class="vault-pill" onclick="selectVaultCategoryPill('statutory', this)" style="padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:600;border:1px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer">📋 Statutory Vessel Folders</button>
+        </div>
       </div>
-      <div id="vault-content"></div>
+
+      <!-- STRUCTURED UPLOADED DOCUMENTS SECTION -->
+      <div id="vault-uploaded-docs-section" style="margin-bottom:24px">
+        <div id="vault-docs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+      </div>
+
+      <!-- STATUTORY VESSEL FOLDERS SECTION -->
+      <div id="vault-statutory-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--b2)">
+          <div style="font-size:12px;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:6px">
+            <span>📋</span> Mandatory Statutory Certificates &amp; Custom Folders
+          </div>
+          <div style="font-size:10px;color:var(--t3)">Registry, Survey, Fire, Insurance, P&amp;I &amp; Custom Folders</div>
+        </div>
+        <div id="vault-content"></div>
+      </div>
     </div>
 
     <!-- TIDE TABLES -->
@@ -5820,6 +5877,120 @@ html[data-theme="dark"] #l-pass::placeholder {
   <div class="fg"><label class="fl">Reason for Change</label><input class="fi" id="eqc-reason" placeholder="e.g. Failed at sea, Upgrade for compliance, Routine replacement"/></div>
   <div class="fg"><label class="fl">Upload Invoice / Docs</label><input class="fi fi-file" id="ec-doc" type="file" accept=".pdf,.jpg,.jpeg,.png"/></div>
   <div class="modal-footer"><button class="btn btn-ghost" data-close="m-equip-change">Cancel</button><button class="btn btn-primary" onclick="saveEquipChange()">Save Change Log</button></div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     STRUCTURED DOCUMENT VAULT UPLOAD & PREVIEW MODALS
+══════════════════════════════════════════════════════════════ -->
+
+<!-- UPLOAD TO DOCUMENT VAULT MODAL -->
+<div class="overlay" id="m-vault-upload"><div class="modal modal-wide" style="max-height:92vh;overflow-y:auto">
+  <button class="modal-close" data-close="m-vault-upload"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+    <span>📤</span> Upload to Document Vault
+  </div>
+  <div class="modal-sub">Save voyage permissions, mobilisation formats, port NOCs, email approvals, or fleet documents with structured metadata.</div>
+  
+  <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:14px;margin-bottom:14px">
+    <div class="fr2">
+      <!-- MANDATORY DOCUMENT HEADING / SUBJECT -->
+      <div class="fg" style="margin-bottom:10px">
+        <label class="fl">Document Heading / Subject <span class="req">*</span></label>
+        <input class="fi" id="vu-title" placeholder="e.g. Single Voyage Permission - MMD Mumbai / Port Clearance" style="font-weight:600"/>
+        <div style="font-size:9.5px;color:var(--t3);margin-top:3px">Enter a clear title or email subject to catch and search easily.</div>
+      </div>
+
+      <!-- MANDATORY VESSEL SELECTION (OR OTHER / GENERAL FLEET) -->
+      <div class="fg" style="margin-bottom:10px">
+        <label class="fl">Vessel Assignment <span class="req">*</span></label>
+        <select class="fi" id="vu-vessel" style="font-weight:600">
+          <option value="">-- Select Vessel (Mandatory) --</option>
+        </select>
+        <div style="font-size:9.5px;color:var(--t3);margin-top:3px">Choose vessel, or "Other / General Fleet" if not vessel-specific.</div>
+      </div>
+    </div>
+
+    <div class="fr3">
+      <!-- CATEGORY CLASSIFICATION -->
+      <div class="fg" style="margin-bottom:10px">
+        <label class="fl">Category / Type <span class="req">*</span></label>
+        <select class="fi" id="vu-category">
+          <option value="Voyage Permission / Email NOC">⚓ Voyage Permission / Email NOC</option>
+          <option value="Port Clearance & Permissions">📜 Port Clearance &amp; Permissions</option>
+          <option value="Mobilisation / Demobilisation Formats">📝 Mobilisation / Demobilisation Formats</option>
+          <option value="Letterhead & Official Formats">🏢 Letterhead &amp; Official Formats</option>
+          <option value="Government / DG Shipping Approvals">🏛️ Government / DG Shipping Approvals</option>
+          <option value="Survey & Inspection Reports">🔍 Survey &amp; Inspection Reports</option>
+          <option value="Customs & Port Health">📋 Customs &amp; Port Health</option>
+          <option value="Insurance & P&I Correspondences">🛡️ Insurance &amp; P&amp;I Correspondences</option>
+          <option value="General Documents & Emails">📁 General Documents &amp; Emails</option>
+          <option value="Other">📌 Other</option>
+        </select>
+      </div>
+
+      <!-- REFERENCE / EMAIL ORDER NUMBER -->
+      <div class="fg" style="margin-bottom:10px">
+        <label class="fl">Ref No. / Email Reference</label>
+        <input class="fi" id="vu-ref" placeholder="e.g. MMD/BOM/SVP/2026/88 or Email Subject"/>
+      </div>
+
+      <!-- DOCUMENT DATE -->
+      <div class="fg" style="margin-bottom:10px">
+        <label class="fl">Date of Document / Email</label>
+        <input type="date" class="fi" id="vu-date"/>
+      </div>
+    </div>
+
+    <!-- REMARKS / NOTES -->
+    <div class="fg" style="margin-bottom:10px">
+      <label class="fl">Summary / Key Conditions / Notes</label>
+      <textarea class="fi" id="vu-notes" rows="2" placeholder="e.g. Valid for single voyage from Mumbai to Bedi Port under tow; weather limit 20 knots..."></textarea>
+    </div>
+
+    <!-- FILE ATTACHMENT -->
+    <div class="fg" style="margin-bottom:0">
+      <label class="fl">Attach Document / Scan / Email File (.pdf, .jpg, .png, .eml, .docx) <span class="req">*</span></label>
+      <div style="border:2px dashed var(--b2);border-radius:8px;padding:16px;text-align:center;background:var(--bg1);cursor:pointer" onclick="document.getElementById('vu-file').click()">
+        <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:2;margin:0 auto 6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-size:12px;font-weight:700;color:var(--t1)" id="vu-file-label">Click to select PDF, Image, Scan, or .eml file</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:2px">Instant preview &amp; cloud sync across all fleet terminals</div>
+        <input type="file" id="vu-file" accept=".pdf,.jpg,.jpeg,.png,.eml,.msg,.doc,.docx,.xls,.xlsx,.txt" style="display:none" onchange="handleVaultFileSelection(this)"/>
+      </div>
+      <div id="vu-selected-file-info" style="display:none;margin-top:8px;padding:8px 12px;background:var(--s3);border-radius:6px;font-size:11px;align-items:center;justify-content:space-between">
+        <span id="vu-file-meta" style="font-weight:600;color:var(--t1)"></span>
+        <button type="button" onclick="clearVaultUploadFile()" style="background:none;border:none;color:var(--err);cursor:pointer;font-weight:700">✕ Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center">
+    <button class="btn btn-ghost" data-close="m-vault-upload" type="button">Cancel</button>
+    <button class="btn btn-primary" type="button" id="btn-save-vault-doc" onclick="saveVaultDocument()">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save to Document Vault
+    </button>
+  </div>
+</div></div>
+
+<!-- PREVIEW DOCUMENT VAULT MODAL -->
+<div class="overlay" id="m-vault-preview"><div class="modal modal-wide" style="width:900px;max-width:96vw;height:90vh;display:flex;flex-direction:column">
+  <button class="modal-close" data-close="m-vault-preview"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div class="modal-title" style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    <span id="vp-icon">📄</span>
+    <span id="vp-title">Document Preview</span>
+  </div>
+  <div id="vp-subtitle" style="font-size:11px;color:var(--t3);margin-bottom:12px"></div>
+  <div id="vp-viewer-body" style="flex:1;background:#1e293b;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative">
+    <!-- Inline iframe, embed, or image preview -->
+  </div>
+  <div class="modal-footer" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+    <div id="vp-meta-info" style="font-size:10.5px;color:var(--t3)"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" data-close="m-vault-preview" type="button">Close</button>
+      <button class="btn btn-outline" type="button" id="vp-btn-open-tab" onclick="openVaultDocInNewTab()">↗ Open in New Tab</button>
+      <button class="btn btn-primary" type="button" id="vp-btn-download" onclick="downloadActiveVaultDoc()">⬇ Download</button>
+    </div>
+  </div>
 </div></div>
 
 <!-- VAULT CUSTOM FOLDER MODAL -->
@@ -9434,7 +9605,7 @@ function setupGranularRealtimeListeners() {
     // Logistics, Transport & Contacts
     'vehicles', 'visits', 'visitTemplates', 'contactsDir', 'voyageContacts', 'tempMasters',
     // Safety, Alerts & System
-    'drillRecords', 'changeLog', 'log', 'taskList', 'vaultFolders', 'companyVaultLog', 'tides', 'tideCharts',
+    'drillRecords', 'changeLog', 'log', 'taskList', 'vaultFolders', 'vaultDocs', 'letterheadVault', 'companyVaultLog', 'tides', 'tideCharts',
     'tideLocs', 'alertContacts', 'notifications', 'activityLog', 'loginHistory', 'threads',
     'signOnLog', 'disabledAdmins', 'adminOverrides', 'adminRequests'
   ];
@@ -9651,7 +9822,7 @@ function pushAllLocalDataToCloud(silent) {
     'crewMovements', 'exCrew', 'leaveRecords', 'leaveBalance', 'officeStaff', 
     'prevOfficeStaff', 'hireRequests', 'vehicles', 'visits', 'visitTemplates', 
     'contactsDir', 'voyageContacts', 'tempMasters', 'drillRecords', 'changeLog', 
-    'log', 'taskList', 'vaultFolders', 'companyVaultLog', 'tides', 'tideCharts', 
+    'log', 'taskList', 'vaultFolders', 'vaultDocs', 'letterheadVault', 'companyVaultLog', 'tides', 'tideCharts', 
     'tideLocs', 'alertContacts', 'notifications', 'activityLog', 'loginHistory', 
     'threads', 'signOnLog', 'disabledAdmins', 'adminOverrides', 'adminRequests', 
     'bunkerReceipts', 'runningHoursConfig', 'hsd'
@@ -9803,7 +9974,7 @@ function loadFromFirebase(callback) {
           'crewContracts', 'contractTemplates', 'crewNOK', 'crewMovements', 'exCrew',
           'leaveRecords', 'officeStaff', 'prevOfficeStaff', 'hireRequests', 'vehicles', 'visits', 'visitTemplates',
           'contactsDir', 'voyageContacts', 'tempMasters', 'drillRecords', 'changeLog', 'log', 'taskList',
-          'vaultFolders', 'companyVaultLog', 'tideCharts', 'tideLocs', 'alertContacts', 'notifications',
+          'vaultFolders', 'vaultDocs', 'letterheadVault', 'companyVaultLog', 'tideCharts', 'tideLocs', 'alertContacts', 'notifications',
           'activityLog', 'loginHistory', 'threads', 'signOnLog', 'disabledAdmins', 'adminRequests', 'companies'
         ];
         
@@ -9926,7 +10097,7 @@ var DB = {
   assignedAdmins:{},
   vendors:[], equipChanges:[], signOnLog:[],
   dashboardConfig:{},
-  vaultFolders:[],
+  vaultFolders:[], vaultDocs:[], letterheadVault:{files:[],staffAccess:[]},
   letterFormats:[],
   officeStaff:[], prevOfficeStaff:[],
   bunkerReceipts:[], taskList:[], runningHoursConfig:{}, disabledAdmins:[], stockMoves:[], threads:{}, equipMoves:[], partSpecs:[], changeLog:[], drydocks:[], plasticLog:[], portalVault:[], classDieselReports:[], complianceUploads:[], complianceReminders:{},
@@ -11453,6 +11624,17 @@ function _doOpenModal(id) {
       vfv.innerHTML = '<option value="all">All Vessels</option>' +
         (DB.vessels||[]).map(function(v) { return '<option value="'+v.id+'">'+v.name+'</option>'; }).join('');
     }
+  }
+  // Vault structured upload modal - populate vessel select with mandatory options
+  if (id === 'm-vault-upload') {
+    var vuv = document.getElementById('vu-vessel');
+    if (vuv && vuv.tagName === 'SELECT') {
+      vuv.innerHTML = '<option value="">-- Select Vessel (Mandatory) --</option>' +
+        (DB.vessels||[]).map(function(v) { return '<option value="'+v.id+'">🚢 '+v.name+'</option>'; }).join('') +
+        '<option value="__other__" style="font-weight:700;color:var(--accent)">🏢 Other / General Fleet (No Specific Vessel)</option>';
+    }
+    var vud = document.getElementById('vu-date');
+    if (vud && !vud.value) vud.value = (typeof today==='function'?today():new Date().toISOString().split('T')[0]);
   }
   // Task modal - populate assign select
   if (id === 'm-task-add') {
@@ -17810,28 +17992,181 @@ function updateVaultBadge() {
   if (nb) nb.textContent = count;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   FLEET DOCUMENT VAULT ENGINE (Structured Uploads + Statutory Folders)
+══════════════════════════════════════════════════════════════ */
+if (!DB.vaultDocs) DB.vaultDocs = [];
+var _activeVaultFilter = 'all';
+var _activeVaultPill   = 'all';
+var _activeVaultDocObj = null;
+
 function renderVault() {
+  DB.vaultDocs = DB.vaultDocs || [];
+  DB.vessels   = DB.vessels   || [];
+
+  // 1. Populate Vessel Filter dropdown in Vault Header
+  var vFilter = document.getElementById('vault-vessel-filter');
+  if (vFilter && vFilter.tagName === 'SELECT') {
+    var currVal = vFilter.value || 'all';
+    var optionsHtml = '<option value="all">All Vessels &amp; General</option>' +
+      '<option value="__other__">🏢 Other / General Fleet</option>' +
+      (DB.vessels || []).map(function(v) {
+        return '<option value="' + v.id + '">🚢 ' + v.name + '</option>';
+      }).join('');
+    vFilter.innerHTML = optionsHtml;
+    vFilter.value = currVal;
+  }
+
+  // 2. Render Structured Uploaded Documents Grid
+  renderVaultDocsGrid();
+
+  // 3. Render Mandatory Statutory Vessel Folders
+  renderVaultStatutoryFolders();
+
+  // 4. Update Summary Counts & Badges
+  updateVaultSummaryCounts();
+}
+
+function updateVaultSummaryCounts() {
+  var docs = DB.vaultDocs || [];
+  var total = docs.length;
+  var cntVoyage = docs.filter(function(d){ return d.category === 'Voyage Permission / Email NOC'; }).length;
+  var cntPort   = docs.filter(function(d){ return d.category === 'Port Clearance & Permissions'; }).length;
+  var cntMob    = docs.filter(function(d){ return d.category === 'Mobilisation / Demobilisation Formats'; }).length;
+  var cntLh     = docs.filter(function(d){ return d.category === 'Letterhead & Official Formats'; }).length;
+  var cntGovt   = docs.filter(function(d){ return d.category === 'Government / DG Shipping Approvals'; }).length;
+  var cntSurvey = docs.filter(function(d){ return d.category === 'Survey & Inspection Reports'; }).length;
+
+  var elAll = document.getElementById('vcnt-all'); if (elAll) elAll.textContent = total;
+  var elVoy = document.getElementById('vcnt-voyage'); if (elVoy) elVoy.textContent = cntVoyage;
+  var elPor = document.getElementById('vcnt-port'); if (elPor) elPor.textContent = cntPort;
+  var elMob = document.getElementById('vcnt-mob'); if (elMob) elMob.textContent = cntMob;
+  var elLh  = document.getElementById('vcnt-lh'); if (elLh) elLh.textContent = cntLh;
+  var elGov = document.getElementById('vcnt-govt'); if (elGov) elGov.textContent = cntGovt;
+  var elSur = document.getElementById('vcnt-survey'); if (elSur) elSur.textContent = cntSurvey;
+
+  var sumEl = document.getElementById('vault-summary');
+  if (sumEl) {
+    sumEl.textContent = total + ' uploaded file' + (total !== 1 ? 's' : '') + ' in vault';
+  }
+  var nb = document.getElementById('nb-vault');
+  if (nb) nb.textContent = total;
+}
+
+function renderVaultDocsGrid() {
+  var grid = document.getElementById('vault-docs-grid');
+  if (!grid) return;
+
+  var docs = DB.vaultDocs || [];
+  var search = String(val('vault-search-input') || '').trim().toLowerCase();
+  var vesselF = val('vault-vessel-filter') || 'all';
+
+  var filtered = docs.filter(function(d) {
+    // Vessel match
+    if (vesselF !== 'all') {
+      if (vesselF === '__other__' && d.vessel !== '__other__' && d.vessel !== 'other' && d.vessel !== 'all') return false;
+      if (vesselF !== '__other__' && d.vessel !== vesselF) return false;
+    }
+    // Category pill match
+    if (_activeVaultPill !== 'all' && _activeVaultPill !== 'statutory') {
+      if (d.category !== _activeVaultPill) return false;
+    }
+    // Text search match
+    if (search.length > 0) {
+      var fullStr = (d.title + ' ' + (d.vesselName||'') + ' ' + (d.category||'') + ' ' + (d.refNo||'') + ' ' + (d.notes||'') + ' ' + (d.fileName||'')).toLowerCase();
+      if (fullStr.indexOf(search) === -1) return false;
+    }
+    return true;
+  });
+
+  if (_activeVaultPill === 'statutory') {
+    grid.innerHTML = '';
+    var sec = document.getElementById('vault-uploaded-docs-section');
+    if (sec) sec.style.display = 'none';
+    var statSec = document.getElementById('vault-statutory-section');
+    if (statSec) statSec.style.display = 'block';
+    return;
+  } else {
+    var sec = document.getElementById('vault-uploaded-docs-section');
+    if (sec) sec.style.display = 'block';
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;background:var(--bg2);border:1px dashed var(--b2);border-radius:12px;padding:36px;text-align:center">' +
+      '<div style="font-size:32px;margin-bottom:8px">📂</div>' +
+      '<div style="font-size:13px;font-weight:700;color:var(--t1)">No documents match current filters</div>' +
+      '<div style="font-size:11px;color:var(--t3);margin-top:4px">Upload single voyage permissions, mobilisation formats, or port NOCs above.</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="openVaultUploadModal()" style="margin-top:12px">📤 Upload First Document</button>' +
+      '</div>';
+    return;
+  }
+
+  var html = filtered.map(function(d) {
+    var isOther = (d.vessel === '__other__' || d.vessel === 'other' || d.vessel === 'all');
+    var vLabel = isOther ? '🏢 Other / General Fleet' : ('🚢 ' + (d.vesselName || vname(d.vessel) || 'Fleet Vessel'));
+    var vBadgeBg = isOther ? 'rgba(124,58,237,0.12)' : 'rgba(2,132,199,0.12)';
+    var vBadgeCol = isOther ? '#7c3aed' : '#0284c7';
+
+    var ext = (getExt(d.fileName || d.name || '') || 'pdf').toUpperCase();
+    var extBg = ext === 'PDF' ? '#fee2e2' : ext === 'EML' || ext === 'MSG' ? '#fef3c7' : '#e0f2fe';
+    var extCol = ext === 'PDF' ? '#dc2626' : ext === 'EML' || ext === 'MSG' ? '#d97706' : '#0284c7';
+    var icon = ext === 'EML' || ext === 'MSG' ? '✉️' : ext === 'PDF' ? '📄' : ext === 'PNG' || ext === 'JPG' || ext === 'JPEG' ? '🖼️' : '📎';
+
+    var catIcon = '📌';
+    if (d.category && d.category.indexOf('Voyage') !== -1) catIcon = '⚓';
+    else if (d.category && d.category.indexOf('Port') !== -1) catIcon = '📜';
+    else if (d.category && d.category.indexOf('Mobilisation') !== -1) catIcon = '📝';
+    else if (d.category && d.category.indexOf('Letterhead') !== -1) catIcon = '🏢';
+    else if (d.category && d.category.indexOf('Government') !== -1) catIcon = '🏛️';
+    else if (d.category && d.category.indexOf('Survey') !== -1) catIcon = '🔍';
+
+    var dateStr = d.docDate ? fmtDate(d.docDate) : (d.uploadedAt ? fmtDate(d.uploadedAt.split('T')[0]) : '');
+    var sizeStr = d.fileSize ? ' · ' + (d.fileSize / 1024).toFixed(0) + ' KB' : '';
+
+    return '<div class="data-card" style="background:var(--bg2);border:1px solid var(--b2);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);position:relative;transition:all 0.15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--b2)\'">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+          '<span style="background:' + vBadgeBg + ';color:' + vBadgeCol + ';font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px">' + vLabel + '</span>' +
+          '<span style="background:var(--s3);color:var(--t2);font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:6px">' + catIcon + ' ' + (d.category || 'General') + '</span>' +
+        '</div>' +
+        '<span style="background:' + extBg + ';color:' + extCol + ';font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:4px;flex-shrink:0">' + ext + '</span>' +
+      '</div>' +
+
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--t1);line-height:1.3;margin-bottom:4px" title="' + stripTags(d.title) + '">' + stripTags(d.title) + '</div>' +
+        (d.refNo ? '<div style="font-size:10px;font-weight:600;color:var(--accent);margin-bottom:4px">Ref: ' + stripTags(d.refNo) + '</div>' : '') +
+        (d.notes ? '<div style="font-size:10.5px;color:var(--t2);line-height:1.3;margin-bottom:6px;background:var(--bg1);padding:6px 8px;border-radius:6px;border:1px solid var(--b1)">' + stripTags(d.notes) + '</div>' : '') +
+        '<div style="font-size:9.5px;color:var(--t3)">' + (dateStr ? 'Date: ' + dateStr : '') + sizeStr + (d.uploadedBy ? ' · By ' + d.uploadedBy : '') + '</div>' +
+      '</div>' +
+
+      '<div style="display:flex;gap:6px;border-top:1px solid var(--b2);padding-top:10px;margin-top:auto">' +
+        '<button class="btn btn-outline btn-sm" onclick="previewVaultDoc(\'' + d.id + '\')" style="flex:1;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:4px">👁️ View</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="downloadVaultDoc(\'' + d.id + '\')" style="font-size:10.5px;font-weight:600;color:var(--accent);border:1px solid var(--b2)" title="Download">⬇ Save</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="deleteVaultDoc(\'' + d.id + '\')" style="font-size:10.5px;color:var(--err);padding:4px 8px" title="Delete">🗑️</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  grid.innerHTML = html;
+}
+
+function renderVaultStatutoryFolders() {
   var container = $('vault-content');
-  var summary   = $('vault-summary');
   if (!container) return;
   container.innerHTML = '';
   DB.vessels = DB.vessels || [];
   if (!DB.vessels.length) {
-    container.innerHTML = '<div class="empty" style="padding:60px;text-align:center;font-size:14px">No vessels registered yet.</div>';
+    container.innerHTML = '<div class="empty" style="padding:40px;text-align:center;font-size:13px">No vessels registered yet.</div>';
     return;
   }
 
-  var totalDocs = 0, totalV = 0;
-  var FDEFS = [
-    {icon:'📋', name:'Registry Certificate',   cat:'registry',  col:'#1877f2'},
-    {icon:'🔍', name:'Survey Certificate',      cat:'survey',    col:'#7b68ee'},
-    {icon:'🔥', name:'Fire Extinguisher Cert',  cat:'fire',      col:'#fa3e3e'},
-    {icon:'🛡️', name:'H&M Insurance',           cat:'insurance', col:'#e67700'},
-    {icon:'⚓', name:'P&I Insurance',            cat:'pi',        col:'#00a651'},
-    {icon:'📜', name:'Other Certificates',       cat:'certs',     col:'#65676b'},
-  ];
+  var vesselF = val('vault-vessel-filter') || 'all';
+  var list = DB.vessels;
+  if (vesselF !== 'all' && vesselF !== '__other__') {
+    list = DB.vessels.filter(function(v){ return v.id === vesselF; });
+  }
 
-  DB.vessels.forEach(function(v) {
+  list.forEach(function(v) {
     var md = v.mandatoryDocs || {};
     var vCerts = (DB.certs||[]).filter(function(c){ return c.vessel === v.id; });
 
@@ -17848,12 +18183,9 @@ function renderVault() {
     });
 
     var docCount = folders.reduce(function(a,f){return a+f.docs.length;},0);
-    totalDocs += docCount;
-    if (docCount > 0) totalV++;
     var mandFolders = folders.slice(0,5);
     var mandFilled  = mandFolders.filter(function(f){return f.docs.length>0;}).length;
     var pct = Math.round(mandFilled/5*100);
-    var pctCol = pct===100?'#00a651':pct>=60?'#e67700':'#fa3e3e';
 
     var fHtml = folders.map(function(f){
       var has = f.docs.length > 0;
@@ -17914,9 +18246,277 @@ function renderVault() {
       +'<div class="vault-folders">'+fHtml+'</div>';
     container.appendChild(card);
   });
+}
 
-  if (summary) summary.textContent = totalDocs + ' document(s) across ' + totalV + ' vessel(s)';
-  updateVaultBadge();
+function filterVaultDocs() {
+  renderVaultDocsGrid();
+  renderVaultStatutoryFolders();
+}
+
+function selectVaultCategoryPill(cat, btn) {
+  _activeVaultPill = cat;
+  document.querySelectorAll('.vault-pill').forEach(function(b){ b.classList.remove('on'); b.style.background = 'var(--bg1)'; b.style.color = 'var(--t2)'; b.style.borderColor = 'var(--b2)'; });
+  if (btn) {
+    btn.classList.add('on');
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--accent)';
+  }
+  renderVaultDocsGrid();
+}
+
+/* Modal Open & Upload Logic */
+function openVaultUploadModal(prefillVessel, prefillCat) {
+  var vuv = document.getElementById('vu-vessel');
+  if (vuv) {
+    vuv.innerHTML = '<option value="">-- Select Vessel (Mandatory) --</option>' +
+      (DB.vessels||[]).map(function(v) { return '<option value="'+v.id+'">🚢 '+v.name+'</option>'; }).join('') +
+      '<option value="__other__" style="font-weight:700;color:var(--accent)">🏢 Other / General Fleet (No Specific Vessel)</option>';
+    if (prefillVessel) vuv.value = prefillVessel;
+  }
+  if (prefillCat) {
+    var vuc = document.getElementById('vu-category');
+    if (vuc) vuc.value = prefillCat;
+  }
+  var vud = document.getElementById('vu-date');
+  if (vud) vud.value = (typeof today === 'function' ? today() : new Date().toISOString().split('T')[0]);
+
+  clearFields(['vu-title', 'vu-ref', 'vu-notes']);
+  clearVaultUploadFile();
+  openModal('m-vault-upload');
+}
+
+var _stagedVaultFile = null;
+
+function handleVaultFileSelection(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  _stagedVaultFile = file;
+
+  var infoDiv = document.getElementById('vu-selected-file-info');
+  var metaSpan = document.getElementById('vu-file-meta');
+  var lbl = document.getElementById('vu-file-label');
+
+  if (metaSpan) metaSpan.textContent = '📎 ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+  if (infoDiv) infoDiv.style.display = 'flex';
+  if (lbl) lbl.textContent = 'File attached: ' + file.name;
+
+  // If heading/subject is blank, prefill with clean filename
+  var tInput = document.getElementById('vu-title');
+  if (tInput && !tInput.value.trim()) {
+    var cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+    tInput.value = cleanName;
+  }
+}
+
+function clearVaultUploadFile() {
+  _stagedVaultFile = null;
+  var inp = document.getElementById('vu-file');
+  if (inp) inp.value = '';
+  var infoDiv = document.getElementById('vu-selected-file-info');
+  if (infoDiv) infoDiv.style.display = 'none';
+  var lbl = document.getElementById('vu-file-label');
+  if (lbl) lbl.textContent = 'Click to select PDF, Image, Scan, or .eml file';
+}
+
+function saveVaultDocument() {
+  var title    = String(val('vu-title') || '').trim();
+  var vesselId = val('vu-vessel');
+  var category = val('vu-category') || 'General Documents & Emails';
+  var refNo    = String(val('vu-ref') || '').trim();
+  var docDate  = val('vu-date') || (typeof today === 'function' ? today() : new Date().toISOString().split('T')[0]);
+  var notes    = String(val('vu-notes') || '').trim();
+
+  // VALIDATION: Mandatory Subject & Mandatory Vessel Selection
+  if (!title) {
+    uiAlert('Document Heading / Subject is required to catch and search this file easily.');
+    return;
+  }
+  if (!vesselId) {
+    uiAlert('Vessel selection is mandatory. Please select a fleet vessel or choose "Other / General Fleet".');
+    return;
+  }
+  if (!_stagedVaultFile) {
+    uiAlert('Please attach a document file (.pdf, image, .eml, or document scan).');
+    return;
+  }
+
+  var vesselName = 'Other / General Fleet';
+  if (vesselId !== '__other__' && vesselId !== 'other' && vesselId !== 'all') {
+    var vObj = (DB.vessels || []).find(function(v){ return v.id === vesselId; });
+    vesselName = vObj ? vObj.name : 'Fleet Vessel';
+  }
+
+  var file = _stagedVaultFile;
+  var btn = document.getElementById('btn-save-vault-doc');
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading to Vault…'; }
+
+  uploadAttachment(file, 'vault-docs', function(result) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save to Document Vault'; }
+
+    var fileDataUrl = result ? (result.url || result.data) : '';
+    if (!fileDataUrl) {
+      uiAlert('Failed to read file data. Please try again.');
+      return;
+    }
+
+    DB.vaultDocs = DB.vaultDocs || [];
+    var docRecord = {
+      id: uid(),
+      title: title,
+      vessel: vesselId,
+      vesselName: vesselName,
+      category: category,
+      refNo: refNo,
+      docDate: docDate,
+      notes: notes,
+      fileName: file.name,
+      fileType: file.type || getMimeType(file.name),
+      fileData: fileDataUrl,
+      storage: result ? result.storage : 'local',
+      path: result ? result.path : null,
+      fileSize: file.size,
+      uploadedBy: (CU && CU.name) ? CU.name : 'Admin',
+      uploadedAt: new Date().toISOString()
+    };
+
+    DB.vaultDocs.unshift(docRecord);
+    saveDB();
+    audit('Uploaded to Document Vault: ' + title + ' (' + vesselName + ')', 'var(--ok)');
+    toast('Document saved to Vault: ' + title);
+
+    closeModal('m-vault-upload');
+    clearVaultUploadFile();
+    renderVault();
+  });
+}
+
+function previewVaultDoc(id) {
+  var doc = (DB.vaultDocs || []).find(function(d){ return d.id === id; });
+  if (!doc) {
+    toast('Document record not found', 'var(--err)');
+    return;
+  }
+  _activeVaultDocObj = doc;
+
+  var titleEl = document.getElementById('vp-title');
+  var subEl   = document.getElementById('vp-subtitle');
+  var bodyEl  = document.getElementById('vp-viewer-body');
+  var metaEl  = document.getElementById('vp-meta-info');
+
+  if (titleEl) titleEl.textContent = doc.title || doc.fileName || 'Document Preview';
+  if (subEl) {
+    var vTag = (doc.vessel === '__other__' || doc.vessel === 'other') ? '🏢 Other / General Fleet' : ('🚢 ' + (doc.vesselName || vname(doc.vessel)));
+    subEl.textContent = vTag + ' · ' + (doc.category || 'General') + (doc.refNo ? ' · Ref: ' + doc.refNo : '') + (doc.docDate ? ' · Date: ' + fmtDate(doc.docDate) : '');
+  }
+  if (metaEl) {
+    metaEl.textContent = 'File: ' + doc.fileName + (doc.fileSize ? ' (' + (doc.fileSize/1024).toFixed(0) + ' KB)' : '') + (doc.uploadedBy ? ' · Uploaded by ' + doc.uploadedBy : '');
+  }
+
+  if (bodyEl) {
+    var ext = (getExt(doc.fileName || '') || '').toLowerCase();
+    var isImg = (doc.fileType && doc.fileType.startsWith('image/')) || ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
+    var isPdf = (doc.fileType === 'application/pdf') || ext === 'pdf';
+    var isEml = ext === 'eml' || ext === 'msg';
+
+    if (isImg) {
+      bodyEl.innerHTML = '<img src="' + doc.fileData + '" style="max-width:100%;max-height:100%;object-fit:contain;padding:10px" alt="' + stripTags(doc.title) + '"/>';
+    } else if (isPdf) {
+      bodyEl.innerHTML = '<iframe src="' + doc.fileData + '#toolbar=1" style="width:100%;height:100%;border:none;background:#525659"></iframe>';
+    } else if (isEml) {
+      bodyEl.innerHTML = '<div style="padding:24px;background:var(--bg1);color:var(--t1);width:100%;height:100%;box-sizing:border-box;overflow-y:auto">' +
+        '<div style="border-bottom:2px solid var(--accent);padding-bottom:12px;margin-bottom:16px">' +
+          '<div style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:6px">✉️ ' + stripTags(doc.title) + '</div>' +
+          '<div style="font-size:11px;color:var(--t2)"><strong>Category:</strong> ' + stripTags(doc.category) + ' | <strong>Vessel:</strong> ' + stripTags(doc.vesselName||doc.vessel) + '</div>' +
+          (doc.refNo ? '<div style="font-size:11px;color:var(--t2)"><strong>Reference:</strong> ' + stripTags(doc.refNo) + '</div>' : '') +
+          (doc.docDate ? '<div style="font-size:11px;color:var(--t3)"><strong>Date:</strong> ' + fmtDate(doc.docDate) + '</div>' : '') +
+        '</div>' +
+        (doc.notes ? '<div style="font-size:12px;color:var(--t1);line-height:1.5;white-space:pre-wrap">' + stripTags(doc.notes) + '</div>' : '<div style="font-size:12px;color:var(--t3)">Original .eml file attached. Click Download to open in Outlook/Mail client.</div>') +
+      '</div>';
+    } else {
+      bodyEl.innerHTML = '<div style="padding:40px;text-align:center;color:#fff">' +
+        '<div style="font-size:48px;margin-bottom:12px">📄</div>' +
+        '<div style="font-size:16px;font-weight:700">' + stripTags(doc.fileName) + '</div>' +
+        '<div style="font-size:12px;color:#94a3b8;margin-top:6px">This file type can be downloaded directly to your device.</div>' +
+        '<button class="btn btn-primary" onclick="downloadActiveVaultDoc()" style="margin-top:16px">⬇ Download File</button>' +
+        '</div>';
+    }
+  }
+
+  openModal('m-vault-preview');
+}
+
+function openVaultDocInNewTab() {
+  if (!_activeVaultDocObj || !_activeVaultDocObj.fileData) return;
+  var w = window.open(_activeVaultDocObj.fileData, '_blank');
+  if (!w) {
+    var a = document.createElement('a');
+    a.href = _activeVaultDocObj.fileData;
+    a.target = '_blank';
+    a.click();
+  }
+}
+
+function downloadActiveVaultDoc() {
+  if (!_activeVaultDocObj) return;
+  downloadVaultDoc(_activeVaultDocObj.id);
+}
+
+function downloadVaultDoc(idOrVid, cat, idx) {
+  // Overloaded: If called as downloadVaultDoc(id), downloads from DB.vaultDocs
+  // If called as downloadVaultDoc(vid, cat, idx), downloads statutory vessel cert
+  if (cat !== undefined && idx !== undefined) {
+    var doc = getDocFromVault(idOrVid, cat, idx);
+    if (!doc || !doc.data) { toast('No document data', 'var(--err)'); return; }
+    triggerDownload(doc.data, doc.name || 'document.pdf');
+    return;
+  }
+
+  var doc = (DB.vaultDocs || []).find(function(d){ return d.id === idOrVid; });
+  if (!doc || !doc.fileData) {
+    toast('File data not found', 'var(--err)');
+    return;
+  }
+  var fname = doc.fileName || (doc.title.replace(/[^a-zA-Z0-9_-]/g, '_') + '.' + (getExt(doc.fileName)||'pdf'));
+  triggerDownload(doc.fileData, fname);
+}
+
+function deleteVaultDoc(id) {
+  var doc = (DB.vaultDocs || []).find(function(d){ return d.id === id; });
+  if (!doc) return;
+
+  var canAdmin = CU && (CU.role === 'master' || CU.role === 'admin');
+  if (!canAdmin) {
+    if (typeof requestStaffDeletion === 'function') {
+      requestStaffDeletion('vaultDocs', id, doc.title + ' (' + doc.vesselName + ')');
+    } else {
+      uiAlert('Deletion rights are restricted to Fleet Master & Administrators. Staff must submit a deletion request.');
+    }
+    return;
+  }
+
+  if (!confirm('Are you sure you want to delete "' + doc.title + '" from the Document Vault?')) return;
+
+  if (typeof stageRecentDeletion === 'function') {
+    stageRecentDeletion('vaultDocs', doc, doc.title + ' (' + doc.vesselName + ')');
+  }
+
+  DB.vaultDocs = (DB.vaultDocs || []).filter(function(d){ return d.id !== id; });
+  saveDB();
+  audit('Deleted document from Vault: ' + doc.title, 'var(--err)');
+  toast('Document deleted');
+  renderVault();
+}
+
+function getMimeType(filename) {
+  var ext = getExt(filename);
+  if (ext === 'pdf') return 'application/pdf';
+  if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+  if (ext === 'png') return 'image/png';
+  if (ext === 'eml' || ext === 'msg') return 'message/rfc822';
+  if (ext === 'docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  if (ext === 'xlsx') return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  return 'application/octet-stream';
 }
 function getExt(filename) {
   if (!filename) return '';
@@ -28516,222 +29116,332 @@ var SYSTEM_SEARCH_PAGES = [
    UNIFIED 48-MODULE UNIVERSAL OMNISEARCH ENGINE
 ══════════════════════════════════════════════════════════════ */
 var _searchTimeout = null;
+var _activeSearchFilter = 'all';
+
+function filterSearchCategory(cat, btn) {
+  _activeSearchFilter = cat;
+  document.querySelectorAll('.search-filter-pill').forEach(function(b){
+    b.classList.remove('on');
+    b.style.background = 'var(--bg2)';
+    b.style.color = 'var(--t2)';
+    b.style.borderColor = 'var(--b2)';
+  });
+  if (btn) {
+    btn.classList.add('on');
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--accent)';
+  }
+  var inp = document.getElementById('global-search-input2') || document.getElementById('global-search-input');
+  if (inp) runGlobalSearch(inp.value);
+}
+
+function openSearchPanel(initialQuery) {
+  var panel = document.getElementById('global-search-panel');
+  if (!panel) return;
+  panel.style.display = 'block';
+  var inp = document.getElementById('global-search-input2');
+  if (inp) {
+    if (initialQuery !== undefined && initialQuery !== null) inp.value = initialQuery;
+    inp.focus();
+    inp.select();
+    if (inp.value) runGlobalSearch(inp.value);
+  }
+  _searchOpen = true;
+}
+
+function closeSearchPanel() {
+  var panel = document.getElementById('global-search-panel');
+  if (panel) panel.style.display = 'none';
+  var resDiv = document.getElementById('global-search-results');
+  if (resDiv) resDiv.style.display = 'none';
+  var inp1 = document.getElementById('global-search-input');
+  if (inp1) inp1.value = '';
+  var inp2 = document.getElementById('global-search-input2');
+  if (inp2) inp2.value = '';
+  var psr = document.getElementById('panel-search-results');
+  if (psr) psr.innerHTML = '<div style="text-align:center;padding:36px;color:var(--t3);font-size:13px">Start typing to search across all 48 fleet modules and document archives...</div>';
+  var badge = document.getElementById('search-count-badge');
+  if (badge) badge.style.display = 'none';
+  _searchOpen = false;
+}
+
+function toggleGlobalSearch() {
+  var panel = document.getElementById('global-search-panel');
+  if (panel && panel.style.display === 'block') {
+    closeSearchPanel();
+  } else {
+    var inp1 = document.getElementById('global-search-input');
+    openSearchPanel(inp1 ? inp1.value : '');
+  }
+}
+
+function closeGlobalSearch() {
+  closeSearchPanel();
+}
 
 function runGlobalSearch(q) {
   clearTimeout(_searchTimeout);
   q = String(q || '').trim().toLowerCase();
+  
+  // Sync inputs
+  var topInp   = document.getElementById('global-search-input');
+  var modalInp = document.getElementById('global-search-input2');
+  var sideInp  = document.getElementById('sidebar-search-input');
+  if (topInp && document.activeElement !== topInp && topInp.value !== q) topInp.value = q;
+  if (modalInp && document.activeElement !== modalInp && modalInp.value !== q) modalInp.value = q;
+  if (sideInp && document.activeElement !== sideInp && sideInp.value !== q) sideInp.value = q;
+
   var resDiv    = document.getElementById('global-search-results');
   var listDiv   = document.getElementById('search-result-list');
   var summary   = document.getElementById('search-result-summary');
   var panelList = document.getElementById('panel-search-results');
+  var badge     = document.getElementById('search-count-badge');
   
   if (q.length === 0) {
     if (resDiv) resDiv.style.display = 'none';
-    if (panelList) panelList.innerHTML = '<div style="text-align:center;padding:32px;color:#9a9fa8;font-size:13px">Start typing to search across all 48 modules and fleet records...</div>';
+    if (panelList) panelList.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--t3)"><div style="font-size:36px;margin-bottom:8px">⚡</div><div style="font-size:14px;font-weight:700;color:var(--t1)">Universal Fleet Search</div><div style="font-size:11.5px;margin-top:4px">Type anything to search across all 48 modules, vessels, voyage permissions, emails, certificates, crew, invoices, and bank statements.</div></div>';
+    if (badge) badge.style.display = 'none';
     return;
   }
   
-  if (resDiv) resDiv.style.display = 'block';
   if (q.length < 2) {
-    var promptHtml = '<div style="padding:20px;text-align:center;color:var(--t3);font-size:11px">Type at least 2 characters to search...</div>';
+    var promptHtml = '<div style="padding:28px;text-align:center;color:var(--t3);font-size:11.5px">Type at least 2 characters to search across all 48 modules...</div>';
     if (listDiv) listDiv.innerHTML = promptHtml;
     if (panelList) panelList.innerHTML = promptHtml;
     if (summary) summary.textContent = 'Ready to search';
+    if (badge) badge.style.display = 'none';
     return;
   }
 
   _searchTimeout = setTimeout(function() {
     var results = [];
 
-    function hit(module, icon, title, subtitle, page, extra) {
+    function hit(module, categoryGroup, icon, title, subtitle, page, targetId, extra) {
+      if (_activeSearchFilter !== 'all' && _activeSearchFilter !== categoryGroup) return;
       title = String(title || '');
       subtitle = String(subtitle || '');
       extra = String(extra || '');
       var searchStr = (title + ' ' + subtitle + ' ' + extra).toLowerCase();
       if (searchStr.indexOf(q) !== -1) {
-        results.push({ module: module, icon: icon, title: title, subtitle: subtitle, page: page });
+        results.push({
+          module: module,
+          categoryGroup: categoryGroup,
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          page: page,
+          targetId: targetId
+        });
       }
     }
 
-    // ── 1. ALL SYSTEM NAVIGATION PAGES & MODULES ─────────────
-    SYSTEM_SEARCH_PAGES.forEach(function(p) {
+    // ── 1. ALL SYSTEM NAVIGATION PAGES & 48 MODULES ──────────
+    (SYSTEM_SEARCH_PAGES || []).forEach(function(p) {
       if ((p.name + ' ' + p.keywords + ' ' + p.sub).toLowerCase().indexOf(q) !== -1) {
-        results.push({
-          module: 'Navigation Target',
-          icon: p.icon,
-          title: 'Go to: ' + p.name,
-          subtitle: p.sub,
-          page: p.page
-        });
+        if (_activeSearchFilter === 'all') {
+          results.push({
+            module: 'Navigation Target',
+            categoryGroup: 'nav',
+            icon: p.icon,
+            title: 'Go to: ' + p.name,
+            subtitle: p.sub,
+            page: p.page
+          });
+        }
       }
     });
 
-    // ── 2. LETTER & EMAIL TEMPLATES ──────────────────────────
-    (DB.letterFormats || []).forEach(function(l) {
-      hit('Letter & Email Formats', '✉️', l.title, (l.cat||'General') + (l.subcat ? ' / ' + l.subcat : '') + (l.vessel ? ' · ' + vname(l.vessel) : ''), 'letters', (l.subject||'') + ' ' + (l.content||'') + ' ' + (l.body||''));
+    // ── 2. STRUCTURED DOCUMENT VAULT & PERMISSIONS ───────────
+    (DB.vaultDocs || []).forEach(function(d) {
+      var vText = (d.vessel === '__other__' || d.vessel === 'other') ? 'Other / General Fleet' : (d.vesselName || vname(d.vessel));
+      hit('Document Vault & Approvals', 'vault', '📁', d.title, (d.category || 'Vault Doc') + ' · ' + vText + (d.docDate ? ' · ' + fmtDate(d.docDate) : ''), 'vault', d.id, (d.refNo||'') + ' ' + (d.notes||'') + ' ' + (d.fileName||'') + ' ' + (d.uploadedBy||''));
     });
 
-    // ── 3. COMPANY PROFILES & BANK DETAILS ──────────────────
-    (DB.companies || []).forEach(function(c) {
-      var bankInfo = (c.bankAccounts||[]).map(function(b){ return (b.bankName||'')+' '+(b.bankAccNo||'')+' '+(b.bankIfsc||'')+' '+(b.bankBranch||''); }).join(' ');
-      if (!bankInfo && c.bankName) bankInfo = c.bankName + ' ' + (c.bankAccNo||'') + ' ' + (c.bankIfsc||'');
-      hit('Company Profile', '🏢', c.name + (c.tradename ? ' (' + c.tradename + ')' : ''), (c.tag||'') + (c.entity ? ' · ' + c.entity : '') + (c.phone ? ' · ' + c.phone : ''), 'companies', (c.address||'') + ' ' + (c.gst||'') + ' ' + (c.pan||'') + ' ' + (c.email||'') + ' ' + bankInfo);
-    });
-
-    // ── 4. FLEET VESSELS ─────────────────────────────────────
-    (DB.vessels || []).forEach(function(v) {
-      hit('Fleet Vessel', '🚢', v.name, (v.type||'') + (v.cat ? ' · ' + v.cat : '') + (v.hp ? ' · ' + v.hp : '') + (v.imo ? ' · IMO ' + v.imo : ''), 'vessels', (v.desc||'') + ' ' + (v.stationed||'') + ' ' + (v.engmodel||'') + ' ' + (v.flag||''));
-    });
-
-    // ── 5. STATUTORY CERTIFICATES ────────────────────────────
-    (DB.certs || []).forEach(function(c) {
-      hit('Certificate', '📜', c.name, vname(c.vessel) + (c.auth ? ' · ' + c.auth : '') + (c.expiry ? ' · Exp: ' + fmtDate(c.expiry) : ''), 'certificates', (c.certNo||'') + ' ' + (c.auth||'') + ' ' + (c.type||''));
-    });
-
-    // ── 6. CREW MANNING ──────────────────────────────────────
-    (DB.crew || []).forEach(function(m) {
-      hit('Crew Member', '👤', m.name, (m.role||'Crew') + (m.vessel ? ' · ' + vname(m.vessel) : '') + (m.mob ? ' · ' + m.mob : ''), 'crew', (m.indos||'') + ' ' + (m.cdc||'') + ' ' + (m.crewno||'') + ' ' + (m.station||''));
-    });
-
-    // ── 7. EX-CREW RECORDS ───────────────────────────────────
-    (DB.exCrew || []).forEach(function(e) {
-      hit('Ex-Crew Archive', '📋', e.name, (e.role||'') + (e.mob ? ' · ' + e.mob : '') + (e.relieved ? ' · Relieved ' + fmtDate(e.relieved) : ''), 'ex-crew', (e.indos||'') + ' ' + (e.reason||'') + ' ' + (e.vessels||''));
-    });
-
-    // ── 8. DAILY OPERATIONS REPORTS (DOR) ────────────────────
-    (DB.dorEntries || []).forEach(function(d) {
-      hit('DOR Report', '📋', fmtDate(d.date) + ' — ' + vname(d.vessel), (d.port||'') + (d.status ? ' · ' + d.status : '') + (d.master ? ' · Capt. ' + d.master : ''), 'dor', (d.activity||'') + ' ' + (d.remarks||'') + ' ' + (d.location||''));
-    });
-
-    // ── 9. OIL RECORD BOOK (ORB) ─────────────────────────────
-    (DB.orbEntries || []).forEach(function(e) {
-      hit('ORB Log', '🛢️', 'Code ' + (e.code||'') + ' — ' + (e.operation||'').substring(0, 45), vname(e.vessel) + (e.date ? ' · ' + fmtDate(e.date) : '') + (e.qty ? ' · ' + e.qty + ' m³' : ''), 'orb', (e.officer||'') + ' ' + (e.tanks||'') + ' ' + (e.position||''));
-    });
-
-    // ── 10. VTMS & PORT MOVEMENTS ────────────────────────────
-    (DB.vtmsLog || []).forEach(function(v) {
-      hit('VTMS Log', '📡', (v.type||'VTMS') + ' — ' + (v.port||'Port'), vname(v.vessel) + (v.date ? ' · ' + fmtDate(v.date) : '') + (v.status ? ' · ' + v.status : ''), 'vtms', (v.agent||'') + ' ' + (v.pilot||'') + ' ' + (v.purpose||'') + ' ' + (v.vhf||''));
-    });
-
-    // ── 11. INVOICES & BILLING ───────────────────────────────
-    (DB.invoices || []).forEach(function(inv) {
-      hit('Invoice', '🧾', inv.no || 'Invoice', (inv.docType||'Tax Invoice') + ' · ' + (inv.clientName||'') + (inv.total ? ' · ₹' + fmt(inv.total) : ''), 'invoices', (inv.ref||'') + ' ' + (inv.status||'') + ' ' + (inv.desc||''));
-    });
-
-    // ── 12. QUOTATIONS & PROPOSALS ───────────────────────────
-    (DB.quotations || []).forEach(function(qObj) {
-      hit('Quotation', '💼', qObj.no || 'Quote', (qObj.client||'') + (qObj.vessel ? ' · ' + vname(qObj.vessel) : '') + (qObj.total ? ' · ₹' + fmt(qObj.total) : ''), 'quotations', (qObj.subject||'') + ' ' + (qObj.scope||''));
-    });
-
-    // ── 13. PURCHASE ORDERS ──────────────────────────────────
-    (DB.purchaseOrders || []).forEach(function(p) {
-      hit('Purchase Order', '📄', p.no || 'PO', vname(p.vessel) + (p.supplier ? ' · ' + p.supplier : '') + (p.status ? ' · ' + p.status : ''), 'po-module', (p.itemsSummary||'') + ' ' + (p.rem||''));
-    });
-
-    // ── 14. FLEET EXPENSES & PETTY CASH ──────────────────────
-    (DB.expenses || []).forEach(function(exp) {
-      hit('Expense Voucher', '💸', (exp.voucherNo||'Voucher') + ': ' + (exp.cat||'General'), (exp.payee||'') + (exp.vessel ? ' · ' + vname(exp.vessel) : '') + (exp.amount ? ' · ₹' + fmt(exp.amount) : ''), 'expenses', (exp.desc||'') + ' ' + (exp.mode||''));
-    });
-
-    // ── 15. CREW SALARY ──────────────────────────────────────
-    (DB.salaries || []).forEach(function(s) {
-      hit('Crew Salary', '💰', s.crewName + ' · ' + s.month, vname(s.vessel) + ' · ₹' + fmt(s.net) + ' net · ' + (s.mode||'Bank'), 'salary', (s.bank||'') + ' ' + (s.acc||''));
-    });
-
-    // ── 16. MATERIALS PROVIDED & CHALLANS ────────────────────
-    (DB.materials || []).forEach(function(m) {
-      var items = m.items ? m.items.map(function(i){ return i.item; }).join(', ') : (m.item||'');
-      hit('Material Challan', '📦', m.challanNo || 'Challan', vname(m.vessel) + (m.date ? ' · ' + fmtDate(m.date) : '') + (items ? ' · ' + items : ''), 'mat-provided', items + ' ' + (m.supplier||'') + ' ' + (m.rcvby||''));
-    });
-
-    // ── 17. MATERIAL REQUISITIONS ────────────────────────────
-    (DB.requests || []).forEach(function(r) {
-      hit('Mat Requisition', '🛒', (r.ref||'Req') + ': ' + (r.item||''), vname(r.vessel) + ' · ' + (r.urg||'') + (r.status ? ' · ' + r.status : ''), 'mat-request', (r.reqby||'') + ' ' + (r.status||''));
-    });
-
-    // ── 18. SPARES & INVENTORY ───────────────────────────────
-    (DB.spares || []).forEach(function(s) {
-      hit('Spare Part', '⚙️', s.name, vname(s.vessel) + (s.partno ? ' · P/N: ' + s.partno : '') + (s.cat ? ' · ' + s.cat : ''), 'spares', (s.supplier||'') + ' ' + (s.invNo||''));
-    });
-
-    // ── 19. PART SPECIFICATIONS ──────────────────────────────
-    (DB.partSpecs || []).forEach(function(p) {
-      hit('Part Spec', '📐', p.equipment + (p.part ? ' — ' + p.part : ''), vname(p.vessel) + (p.make ? ' · ' + p.make : '') + (p.size ? ' · ' + p.size : ''), 'part-specs', (p.model||'') + ' ' + (p.partNo||''));
-    });
-
-    // ── 20. BUNKER RECEIPTS ──────────────────────────────────
-    (DB.bunkerReceipts || []).forEach(function(b) {
-      hit('Bunker Receipt', '⛽', b.receiptNo || 'BDN Receipt', vname(b.vessel) + (b.supplier ? ' · ' + b.supplier : '') + (b.qty ? ' · ' + fmt(b.qty) + 'L' : ''), 'bunker', (b.grade||'') + ' ' + (b.driver||'') + ' ' + (b.vehicle||''));
-    });
-
-    // ── 21. MAINTENANCE OVERHAULS ────────────────────────────
-    (DB.maint || []).forEach(function(m) {
-      hit('Maintenance', '🔧', (m.type||'Maint') + ': ' + (m.desc||''), vname(m.vessel) + (m.next ? ' · Due ' + fmtDate(m.next) : '') + (m.status ? ' · ' + m.status : ''), 'maintenance', (m.status||'') + ' ' + (m.assigned||''));
-    });
-
-    // ── 22. DEFICIENCIES & DEFECTS ───────────────────────────
-    (DB.defs || []).forEach(function(d) {
-      hit('Deficiency', '⚠️', d.desc, vname(d.vessel) + ' · ' + (d.sev||'') + (d.status ? ' · ' + d.status : ''), 'deficiency', (d.src||'') + ' ' + (d.assign||''));
-    });
-
-    // ── 23. VOYAGE & TOWING LOGS ─────────────────────────────
-    (DB.voyages || []).forEach(function(v) {
-      hit('Voyage Log', '⚓', (v.from||'?') + ' → ' + (v.to||'?'), vname(v.vessel) + (v.dep ? ' · ' + fmtDate(v.dep) : '') + (v.master ? ' · ' + v.master : ''), 'voyage', (v.cargo||'') + ' ' + (v.master||''));
-    });
-
-    // ── 24. FLEET VEHICLES ───────────────────────────────────
-    (DB.vehicles || []).forEach(function(v) {
-      hit('Vehicle', '🚗', v.regNo, (v.type||'') + (v.model ? ' · ' + v.model : '') + (v.driver ? ' · ' + v.driver : ''), 'vehicles', (v.engine||'') + ' ' + (v.chassis||'') + ' ' + (v.fuelType||''));
-    });
-
-    // ── 25. VENDORS & SUPPLIERS ──────────────────────────────
-    (DB.vendors || []).forEach(function(v) {
-      hit('Vendor', '🏪', v.name, (v.cat||'') + (v.city ? ' · ' + v.city : '') + (v.phone ? ' · ' + v.phone : ''), 'vendors', (v.contact||'') + ' ' + (v.email||'') + ' ' + (v.gst||'') + ' ' + (v.notes||''));
-    });
-
-    // ── 26. TASK LIST & WORK ORDERS ──────────────────────────
-    (DB.taskList || []).forEach(function(t) {
-      hit('Task', '☑️', t.title, (t.assignedTo||'') + (t.due ? ' · Due ' + fmtDate(t.due) : '') + (t.status ? ' · ' + t.status : ''), 'tasklist', (t.desc||'') + ' ' + (t.cat||''));
-    });
-    (DB.workOrders || []).forEach(function(wo) {
-      hit('Work Order', '📋', wo.title, vname(wo.vessel) + (wo.charterer ? ' · ' + wo.charterer : '') + (wo.status ? ' · ' + wo.status : ''), 'workorders', (wo.assignedTo||'') + ' ' + (wo.desc||''));
-    });
-
-    // ── 27. STAFF & ADMIN ACCOUNTS ───────────────────────────
-    (DB.users || []).forEach(function(u) {
-      hit('Staff User', '👥', u.name, '@' + u.username + (u.desig ? ' · ' + u.desig : '') + (u.role ? ' · ' + u.role : ''), 'users', (u.email||'') + ' ' + (u.mob||''));
-    });
-    ([resolveAdmin(MASTER)].concat(allAdmins())).forEach(function(a) {
-      if (a) hit('Administrator', '👑', a.name, '@' + (a.username||'') + ' · ' + (a.desig||'Administrator'), 'users', (a.role||'') + ' ' + (a.email||''));
-    });
-    (DB.officeStaff || []).forEach(function(s) {
-      hit('Office Staff', '🏬', s.name, (s.role||'') + (s.mob ? ' · ' + s.mob : '') + (s.dept ? ' · ' + s.dept : ''), 'office-staff', (s.email||'') + ' ' + (s.dept||''));
-    });
-
-    // ── 28. CHECKLISTS & DRILLS ──────────────────────────────
-    (DB.checklistRecords || []).forEach(function(r) {
-      hit('Checklist Run', '✅', r.templateName, vname(r.vessel) + (r.date ? ' · ' + fmtDate(r.date) : '') + (r.master ? ' · ' + r.master : ''), 'checklists', r.remarks||'');
-    });
-    (DB.drillRecords || []).forEach(function(d) {
-      hit('Drill Record', '🔔', d.type, vname(d.vessel) + (d.date ? ' · ' + fmtDate(d.date) : '') + (d.result ? ' · ' + d.result : ''), 'checklists', (d.master||'') + ' ' + (d.obs||''));
-    });
-
-    // ── 29. CREW CONTRACTS & NOK ─────────────────────────────
-    (DB.crewContracts || []).forEach(function(c) {
-      hit('Crew Contract', '📑', c.crewName + ' — ' + (c.rank||'Crew'), vname(c.vessel) + (c.joining ? ' · ' + fmtDate(c.joining) : '') + (c.docno ? ' · ' + c.docno : ''), 'contracts', (c.docno||'') + ' ' + (c.salary||''));
-    });
-    (DB.crewNOK || []).forEach(function(n) {
-      hit('Next of Kin', '👨‍👩‍👧', n.name + ' (' + (n.relationship||'NOK') + ')', n.crewName + (n.mobile ? ' · ' + n.mobile : ''), 'nok', (n.mobile2||'') + ' ' + (n.email||'') + ' ' + (n.address||''));
-    });
-
-    // ── 30. LETTERHEAD & DOCUMENT VAULT ──────────────────────
+    // ── 3. LETTERHEAD & STAMPS VAULT ─────────────────────────
     if (DB.letterheadVault && DB.letterheadVault.files) {
-      (DB.letterheadVault.files || []).forEach(function(f) {
-        hit('Letterhead Vault', '🔒', f.name, 'Letterhead & Stamps Vault' + (f.uploadedBy ? ' · By ' + f.uploadedBy : ''), 'letterhead-vault', f.type||'');
+      (DB.letterheadVault.files || []).forEach(function(f, i) {
+        hit('Letterhead & Stamps Vault', 'vault', '🔒', f.name, 'Letterhead & Stamps Vault' + (f.uploadedBy ? ' · By ' + f.uploadedBy : ''), 'letterhead-vault', i, f.type||'');
       });
     }
 
+    // ── 4. DOCUMENT CYCLES & DOSSIERS ────────────────────────
+    (DB.docCycles || []).forEach(function(cyc) {
+      hit('Document Cycle Dossier', 'vault', '📋', cyc.title || 'Document Cycle', vname(cyc.vessel) + ' · ' + (cyc.templateName||'Cycle') + ' · ' + (cyc.status||'Active'), 'doc-cycles', cyc.id, (cyc.stage||'') + ' ' + (cyc.remarks||''));
+    });
+
+    // ── 5. FLEET VESSELS & BLUEPRINTS ────────────────────────
+    (DB.vessels || []).forEach(function(v) {
+      hit('Fleet Vessel', 'vessel', '🚢', v.name, (v.type||'') + (v.cat ? ' · ' + v.cat : '') + (v.hp ? ' · ' + v.hp : '') + (v.imo ? ' · IMO ' + v.imo : ''), 'vessels', v.id, (v.desc||'') + ' ' + (v.stationed||'') + ' ' + (v.engmodel||'') + ' ' + (v.flag||''));
+      (v.customDocs || []).forEach(function(cd) {
+        hit('Vessel Drawing / Document', 'vessel', '📐', cd.name, v.name + ' · Technical Drawing / Manual', 'vessels', v.id, cd.category||'');
+      });
+    });
+
+    // ── 6. STATUTORY CERTIFICATES ────────────────────────────
+    (DB.certs || []).forEach(function(c) {
+      hit('Statutory Certificate', 'cert', '📜', c.name, vname(c.vessel) + (c.auth ? ' · ' + c.auth : '') + (c.expiry ? ' · Exp: ' + fmtDate(c.expiry) : ''), 'certificates', c.id, (c.certNo||'') + ' ' + (c.auth||'') + ' ' + (c.type||''));
+    });
+
+    // ── 7. CREW MANNING ──────────────────────────────────────
+    (DB.crew || []).forEach(function(m) {
+      hit('Crew Member', 'crew', '👤', m.name, (m.role||'Crew') + (m.vessel ? ' · ' + vname(m.vessel) : '') + (m.mob ? ' · ' + m.mob : ''), 'crew', m.id, (m.indos||'') + ' ' + (m.cdc||'') + ' ' + (m.crewno||'') + ' ' + (m.station||''));
+    });
+
+    // ── 8. EX-CREW ARCHIVE ───────────────────────────────────
+    (DB.exCrew || []).forEach(function(e) {
+      hit('Ex-Crew Archive', 'crew', '📋', e.name, (e.role||'') + (e.mob ? ' · ' + e.mob : '') + (e.relieved ? ' · Relieved ' + fmtDate(e.relieved) : ''), 'ex-crew', e.id, (e.indos||'') + ' ' + (e.reason||'') + ' ' + (e.vessels||''));
+    });
+
+    // ── 9. DAILY OPERATIONS REPORTS (DOR) ────────────────────
+    (DB.dorEntries || []).forEach(function(d) {
+      hit('DOR Report', 'ops', '📋', fmtDate(d.date) + ' — ' + vname(d.vessel), (d.port||'') + (d.status ? ' · ' + d.status : '') + (d.master ? ' · Capt. ' + d.master : ''), 'dor', d.id, (d.activity||'') + ' ' + (d.remarks||'') + ' ' + (d.location||''));
+    });
+
+    // ── 10. OIL RECORD BOOK (ORB) ────────────────────────────
+    (DB.orbEntries || []).forEach(function(e) {
+      hit('ORB Log', 'ops', '🛢️', 'Code ' + (e.code||'') + ' — ' + (e.operation||'').substring(0, 45), vname(e.vessel) + (e.date ? ' · ' + fmtDate(e.date) : '') + (e.qty ? ' · ' + e.qty + ' m³' : ''), 'orb', e.id, (e.officer||'') + ' ' + (e.tanks||'') + ' ' + (e.position||''));
+    });
+
+    // ── 11. VTMS & PORT MOVEMENTS ────────────────────────────
+    (DB.vtmsLog || []).forEach(function(v) {
+      hit('VTMS Log', 'ops', '📡', (v.type||'VTMS') + ' — ' + (v.port||'Port'), vname(v.vessel) + (v.date ? ' · ' + fmtDate(v.date) : '') + (v.status ? ' · ' + v.status : ''), 'vtms', v.id, (v.agent||'') + ' ' + (v.pilot||'') + ' ' + (v.purpose||'') + ' ' + (v.vhf||''));
+    });
+
+    // ── 12. TAX INVOICES & BILLING ───────────────────────────
+    (DB.invoices || []).forEach(function(inv) {
+      hit('Tax Invoice', 'finance', '🧾', inv.no || 'Invoice', (inv.docType||'Tax Invoice') + ' · ' + (inv.clientName||'') + (inv.total ? ' · ₹' + fmt(inv.total) : ''), 'invoices', inv.id, (inv.ref||'') + ' ' + (inv.status||'') + ' ' + (inv.desc||''));
+    });
+
+    // ── 13. COMMERCIAL QUOTATIONS ────────────────────────────
+    (DB.quotations || []).forEach(function(qObj) {
+      hit('Quotation', 'finance', '💼', qObj.no || 'Quote', (qObj.client||'') + (qObj.vessel ? ' · ' + vname(qObj.vessel) : '') + (qObj.total ? ' · ₹' + fmt(qObj.total) : ''), 'quotations', qObj.id, (qObj.subject||'') + ' ' + (qObj.scope||''));
+    });
+
+    // ── 14. PURCHASE ORDERS ──────────────────────────────────
+    (DB.purchaseOrders || []).forEach(function(p) {
+      hit('Purchase Order', 'finance', '📄', p.no || 'PO', vname(p.vessel) + (p.supplier ? ' · ' + p.supplier : '') + (p.status ? ' · ' + p.status : ''), 'po-module', p.id, (p.itemsSummary||'') + ' ' + (p.rem||''));
+    });
+
+    // ── 15. FLEET EXPENSES & PETTY CASH ──────────────────────
+    (DB.expenses || []).forEach(function(exp) {
+      hit('Expense Voucher', 'finance', '💸', (exp.voucherNo||'Voucher') + ': ' + (exp.cat||'General'), (exp.payee||'') + (exp.vessel ? ' · ' + vname(exp.vessel) : '') + (exp.amount ? ' · ₹' + fmt(exp.amount) : ''), 'expenses', exp.id, (exp.desc||'') + ' ' + (exp.mode||''));
+    });
+
+    // ── 16. BANK STATEMENTS & TRANSACTIONS ───────────────────
+    (DB.bankStatements || []).forEach(function(b) {
+      hit('Bank Statement', 'finance', '🏦', (b.bankName||'Bank') + ' · ' + (b.accNo||''), (b.desc||'') + (b.amount ? ' · ₹' + fmt(b.amount) : ''), 'bank-statements', b.id, (b.txId||'') + ' ' + (b.category||''));
+    });
+
+    // ── 17. PAYMENT ADVICES ──────────────────────────────────
+    (DB.paymentAdvices || []).forEach(function(pa) {
+      hit('Payment Advice', 'finance', '💳', (pa.adviceNo||'Payment Advice'), (pa.vendorName||'') + (pa.utr ? ' · UTR: ' + pa.utr : '') + (pa.totalAmount ? ' · ₹' + fmt(pa.totalAmount) : ''), 'payment-advices', pa.id, (pa.bankName||'') + ' ' + (pa.remarks||''));
+    });
+
+    // ── 18. CREW SALARY ──────────────────────────────────────
+    (DB.salaries || []).forEach(function(s) {
+      hit('Crew Salary Slip', 'finance', '💰', s.crewName + ' · ' + s.month, vname(s.vessel) + ' · ₹' + fmt(s.net) + ' net · ' + (s.mode||'Bank'), 'salary', s.id, (s.bank||'') + ' ' + (s.acc||''));
+    });
+
+    // ── 19. MATERIAL CHALLANS & REQUISITIONS ─────────────────
+    (DB.materials || []).forEach(function(m) {
+      var items = m.items ? m.items.map(function(i){ return i.item; }).join(', ') : (m.item||'');
+      hit('Material Challan', 'ops', '📦', m.challanNo || 'Challan', vname(m.vessel) + (m.date ? ' · ' + fmtDate(m.date) : '') + (items ? ' · ' + items : ''), 'mat-provided', m.id, items + ' ' + (m.supplier||'') + ' ' + (m.rcvby||''));
+    });
+    (DB.requests || []).forEach(function(r) {
+      hit('Material Requisition', 'ops', '🛒', (r.ref||'Req') + ': ' + (r.item||''), vname(r.vessel) + ' · ' + (r.urg||'') + (r.status ? ' · ' + r.status : ''), 'mat-request', r.id, (r.reqby||'') + ' ' + (r.status||''));
+    });
+
+    // ── 20. SPARES & PART SPECS ──────────────────────────────
+    (DB.spares || []).forEach(function(s) {
+      hit('Spare Part', 'ops', '⚙️', s.name, vname(s.vessel) + (s.partno ? ' · P/N: ' + s.partno : '') + (s.cat ? ' · ' + s.cat : ''), 'spares', s.id, (s.supplier||'') + ' ' + (s.invNo||''));
+    });
+    (DB.partSpecs || []).forEach(function(p) {
+      hit('Part Specification', 'ops', '📐', p.equipment + (p.part ? ' — ' + p.part : ''), vname(p.vessel) + (p.make ? ' · ' + p.make : '') + (p.size ? ' · ' + p.size : ''), 'part-specs', p.id, (p.model||'') + ' ' + (p.partNo||''));
+    });
+
+    // ── 21. BUNKER RECEIPTS ──────────────────────────────────
+    (DB.bunkerReceipts || []).forEach(function(b) {
+      hit('Bunker Receipt', 'ops', '⛽', b.receiptNo || 'BDN Receipt', vname(b.vessel) + (b.supplier ? ' · ' + b.supplier : '') + (b.qty ? ' · ' + fmt(b.qty) + 'L' : ''), 'bunker', b.id, (b.grade||'') + ' ' + (b.driver||'') + ' ' + (b.vehicle||''));
+    });
+
+    // ── 22. PMS MAINTENANCE & DEFICIENCIES ───────────────────
+    (DB.maint || []).forEach(function(m) {
+      hit('PMS Maintenance', 'ops', '🔧', (m.type||'Maint') + ': ' + (m.desc||''), vname(m.vessel) + (m.next ? ' · Due ' + fmtDate(m.next) : '') + (m.status ? ' · ' + m.status : ''), 'maintenance', m.id, (m.status||'') + ' ' + (m.assigned||''));
+    });
+    (DB.defs || []).forEach(function(d) {
+      hit('Deficiency / Defect', 'ops', '⚠️', d.desc, vname(d.vessel) + ' · ' + (d.sev||'') + (d.status ? ' · ' + d.status : ''), 'deficiency', d.id, (d.src||'') + ' ' + (d.assign||''));
+    });
+
+    // ── 23. VOYAGES & TOWING ─────────────────────────────────
+    (DB.voyages || []).forEach(function(v) {
+      hit('Voyage & Towing Log', 'ops', '⚓', (v.from||'?') + ' → ' + (v.to||'?'), vname(v.vessel) + (v.dep ? ' · ' + fmtDate(v.dep) : '') + (v.master ? ' · ' + v.master : ''), 'voyage', v.id, (v.cargo||'') + ' ' + (v.master||''));
+    });
+
+    // ── 24. VEHICLES, VENDORS, TASKS ─────────────────────────
+    (DB.vehicles || []).forEach(function(v) {
+      hit('Fleet Vehicle', 'ops', '🚗', v.regNo, (v.type||'') + (v.model ? ' · ' + v.model : '') + (v.driver ? ' · ' + v.driver : ''), 'vehicles', v.id, (v.engine||'') + ' ' + (v.chassis||'') + ' ' + (v.fuelType||''));
+    });
+    (DB.vendors || []).forEach(function(v) {
+      hit('Vendor Directory', 'finance', '🏪', v.name, (v.cat||'') + (v.city ? ' · ' + v.city : '') + (v.phone ? ' · ' + v.phone : ''), 'vendors', v.id, (v.contact||'') + ' ' + (v.email||'') + ' ' + (v.gst||'') + ' ' + (v.notes||''));
+    });
+    (DB.taskList || []).forEach(function(t) {
+      hit('Task Item', 'ops', '☑️', t.title, (t.assignedTo||'') + (t.due ? ' · Due ' + fmtDate(t.due) : '') + (t.status ? ' · ' + t.status : ''), 'tasklist', t.id, (t.desc||'') + ' ' + (t.cat||''));
+    });
+    (DB.workOrders || []).forEach(function(wo) {
+      hit('Work Order', 'ops', '📋', wo.title, vname(wo.vessel) + (wo.charterer ? ' · ' + wo.charterer : '') + (wo.status ? ' · ' + wo.status : ''), 'workorders', wo.id, (wo.assignedTo||'') + ' ' + (wo.desc||''));
+    });
+
+    // ── 25. STAFF & ADMIN ACCOUNTS ───────────────────────────
+    (DB.users || []).forEach(function(u) {
+      hit('Staff User', 'ops', '👥', u.name, '@' + u.username + (u.desig ? ' · ' + u.desig : '') + (u.role ? ' · ' + u.role : ''), 'users', u.id, (u.email||'') + ' ' + (u.mob||''));
+    });
+    ([resolveAdmin(MASTER)].concat(allAdmins())).forEach(function(a) {
+      if (a) hit('Administrator', 'ops', '👑', a.name, '@' + (a.username||'') + ' · ' + (a.desig||'Administrator'), 'users', a.id, (a.role||'') + ' ' + (a.email||''));
+    });
+    (DB.officeStaff || []).forEach(function(s) {
+      hit('Office Staff', 'ops', '🏬', s.name, (s.role||'') + (s.mob ? ' · ' + s.mob : '') + (s.dept ? ' · ' + s.dept : ''), 'office-staff', s.id, (s.email||'') + ' ' + (s.dept||''));
+    });
+
+    // ── 26. CHECKLISTS, DRILLS, CONTRACTS, NOK ───────────────
+    (DB.checklistRecords || []).forEach(function(r) {
+      hit('Safety Checklist Run', 'ops', '✅', r.templateName, vname(r.vessel) + (r.date ? ' · ' + fmtDate(r.date) : '') + (r.master ? ' · ' + r.master : ''), 'checklists', r.id, r.remarks||'');
+    });
+    (DB.drillRecords || []).forEach(function(d) {
+      hit('Drill Record', 'ops', '🔔', d.type, vname(d.vessel) + (d.date ? ' · ' + fmtDate(d.date) : '') + (d.result ? ' · ' + d.result : ''), 'checklists', d.id, (d.master||'') + ' ' + (d.obs||''));
+    });
+    (DB.crewContracts || []).forEach(function(c) {
+      hit('Crew Contract', 'crew', '📑', c.crewName + ' — ' + (c.rank||'Crew'), vname(c.vessel) + (c.joining ? ' · ' + fmtDate(c.joining) : '') + (c.docno ? ' · ' + c.docno : ''), 'contracts', c.id, (c.docno||'') + ' ' + (c.salary||''));
+    });
+    (DB.crewNOK || []).forEach(function(n) {
+      hit('Next of Kin', 'crew', '👨‍👩‍👧', n.name + ' (' + (n.relationship||'NOK') + ')', n.crewName + (n.mobile ? ' · ' + n.mobile : ''), 'nok', n.id, (n.mobile2||'') + ' ' + (n.email||'') + ' ' + (n.address||''));
+    });
+
+    // ── 27. MARITIME LETTER FORMATS ──────────────────────────
+    (DB.letterFormats || []).concat(BUILT_IN_LETTERS || []).forEach(function(l) {
+      hit('Letter & Email Format', 'vault', '✉️', l.title, (l.cat||'General') + (l.subcat ? ' / ' + l.subcat : '') + (l.vessel ? ' · ' + vname(l.vessel) : ''), 'letters', l.id, (l.subject||'') + ' ' + (l.content||'') + ' ' + (l.body||''));
+    });
+
+    // ── 28. COMPANY PROFILES & BANKS ─────────────────────────
+    (DB.companies || []).forEach(function(c) {
+      var bankInfo = (c.bankAccounts||[]).map(function(b){ return (b.bankName||'')+' '+(b.bankAccNo||'')+' '+(b.bankIfsc||'')+' '+(b.bankBranch||''); }).join(' ');
+      if (!bankInfo && c.bankName) bankInfo = c.bankName + ' ' + (c.bankAccNo||'') + ' ' + (c.bankIfsc||'');
+      hit('Company Profile', 'finance', '🏢', c.name + (c.tradename ? ' (' + c.tradename + ')' : ''), (c.tag||'') + (c.entity ? ' · ' + c.entity : '') + (c.phone ? ' · ' + c.phone : ''), 'companies', c.id, (c.address||'') + ' ' + (c.gst||'') + ' ' + (c.pan||'') + ' ' + (c.email||'') + ' ' + bankInfo);
+    });
+
+    // ── 29. RECYCLE BIN & DELETION REQUESTS ──────────────────
+    (DB.recentDeletions || []).forEach(function(rd) {
+      hit('Recycle Bin Item', 'ops', '🗑️', rd.title || 'Deleted Item', (rd.module||'Record') + (rd.deletedBy ? ' · Deleted by ' + rd.deletedBy : '') + (rd.deletedAt ? ' · ' + fmtDate(rd.deletedAt.split('T')[0]) : ''), 'trash', rd.id, (rd.reason||'') + ' ' + (rd.notes||''));
+    });
+    (DB.deletionRequests || []).forEach(function(dr) {
+      hit('Deletion Request', 'ops', '⏳', dr.title || 'Deletion Request', (dr.module||'Record') + (dr.requestedBy ? ' · Requested by ' + dr.requestedBy : '') + (dr.status ? ' · ' + dr.status : ''), 'godpanel', dr.id, (dr.reason||''));
+    });
+
     // ── RENDER RESULTS ───────────────────────────────────────
+    if (badge) {
+      badge.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '');
+      badge.style.display = 'inline-block';
+    }
     if (summary) {
       summary.textContent = results.length
         ? results.length + ' result' + (results.length > 1 ? 's' : '') + ' for "' + q + '"'
@@ -28739,10 +29449,10 @@ function runGlobalSearch(q) {
     }
 
     var noResHtml =
-      '<div style="padding:32px;text-align:center">' +
-      '<div style="font-size:32px;margin-bottom:8px">🔍</div>' +
-      '<div style="font-size:13px;color:var(--t1);font-weight:700">No results found for "' + q + '"</div>' +
-      '<div style="font-size:10.5px;color:var(--t3);margin-top:4px">Search across all 48 modules, vessels, crew, letter templates, invoices, DOR, fuel, and bank details.</div>' +
+      '<div style="padding:40px 20px;text-align:center">' +
+      '<div style="font-size:36px;margin-bottom:8px">🔍</div>' +
+      '<div style="font-size:14px;color:var(--t1);font-weight:700">No matching records found for "' + stripTags(q) + '"</div>' +
+      '<div style="font-size:11px;color:var(--t3);margin-top:6px;max-width:440px;margin-left:auto;margin-right:auto">Universal search indexes all 48 modules: fleet vessels, document vault uploads, voyage permissions, certificates, crew, invoices, and bank statements.</div>' +
       '</div>';
 
     if (!results.length) {
@@ -28751,7 +29461,7 @@ function runGlobalSearch(q) {
       return;
     }
 
-    // Group by category
+    // Group by module/category
     var grouped = {};
     results.forEach(function(r) {
       if (!grouped[r.module]) grouped[r.module] = [];
@@ -28760,20 +29470,23 @@ function runGlobalSearch(q) {
 
     var html = '';
     Object.keys(grouped).forEach(function(mod) {
-      html += '<div style="padding:6px 12px 2px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent)">' + mod + ' (' + grouped[mod].length + ')</div>';
+      html += '<div style="padding:8px 14px 4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);display:flex;justify-content:space-between">' +
+        '<span>' + mod + '</span><span style="background:var(--s3);padding:1px 6px;border-radius:10px;font-size:9px">' + grouped[mod].length + '</span></div>';
       grouped[mod].slice(0, 10).forEach(function(r) {
+        var pageAttr = r.page || 'dashboard';
+        var targetAttr = r.targetId || '';
         html +=
-          '<div onclick="jumpToPage(\x27' + r.page + '\x27)" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .1s;margin:2px 4px" onmouseover="this.style.background=\x27var(--s3)\x27" onmouseout="this.style.background=\x27\x27">' +
-          '<span style="font-size:18px;flex-shrink:0">' + r.icon + '</span>' +
+          '<div onclick="jumpToPage(\'' + pageAttr + '\', \'' + targetAttr + '\')" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;cursor:pointer;transition:background .12s;margin:2px 4px;border:1px solid transparent" onmouseover="this.style.background=\'var(--s3)\';this.style.borderColor=\'var(--b2)\'" onmouseout="this.style.background=\'\';this.style.borderColor=\'transparent\'">' +
+          '<span style="font-size:20px;flex-shrink:0">' + r.icon + '</span>' +
           '<div style="min-width:0;flex:1">' +
-          '<div style="font-size:11.5px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.title + '</div>' +
-          '<div style="font-size:9.5px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.subtitle + '</div>' +
+          '<div style="font-size:12px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + stripTags(r.title) + '</div>' +
+          '<div style="font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + stripTags(r.subtitle) + '</div>' +
           '</div>' +
-          '<div style="font-size:9.5px;color:var(--accent);flex-shrink:0;font-weight:700">→ Open</div>' +
+          '<div style="font-size:10px;color:var(--accent);flex-shrink:0;font-weight:700">→ Open</div>' +
           '</div>';
       });
       if (grouped[mod].length > 10) {
-        html += '<div style="padding:4px 14px 6px;font-size:9px;color:var(--t3)">+ ' + (grouped[mod].length - 10) + ' more ' + mod + ' matches</div>';
+        html += '<div style="padding:4px 16px 8px;font-size:9.5px;color:var(--t3)">+ ' + (grouped[mod].length - 10) + ' more ' + mod + ' matches</div>';
       }
     });
 
@@ -28783,14 +29496,23 @@ function runGlobalSearch(q) {
   }, 100);
 }
 
-function jumpToPage(page) {
-  if (typeof closeGlobalSearch === 'function') closeGlobalSearch();
-  if (typeof closeSearchPanel === 'function') closeSearchPanel();
+function jumpToPage(page, targetId) {
+  closeSearchPanel();
   if (typeof go === 'function') {
     go(page);
   } else {
     var nav = document.querySelector('[data-page="' + page + '"]');
     if (nav) nav.click();
+  }
+
+  // Handle sub-item highlighting or previewing
+  if (targetId && page === 'vault') {
+    setTimeout(function() {
+      if (typeof previewVaultDoc === 'function') {
+        var doc = (DB.vaultDocs || []).find(function(d){ return d.id === targetId; });
+        if (doc) previewVaultDoc(targetId);
+      }
+    }, 200);
   }
 }
 
@@ -28798,15 +29520,16 @@ function jumpToPage(page) {
 document.addEventListener('keydown', function(e) {
   if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
     e.preventDefault();
-    if (typeof openSearchPanel === 'function') openSearchPanel();
-    else if (typeof toggleGlobalSearch === 'function') toggleGlobalSearch();
+    toggleGlobalSearch();
+  }
+  if (e.key === '/' && document.activeElement && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+    e.preventDefault();
+    openSearchPanel();
   }
   if (e.key === 'Escape') {
-    if (typeof closeGlobalSearch === 'function') closeGlobalSearch();
-    if (typeof closeSearchPanel === 'function') closeSearchPanel();
+    closeSearchPanel();
   }
 });
-
 
 /* ═══ DASHBOARD WIDGET SHOW/HIDE + RENDER ═══════════════════ */
 var _origRD2 = renderDashboard;
