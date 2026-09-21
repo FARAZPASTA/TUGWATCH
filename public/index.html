@@ -6235,7 +6235,7 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div><label class="form-label">Cycle Name *</label><input class="form-input" id="cyc-name" placeholder="e.g. Registry Application 2025"></div>
-        <div><label class="form-label">Cycle Type</label><select class="form-input" id="cyc-type" onchange="loadCycleTemplate()"><option value="custom">Custom / Other</option><option value="registry">Vessel Registration</option><option value="survey">Annual Survey</option><option value="carving">Carving &amp; Marking</option><option value="insurance">Insurance Renewal</option><option value="customs">Customs Clearance</option></select></div>
+        <div><label class="form-label">Cycle Type</label><select class="form-input" id="cyc-type" onchange="loadCycleTemplate()"><option value="custom">Custom / Other</option><option value="voyage_clearance">🚢 Voyage &amp; Mobilization Clearance</option><option value="registry">Vessel Registration</option><option value="survey">Annual Survey</option><option value="carving">Carving &amp; Marking</option><option value="insurance">Insurance Renewal</option><option value="customs">Customs Clearance</option></select></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
         <div><label class="form-label">Vessel</label><select class="form-input" id="cyc-vessel"></select></div>
@@ -13153,6 +13153,72 @@ function loadQtFormat() { openQuotationFormats(); }
 
 // Built-in templates
 var CYCLE_TEMPLATES_BUILTIN = {
+  voyage_clearance: {
+    name: 'Voyage & Mobilization Clearance',
+    authority: 'Port Authority / MMD / Customs / Coast Guard',
+    desc: 'Complete end-to-end dossier and clearance pipeline for vessel voyage and mobilization permissions',
+    steps: [
+      {
+        title: 'Step 1: Voyage Application & Towing Dossier',
+        desc: 'Submit official application with vessel towing and technical particulars.',
+        docs: [
+          'Application Letter on Company Letterhead',
+          'Towing Plan & Method Statement (IRS / Class Approved)',
+          'Single Voyage Permission / Coastal Trading License',
+          'Stability Booklet & Bollard Pull Endorsement',
+          'P&I and Hull & Machinery Cover Note (Voyage Warranty Attached)'
+        ],
+        status: 'pending', notes: '', deadline: ''
+      },
+      {
+        title: 'Step 2: Crew Manning & Statutory Certifications',
+        desc: 'Ensure all sailing crew certifications and statutory vessel papers are active.',
+        docs: [
+          'Minimum Safe Manning Certificate',
+          'Master & Chief Engineer Valid COCs',
+          'Signed Crew Sign-On Register & CDCs',
+          'Medical Fitness Certificates of All Crew',
+          'Valid Vessel Safety Equipment / Trading Certificates'
+        ],
+        status: 'pending', notes: '', deadline: ''
+      },
+      {
+        title: 'Step 3: Pre-Departure Safety & Bunker Readiness',
+        desc: 'Execute pre-departure inspection and calculate fuel reserve margins.',
+        docs: [
+          'Pre-Departure Towing & Navigational Safety Checklist',
+          'Bunker & Fuel Sounding Declaration (Reserve Fuel Included)',
+          'Fresh Water & Provisions Adequacy Report',
+          'Life-Saving (LSA) & Fire-Fighting (FFA) Equipment Test Log'
+        ],
+        status: 'pending', notes: '', deadline: ''
+      },
+      {
+        title: 'Step 4: Authority Approvals, NOCs & Email Permissions',
+        desc: 'Collect and archive all official clearances, NOCs, and email permissions.',
+        docs: [
+          'Port Clearance Certificate (PCC) / Outward Clearance',
+          'MMD / DG Shipping Single Voyage NOC (Email / Letter)',
+          'Customs Outward Clearance & Shipping Bill / NDC',
+          'Coast Guard / Naval Intimation & Acknowledgment',
+          'VTMS Entry/Exit Clearance & Berth Allocation Email'
+        ],
+        status: 'pending', notes: '', deadline: ''
+      },
+      {
+        title: 'Step 5: Arrival Intimation & Mobilization Sign-Off',
+        desc: 'Log port arrival at destination and submit voyage completion report.',
+        docs: [
+          'Port Inward Entry Clearance at Destination',
+          'Client / Charterer Mobilization Acceptance Report',
+          'Master Log Book Extract & Final Fuel Balance',
+          'Agent Demobilization Clearance / Acknowledgment'
+        ],
+        status: 'pending', notes: '', deadline: ''
+      }
+    ]
+  },
+
   registry: {
     name: 'Vessel Registration (Registry)',
     authority: 'Mercantile Marine Department (MMD)',
