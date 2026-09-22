@@ -40172,6 +40172,164 @@ window.navigate = navigate;
   console.log('TugWatch: Tally-Style Fast Keyboard Navigation & Auto-Select Engine initialized ✓');
 })();
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   SYSTEM HEALTH & RESILIENCE HANDLERS (AUDIT-VERIFIED)
+══════════════════════════════════════════════════════════════ */
+
+function openAlertContactModal(idx) {
+  var eIdx = document.getElementById('ac-edit-idx');
+  var mTitle = document.getElementById('ac-modal-title');
+  var aName = document.getElementById('ac-name');
+  var aRole = document.getElementById('ac-role');
+  var aEmail = document.getElementById('ac-email');
+  var aPhone = document.getElementById('ac-phone');
+  var aEmAct = document.getElementById('ac-email-active');
+  var aWaAct = document.getElementById('ac-wa-active');
+
+  if (idx !== undefined && idx >= 0 && DB.alertContacts && DB.alertContacts[idx]) {
+    var c = DB.alertContacts[idx];
+    if (eIdx) eIdx.value = idx;
+    if (mTitle) mTitle.textContent = '👥 Edit Alert Recipient';
+    if (aName) aName.value = c.name || '';
+    if (aRole) aRole.value = c.role || '';
+    if (aEmail) aEmail.value = c.email || '';
+    if (aPhone) aPhone.value = c.phone || '';
+    if (aEmAct) aEmAct.checked = c.emailActive !== false;
+    if (aWaAct) aWaAct.checked = c.waActive !== false;
+  } else {
+    if (eIdx) eIdx.value = -1;
+    if (mTitle) mTitle.textContent = '👥 Add Alert Recipient';
+    if (aName) aName.value = '';
+    if (aRole) aRole.value = '';
+    if (aEmail) aEmail.value = '';
+    if (aPhone) aPhone.value = '';
+    if (aEmAct) aEmAct.checked = true;
+    if (aWaAct) aWaAct.checked = true;
+  }
+  openModal('m-alert-contact');
+}
+
+function saveAnnouncement() {
+  var annVal = (document.getElementById('ms-announcement') || {}).value || '';
+  DB.masterConfig = DB.masterConfig || {};
+  DB.masterConfig.announcement = annVal;
+  saveDB();
+  toast('Announcement broadcast updated ✓');
+}
+
+function exportAllData() {
+  if (typeof exportFullDatabaseBackup === 'function') {
+    exportFullDatabaseBackup();
+  } else if (typeof exportFullBackup === 'function') {
+    exportFullBackup();
+  } else {
+    var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(DB, null, 2));
+    var a = document.createElement('a');
+    a.setAttribute('href', dataStr);
+    a.setAttribute('download', 'TugWatch_Full_Backup_' + (new Date().toISOString().split('T')[0]) + '.json');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}
+
+function raiseDeficiencyFromIncident(incId) {
+  var inc = (DB.incidents || []).find(function(i){ return i.id === incId; });
+  if (!inc) {
+    toast('Incident record not found', 'var(--err)');
+    return;
+  }
+  go('deficiency');
+  setTimeout(function() {
+    openModal('m-def');
+    var vSel = document.getElementById('df-vessel');
+    if (vSel && inc.vessel) vSel.value = inc.vessel;
+    var dInput = document.getElementById('df-desc');
+    if (dInput) dInput.value = 'From Incident: ' + (inc.title || inc.desc || '') + (inc.actionReq ? ' | Action: ' + inc.actionReq : '');
+    var sInput = document.getElementById('df-src');
+    if (sInput) sInput.value = 'Incident Report';
+    var dDate = document.getElementById('df-date');
+    if (dDate && inc.date) dDate.value = inc.date;
+  }, 200);
+}
+
+function triggerBackupFilePicker(mode) {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        var parsed = JSON.parse(evt.target.result);
+        if (typeof promptRestoreConfirmation === 'function') {
+          promptRestoreConfirmation(parsed, file.name || 'Uploaded Backup File');
+        } else {
+          if (mode === 'overwrite') {
+            DB = parsed;
+            saveDB();
+            toast('Database restored from backup ✓');
+            location.reload();
+          } else {
+            Object.keys(parsed).forEach(function(k){
+              if (Array.isArray(parsed[k])) {
+                DB[k] = (DB[k] || []).concat(parsed[k]);
+              }
+            });
+            saveDB();
+            toast('Data merged successfully ✓');
+          }
+        }
+      } catch(err) {
+        uiAlert('Failed to parse backup JSON: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function loadAutoSnapshotStatus() {
+  var statusEl = document.getElementById('bk-auto-status');
+  if (!statusEl) return;
+  try {
+    var snap = localStorage.getItem('tugwatch_db_v1');
+    if (snap) {
+      var parsed = JSON.parse(snap);
+      var vCount = (parsed.vessels || []).length;
+      var cCount = (parsed.crew || []).length;
+      var sizeKb = (snap.length / 1024).toFixed(1);
+      statusEl.innerHTML = '✓ <strong>Local Snapshot Active:</strong> ' + sizeKb + ' KB (' + vCount + ' vessels, ' + cCount + ' crew stored in browser memory).';
+    } else {
+      statusEl.innerHTML = 'ℹ No local snapshot found in browser memory.';
+    }
+  } catch(e) {
+    statusEl.innerHTML = '⚠️ Error reading snapshot: ' + e.message;
+  }
+}
+
+function restoreFromAutoSnapshot() {
+  try {
+    var snap = localStorage.getItem('tugwatch_db_v1');
+    if (!snap) { uiAlert('No auto-snapshot found in local storage.'); return; }
+    var parsed = JSON.parse(snap);
+    if (typeof promptRestoreConfirmation === 'function') {
+      promptRestoreConfirmation(parsed, 'Browser Auto-Snapshot');
+    } else {
+      DB = parsed;
+      saveDB();
+      toast('Restored from Auto-Snapshot ✓');
+      location.reload();
+    }
+  } catch(e) {
+    uiAlert('Failed to restore auto-snapshot: ' + e.message);
+  }
+}
+
 </script>
 
 <!-- MOBILE SPEED-DIAL RADIAL FAB CONTAINER -->
