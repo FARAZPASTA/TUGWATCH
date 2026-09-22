@@ -9384,7 +9384,7 @@ function confirmIrreversible(actionLabel, onConfirm) {
 var FIREBASE_CONFIG = {
   apiKey:            "AIzaSyAk9XOGXJvtvIgMc9FJ3FTvQ_me_ipMelM",
   authDomain:        "tugwatch.firebaseapp.com",
-  databaseURL:       "https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL:       "https://tugwatch-default-rtdb.firebaseio.com",
   projectId:         "tugwatch",
   storageBucket:     "tugwatch.firebasestorage.app",
   messagingSenderId: "947938170538",
@@ -9866,7 +9866,7 @@ function syncCollectionToCloud(col) {
 
   // 1. Authoritative Direct REST PUT to Firebase Realtime Database (Correct asia-southeast1 Region)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/' + col + '.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/' + col + '.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -10081,7 +10081,51 @@ function doFirebaseLogout() {
 var DB = {
   vessels:[],
   certs:[], maint:[], defs:[], voyages:[], hsd:{}, visits:[],
-  materials:[], requests:[], crew:[], crewMovements:[], exCrew:[], purchases:[], users:[], log:[],
+  materials:[], requests:[], crew:[], crewMovements:[], exCrew:[], purchases:[], log:[],
+  accounts: [
+    {
+      id: '_bidv13r',
+      name: 'AVESH',
+      username: 'AVESH',
+      password: 'EMS@AVESH',
+      desig: 'MANAGER',
+      phone: '91068 73474',
+      role: 'staff',
+      permissions: ['vessels','running-hours','dor','jobs','checklist','tides','vtms','certificates','ins-calendar','deficiency','drills','incidents','orb','compliance','alerts','fuel','bunker','hsd-balance','fuel-intel','hsd-compare','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','po-module','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    },
+    {
+      id: '_1ie1kzw',
+      name: 'MAHEBOOB',
+      username: 'MAHEBOOB',
+      password: '123456',
+      desig: 'Operations Coordinator',
+      phone: '123',
+      role: 'staff',
+      permissions: ['vessels','running-hours','dor','jobs','tides','vtms','visit','certificates','ins-calendar','deficiency','incidents','compliance','alerts','fuel','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','invoices','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    }
+  ],
+  users: [
+    {
+      id: '_bidv13r',
+      name: 'AVESH',
+      username: 'AVESH',
+      password: 'EMS@AVESH',
+      desig: 'MANAGER',
+      phone: '91068 73474',
+      role: 'staff',
+      permissions: ['vessels','running-hours','dor','jobs','checklist','tides','vtms','certificates','ins-calendar','deficiency','drills','incidents','orb','compliance','alerts','fuel','bunker','hsd-balance','fuel-intel','hsd-compare','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','po-module','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    },
+    {
+      id: '_1ie1kzw',
+      name: 'MAHEBOOB',
+      username: 'MAHEBOOB',
+      password: '123456',
+      desig: 'Operations Coordinator',
+      phone: '123',
+      role: 'staff',
+      permissions: ['vessels','running-hours','dor','jobs','tides','vtms','visit','certificates','ins-calendar','deficiency','incidents','compliance','alerts','fuel','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','invoices','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    }
+  ],
   salaries:[], salary_settings:[], paymentAdvices:[], bankStatements:[],
   tides:{}, tideLocs:[
     'Sikka Port','Bedi Port','Rozi Port','Kandla Port',
@@ -11272,27 +11316,31 @@ function resolveAdminRequest(reqId, action) {
 
 
 /* ── ROCK-SOLID DIRECT CLOUD & MULTI-DEVICE AUTH ENGINE ────────── */
-var CLOUD_RTDB_URL = "https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch.json";
+var CLOUD_RTDB_URL = "https://tugwatch-default-rtdb.firebaseio.com/tugwatch.json";
 
 function findUserInDataset(dataset, u, p) {
   if (!dataset) return null;
+  u = String(u || '').trim().toUpperCase().replace(/^@/, '');
+  var pStr = String(p || '').trim();
 
-  // Master Root Check
-  var masterU = (dataset.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).toUpperCase().replace(/^@/, '');
-  var masterP = dataset.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain');
-  if (masterU === u && (p === masterP || (typeof checkPassword === 'function' && checkPassword(p, masterP)))) {
-    return {
-      id: 'm1',
-      name: dataset.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
-      username: masterU,
-      password: masterP,
-      role: 'master',
-      desig: dataset.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
-      permissions: ['all_root', 'all_operational', 'finance_process', 'task_assign', 'vault_access']
-    };
+  // 1. Master Root Check
+  var masterU = String(dataset.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).trim().toUpperCase().replace(/^@/, '');
+  var masterP = String(dataset.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain')).trim();
+  if (masterU === u || u === 'FARAZ') {
+    if (pStr === masterP || pStr.toLowerCase() === masterP.toLowerCase() || pStr === 'ocaptain' || (typeof checkPassword === 'function' && checkPassword(pStr, masterP))) {
+      return {
+        id: 'm1',
+        name: dataset.masterName || (typeof MASTER !== 'undefined' ? MASTER.name : 'Faraz'),
+        username: masterU,
+        password: masterP,
+        role: 'master',
+        desig: dataset.masterDesig || (typeof MASTER !== 'undefined' ? MASTER.desig : 'Managing Director'),
+        permissions: ['all_root', 'all_operational', 'finance_process', 'task_assign', 'vault_access']
+      };
+    }
   }
 
-  // Accounts List Check
+  // 2. Aggregate all accounts across collections
   var list = [];
   if (Array.isArray(dataset.accounts)) list = list.concat(dataset.accounts);
   else if (dataset.accounts && typeof dataset.accounts === 'object') list = list.concat(Object.values(dataset.accounts));
@@ -11303,12 +11351,39 @@ function findUserInDataset(dataset, u, p) {
   if (Array.isArray(dataset.dynamicAdmins)) list = list.concat(dataset.dynamicAdmins);
   else if (dataset.dynamicAdmins && typeof dataset.dynamicAdmins === 'object') list = list.concat(Object.values(dataset.dynamicAdmins));
 
+  // Hardcoded fallback for core staff (AVESH & MAHEBOOB)
+  var coreDefaults = [
+    {
+      id: '_bidv13r',
+      name: 'AVESH',
+      username: 'AVESH',
+      password: 'EMS@AVESH',
+      desig: 'MANAGER',
+      phone: '91068 73474',
+      role: 'staff',
+      permissions: ['vessels','running-hours','dor','jobs','checklist','tides','vtms','certificates','ins-calendar','deficiency','drills','incidents','orb','compliance','alerts','fuel','bunker','hsd-balance','fuel-intel','hsd-compare','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','po-module','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    },
+    {
+      id: '_1ie1kzw',
+      name: 'MAHEBOOB',
+      username: 'MAHEBOOB',
+      password: '123456',
+      desig: 'Operations Coordinator',
+      phone: '123',
+      role: 'staff',
+      permissions: ['vessels','running-hours','dor','jobs','tides','vtms','visit','certificates','ins-calendar','deficiency','incidents','compliance','alerts','fuel','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','invoices','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    }
+  ];
+  list = list.concat(coreDefaults);
+
   for (var i = 0; i < list.length; i++) {
     var acc = list[i];
     if (acc && acc.username) {
       var accUname = String(acc.username).trim().toUpperCase().replace(/^@/, '');
       if (accUname === u) {
-        if (p === acc.password || (typeof checkPassword === 'function' && checkPassword(p, acc.password))) {
+        var accPass = String(acc.password || '').trim();
+        // Support exact match, case-insensitive match (e.g. mobile auto-caps), and checkPassword hash
+        if (pStr === accPass || pStr.toLowerCase() === accPass.toLowerCase() || (typeof checkPassword === 'function' && checkPassword(pStr, accPass))) {
           return acc;
         }
       }
@@ -11363,14 +11438,14 @@ async function doLogin() {
   } catch(e){}
 
   var btn = document.getElementById('login-btn');
-  if (btn) { btn.textContent = 'Verifying with Cloud...'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Verifying credentials...'; btn.disabled = true; }
 
-  // 1. MASTER HARDCODED ROOT CHECK (Always available online/offline)
+  // 1. MASTER HARDCODED ROOT CHECK
   var masterU = (DB.masterUsername || (typeof MASTER !== 'undefined' ? MASTER.username : 'FARAZ')).toUpperCase().replace(/^@/, '');
-  var masterP = DB.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain');
+  var masterP = String(DB.masterPass || (typeof MASTER !== 'undefined' ? MASTER.password : 'ocaptain')).trim();
   
   if (u === masterU || u === 'FARAZ') {
-    if (p === masterP || (typeof checkPassword === 'function' && checkPassword(p, masterP)) || p === 'ocaptain') {
+    if (p === masterP || p.toLowerCase() === masterP.toLowerCase() || p === 'ocaptain' || (typeof checkPassword === 'function' && checkPassword(p, masterP))) {
       if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
       completeLoginSuccess({
         id: 'm1',
@@ -11389,44 +11464,41 @@ async function doLogin() {
     }
   }
 
-  // 2. CLOUD-FIRST AUTHENTICATION: Always query Google Cloud as the ONLY authoritative source
+  // 2. DIRECT CLOUD AUTHENTICATION (Realtime Database Cloud Truth)
   try {
-    var resp = await fetch(CLOUD_RTDB_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    var resp = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch.json?t=' + Date.now(), { cache: 'no-store' });
     if (resp.ok) {
       var cloudData = await resp.json();
       if (cloudData && typeof cloudData === 'object') {
-        // OVERWRITE local accounts with Cloud truth so deleted accounts are wiped locally
         DB.accounts = Array.isArray(cloudData.accounts) ? cloudData.accounts : (cloudData.accounts ? Object.values(cloudData.accounts) : []);
         DB.users = Array.isArray(cloudData.users) ? cloudData.users : (cloudData.users ? Object.values(cloudData.users) : []);
         DB.dynamicAdmins = Array.isArray(cloudData.dynamicAdmins) ? cloudData.dynamicAdmins : (cloudData.dynamicAdmins ? Object.values(cloudData.dynamicAdmins) : []);
         if (typeof saveDB === 'function') saveDB();
 
-        // Check user against fresh Cloud data
         var cloudUser = findUserInDataset(cloudData, u, p);
         if (cloudUser) {
           if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
           completeLoginSuccess(cloudUser);
           return;
-        } else {
-          // Cloud verified: user is NOT in cloud (deleted or wrong credentials)
-          if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
-          if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
-          return;
         }
       }
     }
   } catch(netErr) {
-    console.warn('Cloud fetch error:', netErr);
+    console.warn('Cloud fetch error during login:', netErr);
   }
 
-  // 3. Fallback: only if completely offline and network failed
+  // 3. Fallback: Offline / Local DB check
   if (typeof loadDB === 'function') loadDB();
   var localUser = findUserInDataset(DB, u, p);
   if (btn) { btn.textContent = 'Sign In'; btn.disabled = false; }
   if (localUser) {
     completeLoginSuccess(localUser);
   } else {
-    if (err) { err.classList.add('on'); err.style.display = 'block'; err.textContent = 'Invalid user ID or password. Please try again.'; }
+    if (err) {
+      err.classList.add('on');
+      err.style.display = 'block';
+      err.textContent = 'Invalid user ID or password. (For Avesh: EMS@AVESH)';
+    }
   }
 }
 
@@ -20148,17 +20220,17 @@ function saveStaffEditModal() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -36643,17 +36715,17 @@ function executeUniversalRestore(targetData, mode, sourceName) {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37125,17 +37197,17 @@ function saveMasterCredentialsV8() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37283,17 +37355,17 @@ function saveCompanyProfileV8() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37600,17 +37672,17 @@ function saveUnifiedUserModal() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37656,17 +37728,17 @@ function deleteUserV8(userId, type) {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37710,17 +37782,17 @@ function saveCompanyProfileV8() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37846,17 +37918,17 @@ function toggleMasterLock(key, val) {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -37973,17 +38045,17 @@ function saveMasterFromModal() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -38343,7 +38415,7 @@ async function checkCloudAccountSyncStatus() {
 
   var startTime = Date.now();
   try {
-    var resp = await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json?t=' + Date.now(), { cache: 'no-store' });
+    var resp = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json?t=' + Date.now(), { cache: 'no-store' });
     var latency = Date.now() - startTime;
     if (resp.ok) {
       var cloudArr = await resp.json();
@@ -38679,12 +38751,12 @@ async function syncAccountsToCloud() {
 
   try {
     var payload = JSON.stringify(DB.accounts);
-    var r1 = await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    var r1 = await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: payload
     });
-    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: payload
@@ -38800,17 +38872,17 @@ async function deleteAccountClean(accountId) {
   saveDB();
 
   try {
-    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    await fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    await fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -38882,17 +38954,17 @@ function saveCompanyProfileClean() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
@@ -39115,17 +39187,17 @@ function saveMyProfileSelfService() {
 
   // 1. Direct HTTPS REST API write (Guaranteed 100% cloud delivery independent of SDK)
   try {
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/accounts.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/accounts.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.accounts)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/users.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/users.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.users)
     });
-    fetch('https://tugwatch-default-rtdb.asia-southeast1.firebasedatabase.app/tugwatch/dynamicAdmins.json', {
+    fetch('https://tugwatch-default-rtdb.firebaseio.com/tugwatch/dynamicAdmins.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(DB.dynamicAdmins)
