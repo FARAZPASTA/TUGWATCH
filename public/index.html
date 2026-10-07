@@ -2232,7 +2232,7 @@ html[data-theme="dark"] #l-pass::placeholder {
     <div><div class="logo-name">TugWatch</div><div class="logo-ver">v6.0 · SENTINEL</div></div>
   </div>
   <nav>
-    <div class="nav-item master-only" id="master-settings-btn" data-page="godpanel" style="background:linear-gradient(90deg,rgba(220,38,38,.12),transparent);border:1px solid rgba(220,38,38,.25);margin:8px 0 6px;border-radius:8px">
+    <div class="nav-item master-only" id="master-settings-btn" data-page="godpanel" style="display:none;background:linear-gradient(90deg,rgba(220,38,38,.12),transparent);border:1px solid rgba(220,38,38,.25);margin:8px 0 6px;border-radius:8px">
       <svg viewBox="0 0 24 24" fill="none" style="color:#ef4444;width:18px;height:18px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       <span style="color:#ef4444;font-weight:700;font-size:12px">👑 Master Governance</span>
     </div>
@@ -2611,93 +2611,97 @@ html[data-theme="dark"] #l-pass::placeholder {
   </div></nav>
   <div class="sidebar-footer">
     <div class="user-row">
-      <div class="user-av" id="sb-av">AM</div>
+      <div class="user-av" id="sb-av" style="background:#64748b;color:#fff">—</div>
       <div style="flex:1;min-width:0">
-        <div class="user-name" id="sb-name">Admin</div>
-        <span id="sb-role-chip" class="role-chip-admin">Admin</span>
+        <div class="user-name" id="sb-name">—</div>
+        <span id="sb-role-chip" class="role-chip-staff" style="display:none">—</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         </aside>
 
 <!-- MAIN -->
 <div id="main">
-  <div id="topbar">
-    <div class="topbar-left">
-      <div id="page-title">Dashboard</div>
-      <div class="topbar-sep"></div>
-      <div id="breadcrumb">Fleet Operations Centre</div>
+  <div id="topbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;padding:0 16px;background:var(--bg1);border-bottom:1px solid var(--b1);box-shadow:0 2px 4px rgba(0,0,0,.08);flex-shrink:0;position:sticky;top:0;z-index:900">
+    <!-- LEFT: Page Title & Breadcrumb -->
+    <div class="topbar-left" style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <div id="page-title" style="font-weight:800;font-size:16px;color:var(--t1);white-space:nowrap">Dashboard</div>
+      <div class="topbar-sep" style="width:1px;height:18px;background:var(--b2);margin:0 4px"></div>
+      <div id="breadcrumb" style="font-size:12px;color:var(--t3);white-space:nowrap;font-weight:500">Fleet Operations Centre</div>
     </div>
-    <div id="topbar-actions" style="display:flex;align-items:center;gap:8px">
-      <!-- UNIVERSAL OMNISEARCH BAR IN TOPBAR -->
-      <div id="global-search-wrap" style="display:flex;align-items:center;position:relative;margin-right:6px">
-        <div style="position:relative;display:flex;align-items:center">
-          <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:2.5;pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="global-search-input" placeholder="Universal Search across 48 modules (Ctrl+K)..." onfocus="openSearchPanel(this.value)" oninput="runGlobalSearch(this.value)" onkeydown="if(event.key==='Escape')closeGlobalSearch();if(event.key==='Enter')openSearchPanel(this.value)" autocomplete="off" style="width:260px;padding:6px 56px 6px 30px;background:var(--bg2);border:1px solid var(--b2);border-radius:20px;color:var(--t1);font-size:11px;outline:none;font-family:var(--ff);box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="if(document.activeElement!==this)this.style.borderColor='var(--b2)'"/>
-          <kbd onclick="openSearchPanel()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--fm);font-size:9.5px;background:var(--s4);padding:1px 5px;border-radius:4px;color:var(--t3);border:1px solid var(--b1);cursor:pointer;user-select:none" title="Press Ctrl+K or ⌘K to open Universal Search">⌘K</kbd>
-        </div>
+
+    <!-- CENTER: Universal Omnisearch & Live Tide Engine -->
+    <div id="topbar-center" style="display:flex;align-items:center;justify-content:center;gap:10px;flex:1;min-width:0;max-width:680px">
+      <!-- UNIVERSAL OMNISEARCH BAR -->
+      <div id="global-search-wrap" style="position:relative;display:flex;align-items:center;flex:1;min-width:180px;max-width:320px">
+        <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:2.5;pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="global-search-input" placeholder="Search 48 modules (Ctrl+K)..." onfocus="openSearchPanel(this.value)" oninput="runGlobalSearch(this.value)" onkeydown="if(event.key==='Escape')closeGlobalSearch();if(event.key==='Enter')openSearchPanel(this.value)" autocomplete="off" style="width:100%;padding:6px 42px 6px 30px;background:var(--bg2);border:1px solid var(--b2);border-radius:20px;color:var(--t1);font-size:11px;outline:none;font-family:var(--ff);box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="if(document.activeElement!==this)this.style.borderColor='var(--b2)'"/>
+        <kbd onclick="openSearchPanel()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--fm);font-size:9.5px;background:var(--s4);padding:1px 5px;border-radius:4px;color:var(--t3);border:1px solid var(--b1);cursor:pointer;user-select:none" title="Press Ctrl+K or ⌘K to open Universal Search">⌘K</kbd>
       </div>
 
-            <!-- 1-CLICK WHATSAPP BRIEFING & BACKUP TOPBAR BUTTONS -->
-      <button class="btn btn-ghost btn-sm" onclick="openWhatsAppFleetBriefingModal()" title="1-Click WhatsApp Fleet Morning Briefing" style="font-size:11px;font-weight:700;color:#25D366;border:1px solid rgba(37,211,102,0.3);background:rgba(37,211,102,0.06);display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px">
-        <span style="font-size:13px">📲</span> <span class="hide-mobile">Briefing</span>
-      </button>
-      <button class="btn btn-ghost btn-sm admin-only" onclick="openDisasterRecoveryModal()" title="Fleet Data Backup & Cloud Disaster Recovery" style="font-size:11px;font-weight:700;color:#0284c7;border:1px solid rgba(2,132,199,0.3);background:rgba(2,132,199,0.06);display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px">
-        <span style="font-size:13px">☁️</span> <span class="hide-mobile">Backup</span>
-      </button>
-
-      <!-- BIGGER LIVE TIME CLOCK -->
-      <div id="live-clock" style="font-family:var(--fm);padding:4px 10px;border:1px solid var(--b2);border-radius:8px;background:var(--bg2);display:flex;align-items:center;gap:8px;line-height:1.2;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
-        <span style="font-size:16px;color:var(--accent)">⏱️</span>
-        <div style="display:flex;flex-direction:column;align-items:flex-end">
-          <span id="clock-time" style="color:var(--t1);font-weight:800;font-size:14px;letter-spacing:0.8px"></span>
-          <span id="clock-date" style="font-size:9.5px;color:var(--t3);font-weight:600"></span>
-        </div>
-      </div>
-
-      <!-- THEME TOGGLE BUTTON -->
-      <button id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme" style="margin:0 2px">
-        <svg class="theme-icon-sun" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <svg class="theme-icon-moon" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      </button>
-
-      <!-- USER PROFILE CARD IN TOPBAR (MOVED TO TOP NEXT TO THEME TOGGLE) -->
-            <!-- LIVE LUNAR TIDE & STREAM MINI-WIDGET (TOPBAR CENTER) -->
-      <div id="topbar-tide-mini-widget" onclick="gpGo('tides')" title="Click to open Lunar Tide Engine" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:4px 12px;background:linear-gradient(135deg,var(--bg2) 0%,rgba(14,165,233,0.08) 100%);border:1px solid rgba(14,165,233,0.3);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s;margin-right:auto;margin-left:14px" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg2)'" onmouseout="this.style.borderColor='rgba(14,165,233,0.3)';this.style.background='linear-gradient(135deg,var(--bg2) 0%,rgba(14,165,233,0.08) 100%)'">
-        <span style="font-size:16px;animation:pulse 2s infinite">🌊</span>
-        <div style="display:flex;flex-direction:column">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:11.5px;font-weight:800;color:var(--t1)">⚓ Sikka Port: <span id="tb-tide-height" style="color:var(--accent)">+2.16 m</span></span>
-            <span id="tb-tide-status" class="chip chip-ok" style="font-size:8.5px;padding:1px 5px;font-weight:700">📈 Flood</span>
+      <!-- LIVE LUNAR TIDE & STREAM MINI-WIDGET -->
+      <div id="topbar-tide-mini-widget" onclick="gpGo('tides')" title="Click to open Lunar Tide Engine" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:3px 10px;background:linear-gradient(135deg,var(--bg2) 0%,rgba(14,165,233,0.08) 100%);border:1px solid rgba(14,165,233,0.3);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s;flex-shrink:0" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg2)'" onmouseout="this.style.borderColor='rgba(14,165,233,0.3)';this.style.background='linear-gradient(135deg,var(--bg2) 0%,rgba(14,165,233,0.08) 100%)'">
+        <span style="font-size:15px;line-height:1">🌊</span>
+        <div style="display:flex;flex-direction:column;line-height:1.2">
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:11px;font-weight:800;color:var(--t1)">⚓ Sikka: <span id="tb-tide-height" style="color:var(--accent)">+2.16 m</span></span>
+            <span id="tb-tide-status" class="chip chip-ok" style="font-size:8px;padding:0px 4px;font-weight:700">📈 Flood</span>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--t3)">
+          <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t3)">
             <span id="tb-lunar-phase">🌖 Waning Gibbous (70%)</span>
             <span>·</span>
             <span id="tb-tide-stream">⚡ Stream: 2.5 kts</span>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="user-row header-user-widget" id="header-user-widget" style="display:flex;align-items:center;gap:8px;padding:3px 8px 3px 6px;border:1px solid var(--b2);border-radius:10px;background:var(--bg1);box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-left:4px">
-        <div class="user-av" id="hdr-user-av" onclick="editMyProfile()" title="Click to edit profile" style="cursor:pointer;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.2)">F</div>
-        <div style="min-width:0;cursor:pointer;display:flex;flex-direction:column" onclick="editMyProfile()" title="Click to edit profile">
-          <div style="display:flex;align-items:center;gap:4px">
-            <div class="user-name" id="hdr-user-name" style="font-weight:800;font-size:12px;color:var(--t1);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis">Faraz</div>
-            <span style="font-size:10px;opacity:0.6" title="Edit profile">✏️</span>
-          </div>
-          <span id="hdr-user-role" class="role-chip-master" style="white-space:nowrap;font-size:8.5px;padding:1px 6px;border-radius:20px;display:inline-flex;align-items:center;margin-top:2px">MASTER ADMIN</span>
+    <!-- RIGHT: Quick Actions, Clock, Theme Toggle & User Profile -->
+    <div id="topbar-actions" style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <button class="btn btn-ghost btn-sm" onclick="openWhatsAppFleetBriefingModal()" title="1-Click WhatsApp Fleet Morning Briefing" style="font-size:11px;font-weight:700;color:#25D366;border:1px solid rgba(37,211,102,0.3);background:rgba(37,211,102,0.06);display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px">
+        <span style="font-size:13px">📲</span> <span class="hide-mobile">Briefing</span>
+      </button>
+      <button class="btn btn-ghost btn-sm admin-only" onclick="openDisasterRecoveryModal()" title="Fleet Data Backup & Cloud Disaster Recovery" style="font-size:11px;font-weight:700;color:#0284c7;border:1px solid rgba(2,132,199,0.3);background:rgba(2,132,199,0.06);display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px">
+        <span style="font-size:13px">☁️</span> <span class="hide-mobile">Backup</span>
+      </button>
+
+      <!-- LIVE TIME CLOCK -->
+      <div id="live-clock" style="font-family:var(--fm);padding:3px 8px;border:1px solid var(--b2);border-radius:8px;background:var(--bg2);display:flex;align-items:center;gap:6px;line-height:1.2;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+        <span style="font-size:14px;color:var(--accent)">⏱️</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end">
+          <span id="clock-time" style="color:var(--t1);font-weight:800;font-size:12px;letter-spacing:0.5px"></span>
+          <span id="clock-date" style="font-size:8.5px;color:var(--t3);font-weight:600"></span>
         </div>
-        <div style="display:flex;gap:4px;align-items:center;margin-left:4px;border-left:1px solid var(--b2);padding-left:6px">
-          <button onclick="openChangePassword()" title="Change password" style="background:var(--bg2);border:1px solid var(--b2);border-radius:6px;cursor:pointer;color:var(--t2);padding:3px 7px;font-size:9.5px;font-weight:600;display:flex;align-items:center;gap:3px;transition:all .12s" onmouseover="this.style.background='var(--s3)';this.style.color='var(--t1)'" onmouseout="this.style.background='var(--bg2)';this.style.color='var(--t2)'">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </div>
+
+      <!-- THEME TOGGLE BUTTON -->
+      <button id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme" style="background:var(--bg2);border:1px solid var(--b2);border-radius:8px;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all .15s">
+        <svg class="theme-icon-sun" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="theme-icon-moon" viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+
+      <!-- USER PROFILE CARD -->
+      <div class="user-row header-user-widget" id="header-user-widget" style="display:flex;align-items:center;gap:6px;padding:2px 6px 2px 4px;border:1px solid var(--b2);border-radius:8px;background:var(--bg1);box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <div class="user-av" id="hdr-user-av" onclick="editMyProfile()" title="Click to edit profile" style="cursor:pointer;width:28px;height:28px;border-radius:50%;background:#64748b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.2)">—</div>
+        <div style="min-width:0;cursor:pointer;display:flex;flex-direction:column" onclick="editMyProfile()" title="Click to edit profile">
+          <div style="display:flex;align-items:center;gap:3px">
+            <div class="user-name" id="hdr-user-name" style="font-weight:800;font-size:11.5px;color:var(--t1);white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis">—</div>
+            <span style="font-size:9px;opacity:0.6" title="Edit profile">✏️</span>
+          </div>
+          <span id="hdr-user-role" class="role-chip-staff" style="white-space:nowrap;font-size:8px;padding:0px 5px;border-radius:20px;display:none;align-items:center;margin-top:1px">—</span>
+        </div>
+        <div style="display:flex;gap:3px;align-items:center;margin-left:2px;border-left:1px solid var(--b2);padding-left:4px">
+          <button onclick="openChangePassword()" title="Change password" style="background:var(--bg2);border:1px solid var(--b2);border-radius:5px;cursor:pointer;color:var(--t2);padding:2px 6px;font-size:9px;font-weight:600;display:flex;align-items:center;gap:2px;transition:all .12s">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             Password
           </button>
-          <button onclick="doLogout()" title="Sign out" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#ef4444;cursor:pointer;padding:3px 8px;border-radius:6px;display:flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;transition:all .12s" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <button onclick="doLogout()" title="Sign out" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#ef4444;cursor:pointer;padding:2px 6px;border-radius:5px;display:flex;align-items:center;gap:2px;font-size:9px;font-weight:800;transition:all .12s">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Sign Out
           </button>
         </div>
       </div>
     </div>
+
     <!-- Mobile search icon -->
     <button id="mob-search-btn" onclick="toggleGlobalSearch()" style="display:none;background:none;border:none;cursor:pointer;color:var(--t2);padding:6px;border-radius:8px" title="Search">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -9964,6 +9968,7 @@ function loadFromFirebase(callback) {
       var data = snapshot.val();
       if (data && typeof data === 'object') {
         var arrayCollections = [
+          'accounts', 'users', 'dynamicAdmins',
           'vessels', 'crew', 'certs', 'maint', 'defs', 'voyages', 'spares',
           'bunkerReceipts', 'materials', 'requests', 'stockMoves', 'equipMoves', 'partSpecs', 'workOrders',
           'purchaseOrders', 'vesselPOs', 'vendors', 'purchases', 'equipChanges', 'salaries', 'salary_settings',
@@ -10005,17 +10010,21 @@ function loadFromFirebase(callback) {
         saveDB();
 
         // KICK-OUT PROTECTION: If active user was deleted from cloud, sign them out immediately
-        if (CU && CU.role !== 'master' && (CU.username||'').toUpperCase() !== 'FARAZ') {
-          var isCurrentAlive = (DB.accounts || []).some(function(a){
-            return (a.username||'').toUpperCase() === (CU.username||'').toUpperCase();
-          });
-          if (!isCurrentAlive) {
-            console.warn('TugWatch: Active account @' + CU.username + ' was deleted by admin. Force signing out.');
-            doLogout();
-            toast('This account has been deleted or deactivated by the Fleet Administrator.', 'var(--err)');
-            return;
+        if (_cloudHydrated && CU && CU.role !== 'master' && (CU.username||'').toUpperCase() !== 'FARAZ') {
+          var allActiveAccs = (safeArrayExtract(DB.accounts) || []).concat(safeArrayExtract(DB.users) || []);
+          if (allActiveAccs.length > 0) {
+            var isCurrentAlive = allActiveAccs.some(function(a){
+              return a && (a.username||'').toUpperCase() === (CU.username||'').toUpperCase();
+            });
+            if (!isCurrentAlive) {
+              console.warn('TugWatch: Active account @' + CU.username + ' was deleted by admin. Force signing out.');
+              doLogout();
+              toast('This account has been deleted or deactivated by the Fleet Administrator.', 'var(--err)');
+              return;
+            }
           }
         }
+        if (typeof updateRoleVisibility === 'function') updateRoleVisibility();
         if (typeof renderUnifiedAccountsTable === 'function') renderUnifiedAccountsTable();
         if (typeof renderUsers === 'function') renderUsers();
         if (typeof renderDashboard === 'function') renderDashboard();
@@ -10102,6 +10111,16 @@ var DB = {
       phone: '123',
       role: 'staff',
       permissions: ['vessels','running-hours','dor','jobs','tides','vtms','visit','certificates','ins-calendar','deficiency','incidents','compliance','alerts','fuel','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','invoices','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    },
+    {
+      id: '_b32u8fg',
+      name: 'SAFWAN',
+      username: 'SAFWAN',
+      password: '123456',
+      desig: 'Operations Coordinator',
+      phone: '9328998664',
+      role: 'staff',
+      permissions: ['vessels','voyage','running-hours','dor','jobs','checklist','tides','vtms','visit','certificates','ins-calendar','deficiency','drills','incidents','orb','compliance','alerts','fuel','bunker','hsd-balance','fuel-intel','hsd-compare','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','contracts','nok','leave','signin-register','tasklist','mat-request','mat-provided']
     }
   ],
   users: [
@@ -10124,6 +10143,16 @@ var DB = {
       phone: '123',
       role: 'staff',
       permissions: ['vessels','running-hours','dor','jobs','tides','vtms','visit','certificates','ins-calendar','deficiency','incidents','compliance','alerts','fuel','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','hiring','contracts','nok','leave','salary','signin-register','tasklist','mat-request','mat-provided','vendor-banks','invoices','payment-advices','staff-expenses','expenses','port-dues','vehicles','office-staff','contacts-dir','doc-cycles','vault','doc-submissions','letters','doccenter']
+    },
+    {
+      id: '_b32u8fg',
+      name: 'SAFWAN',
+      username: 'SAFWAN',
+      password: '123456',
+      desig: 'Operations Coordinator',
+      phone: '9328998664',
+      role: 'staff',
+      permissions: ['vessels','voyage','running-hours','dor','jobs','checklist','tides','vtms','visit','certificates','ins-calendar','deficiency','drills','incidents','orb','compliance','alerts','fuel','bunker','hsd-balance','fuel-intel','hsd-compare','maintenance','drydock','spares','equip-register','part-specs','workorders','crew','ex-crew','contracts','nok','leave','signin-register','tasklist','mat-request','mat-provided']
     }
   ],
   salaries:[], salary_settings:[], paymentAdvices:[], bankStatements:[],
@@ -11504,26 +11533,10 @@ async function doLogin() {
 
 function restoreUserSession() {
   try {
-    var raw = sessionStorage.getItem('tw_session_user');
+    var raw = sessionStorage.getItem('tw_session_user') || localStorage.getItem('tw_session_user');
     if (raw) {
       var saved = JSON.parse(raw);
       if (saved && (saved.username || saved.name)) {
-        var isMaster = saved.role === 'master' || (saved.username || '').toUpperCase() === 'FARAZ';
-        
-        // If not master, verify account is still active in DB.accounts
-        if (!isMaster && Array.isArray(DB.accounts) && DB.accounts.length > 0) {
-          var stillValid = DB.accounts.some(function(a){
-            return (a.username || '').toUpperCase() === (saved.username || '').toUpperCase();
-          });
-          if (!stillValid) {
-            console.warn('TugWatch: Session expired. Account @' + saved.username + ' was deleted.');
-            sessionStorage.removeItem('tw_session_user');
-            sessionStorage.removeItem('tw_session');
-            CU = null;
-            return;
-          }
-        }
-
         CU = saved;
         var _ls = $('login-screen'); if (_ls) _ls.style.display = 'none';
         var _app = $('app');
@@ -11531,11 +11544,16 @@ function restoreUserSession() {
           _app.style.display = 'flex';
           _app.classList.add('tw-authenticated');
         }
-        afterLoginHydration();
-        console.log('TugWatch: Restored active session for @' + CU.username + ' ✓');
+        if (typeof updateRoleVisibility === 'function') updateRoleVisibility();
+        if (typeof afterLoginHydration === 'function') afterLoginHydration();
+        console.log('TugWatch: Restored active session for @' + CU.username + ' [' + (CU.role || '').toUpperCase() + '] ✓');
       }
+    } else {
+      if (typeof updateRoleVisibility === 'function') updateRoleVisibility();
     }
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Session restore error:', e);
+  }
 }
 
 window.doLogin = doLogin;
@@ -11562,6 +11580,7 @@ function doLogout() {
   doFirebaseLogout();  // Sign out from Firebase too
   clearSession();
   CU = null;
+  if (typeof updateRoleVisibility === 'function') updateRoleVisibility();
   var _ls = $('login-screen'); if (_ls) _ls.style.display = 'flex';
   var _app = $('app'); if (_app) { _app.style.display = 'none'; _app.classList.remove('tw-authenticated'); }
   if ($('l-user')) $('l-user').value = '';
@@ -25047,6 +25066,7 @@ document.addEventListener('DOMContentLoaded', function() {
   updateClock();
   setInterval(updateClock, 1000);
   renderLiveTickerBar();
+  try { if (typeof renderTides === 'function') renderTides(); } catch(e){}
 
   // Add mobile hamburger button
   var topbar = document.getElementById('topbar');
@@ -25882,8 +25902,6 @@ function renderDashboardFleetDeck() {
 }
 
 function renderDashboard(){
-  // Staff get their own simplified dashboard
-  if (CU && CU.role === 'staff') { renderStaffDashboard(); return; }
   try { renderActionCenter(); } catch(e){ console.warn('ActionCenter:', e); }
   try { checkFuelBaselines(); } catch(e){ console.warn('FuelBaseline:', e); }
   try { renderDashboardFleetDeck(); } catch(e){ console.warn('FleetDeck:', e); }
@@ -38154,23 +38172,35 @@ function allUsersList() {
 
 
 function afterLoginHydration() {
-  fillVesselSelects();
-  fillCompanySelects();
-  updateBadges();
-  updateRoleVisibility();
-  if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter();
-  if (typeof renderDashboard === 'function') renderDashboard();
-  toast('Welcome back, ' + CU.name + (CU.role === 'master' ? ' (Master Administrator)' : '') + ' ✓', 'var(--ok)');
-  audit(CU.name + ' (@' + CU.username + ') signed in [' + CU.role.toUpperCase() + ']', 'var(--ok)');
+  try { if (typeof updateRoleVisibility === 'function') updateRoleVisibility(); } catch(e){}
+  try { if (typeof fillVesselSelects === 'function') fillVesselSelects(); } catch(e){}
+  try { if (typeof fillCompanySelects === 'function') fillCompanySelects(); } catch(e){}
+  try { if (typeof updateBadges === 'function') updateBadges(); } catch(e){}
+  try { if (typeof renderMasterGovernanceCenter === 'function') renderMasterGovernanceCenter(); } catch(e){}
+  try { if (typeof renderDashboard === 'function') renderDashboard(); } catch(e){}
+  if (CU) {
+    toast('Welcome back, ' + CU.name + (CU.role === 'master' ? ' (Master Administrator)' : '') + ' ✓', 'var(--ok)');
+    audit(CU.name + ' (@' + CU.username + ') signed in [' + (CU.role || '').toUpperCase() + ']', 'var(--ok)');
+  }
 }
 
 function updateRoleVisibility() {
-  if (!CU) return;
+  if (!CU) {
+    ['sb-name', 'hdr-user-name'].forEach(function(id){ var el = document.getElementById(id); if (el) el.textContent = '—'; });
+    ['sb-av', 'hdr-user-av'].forEach(function(id){ var el = document.getElementById(id); if (el) { el.textContent = '—'; el.style.background = '#64748b'; } });
+    ['sb-role-chip', 'hdr-user-role'].forEach(function(id){ var el = document.getElementById(id); if (el) { el.textContent = ''; el.style.display = 'none'; } });
+    document.querySelectorAll('.master-only').forEach(function(el) { if (!el.classList.contains('page')) el.style.display = 'none'; });
+    document.querySelectorAll('.admin-only').forEach(function(el) { if (!el.classList.contains('page')) el.style.display = 'none'; });
+    var msBtn0 = document.getElementById('master-settings-btn');
+    if (msBtn0) msBtn0.style.display = 'none';
+    return;
+  }
+
   var isMaster = CU.role === 'master';
   var isMasterOrAdmin = (isMaster || CU.role === 'admin');
   var roleTitle = isMaster ? 'Master Admin' : (CU.role === 'admin' ? 'Fleet Admin' : 'Staff User');
   var roleChipClass = isMaster ? 'role-chip-master' : (CU.role === 'admin' ? 'role-chip-admin' : 'role-chip-staff');
-  var userInitials = initials(CU.name || CU.username || 'U');
+  var userInitials = (typeof initials === 'function') ? initials(CU.name || CU.username || 'U') : ((CU.name || CU.username || 'U').slice(0,2).toUpperCase());
 
   // Update all Name elements (header & sidebar)
   ['sb-name', 'hdr-user-name'].forEach(function(id){
@@ -38195,6 +38225,7 @@ function updateRoleVisibility() {
     if (el) {
       el.textContent = roleTitle.toUpperCase();
       el.className = roleChipClass;
+      el.style.display = 'inline-flex';
     }
   });
 
@@ -38203,6 +38234,8 @@ function updateRoleVisibility() {
     if (el.classList.contains('page')) return;
     el.style.display = isMaster ? '' : 'none';
   });
+  var msBtn = document.getElementById('master-settings-btn');
+  if (msBtn) msBtn.style.display = isMaster ? '' : 'none';
 
   // Admin-only items
   document.querySelectorAll('.admin-only').forEach(function(el) {
